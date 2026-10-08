@@ -6,7 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDietKnowledgeApplication();
 builder.Services.AddDietKnowledgeInfrastructure(builder.Configuration);
-builder.Services.AddLongevityPublicApiDefaults("Longevity Diet Knowledge Service");
+builder.Services.AddLongevityPublicApiDefaults("Longevity Diet Knowledge Service", builder.Configuration);
 
 var app = builder.Build();
 

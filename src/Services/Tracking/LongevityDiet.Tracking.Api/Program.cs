@@ -6,7 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddTrackingApplication();
 builder.Services.AddTrackingInfrastructure(builder.Configuration);
-builder.Services.AddLongevityPublicApiDefaults("Longevity Diet Tracking Service");
+builder.Services.AddLongevityPublicApiDefaults("Longevity Diet Tracking Service", builder.Configuration);
 
 var app = builder.Build();
 
