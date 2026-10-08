@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" />
+    <PackageReference Include="Grpc.Net.Client" />
+    <PackageReference Include="Grpc.Tools" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="RabbitMQ.Client" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="..\..\Recommendation\LongevityDiet.Recommendation.Grpc\Protos\recommendation.proto" GrpcServices="Client" Link="Protos\recommendation.proto" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\LongevityDiet.MealPlanning.Application\LongevityDiet.MealPlanning.Application.csproj" />
+    <ProjectReference Include="..\LongevityDiet.MealPlanning.Domain\LongevityDiet.MealPlanning.Domain.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\LongevityDiet.Contracts\LongevityDiet.Contracts.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>

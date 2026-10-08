@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+option csharp_namespace = "LongevityDiet.Recommendation.Grpc";
+
+package longevitydiet.recommendation;
+
+service Recommendation {
+  rpc RecommendMealPlan (RecommendationRequest) returns (RecommendationReply);
+}
+
+message RecommendationRequest {
+  string user_id = 1;
+  repeated string preference_tags = 2;
+  int32 days = 3;
+}
+
+message RecommendationReply {
+  repeated SuggestedMeal suggestions = 1;
+  string disclaimer = 2;
+}
+
+message SuggestedMeal {
+  string title = 1;
+  string source = 2;
+}
