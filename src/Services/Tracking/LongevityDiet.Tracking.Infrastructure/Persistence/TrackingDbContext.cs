@@ -9,6 +9,8 @@ public sealed class TrackingDbContext(DbContextOptions<TrackingDbContext> option
 
     public DbSet<MealTracking> MealTrackings => Set<MealTracking>();
 
+    public DbSet<ProgressSummary> ProgressSummaries => Set<ProgressSummary>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<DailyTracking>(entity =>
@@ -24,6 +26,12 @@ public sealed class TrackingDbContext(DbContextOptions<TrackingDbContext> option
             entity.HasOne(tracking => tracking.DailyTracking)
                 .WithMany(daily => daily.Meals)
                 .HasForeignKey(tracking => tracking.DailyTrackingId);
+        });
+
+        modelBuilder.Entity<ProgressSummary>(entity =>
+        {
+            entity.HasKey(summary => summary.Id);
+            entity.HasIndex(summary => new { summary.UserId, summary.PeriodStartDate, summary.PeriodEndDate });
         });
     }
 }

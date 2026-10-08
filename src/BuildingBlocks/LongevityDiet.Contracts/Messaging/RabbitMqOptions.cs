@@ -17,4 +17,20 @@ public sealed class RabbitMqOptions
     public string ReminderQueue { get; set; } = "reminder.requests";
 
     public string ReminderRoutingKey { get; set; } = "reminder.requested";
+
+    public string RecommendationExchange { get; set; } = "longevity.recommendations";
+
+    public string RecommendationRequestQueue { get; set; } = "recommendation.requests";
+
+    public string RecommendationRequestRoutingKey { get; set; } = "recommendation.requested";
+
+    public string RecommendationResultQueue { get; set; } = "recommendation.results";
+
+    public string RecommendationResultRoutingKey { get; set; } = "recommendation.completed";
+
+    public string NotificationExchange { get; set; } = "longevity.notifications";
+
+    public string NotificationQueue { get; set; } = "notification.messages";
+
+    public string NotificationRoutingKey { get; set; } = "notification.requested";
 }

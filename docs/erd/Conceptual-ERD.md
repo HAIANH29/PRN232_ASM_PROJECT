@@ -68,6 +68,15 @@ erDiagram
         bool IsCompleted
     }
 
+    PROGRESS_SUMMARY {
+        guid Id
+        guid UserId
+        date PeriodStartDate
+        date PeriodEndDate
+        int PlannedMeals
+        int CompletedMeals
+    }
+
     USER }o--o{ ROLE : has
     RECIPE ||--o{ RECIPE_INGREDIENT : contains
     FOOD ||--o{ RECIPE_INGREDIENT : used_by

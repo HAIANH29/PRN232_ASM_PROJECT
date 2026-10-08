@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+option csharp_namespace = "LongevityDiet.Notification.Grpc";
+
+package longevitydiet.notification;
+
+service Notification {
+  rpc RequestProgressNotification (ProgressNotificationRequest) returns (NotificationReply);
+}
+
+message ProgressNotificationRequest {
+  string user_id = 1;
+  string recipient_email = 2;
+  string subject = 3;
+  string body = 4;
+  string progress_summary_id = 5;
+}
+
+message NotificationReply {
+  string notification_id = 1;
+  bool accepted = 2;
+  string message = 3;
+}

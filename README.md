@@ -10,10 +10,11 @@ This repository is Phase 1 only. It creates the structure and infrastructure hoo
 - `LongevityDiet.ApiGateway` - YARP reverse proxy gateway.
 - `LongevityDiet.Identity.Api` - REST API for users, roles, authentication, and JWT ownership.
 - `LongevityDiet.DietKnowledge.Api` - REST API for guidelines, foods, recipes, and ingredients.
-- `LongevityDiet.MealPlanning.Api` - REST API for meal plans and reminder publishing.
+- `LongevityDiet.MealPlanning.Api` - REST API for meal plans, reminder publishing, and AI recommendation request publishing.
 - `LongevityDiet.Tracking.Api` - REST API for daily and meal tracking.
-- `LongevityDiet.Recommendation.Grpc` - internal gRPC recommendation skeleton.
-- `LongevityDiet.ReminderWorker` - worker skeleton for RabbitMQ reminder messages and future email provider calls.
+- `LongevityDiet.Recommendation.Service` - internal RabbitMQ recommendation worker with Google Gemini placeholder.
+- `LongevityDiet.Notification.Grpc` - internal gRPC notification service called by Tracking.
+- `LongevityDiet.NotificationWorker` - worker skeleton for RabbitMQ notification/reminder messages and future Resend calls.
 
 Each REST service is split into:
 
@@ -47,6 +48,7 @@ Useful URLs:
 - Diet Knowledge Swagger: `http://localhost:5102/swagger`
 - Meal Planning Swagger: `http://localhost:5103/swagger`
 - Tracking Swagger: `http://localhost:5104/swagger`
+- Notification Service health: `http://localhost:5105/health`
 - RabbitMQ Management: `http://localhost:15672`
 
 ## Phase 1 TODO
@@ -54,7 +56,9 @@ Useful URLs:
 - Add EF Core migrations per service.
 - Implement real authentication and JWT token issuance in Identity Service.
 - Implement CRUD and query endpoints for approved diet knowledge.
-- Implement meal plan workflows and real RabbitMQ publish logic.
-- Implement reminder consumption and email provider integration.
+- Implement meal plan workflows and real RabbitMQ publish/consume logic.
+- Implement Recommendation Service RabbitMQ consumption and Google Gemini integration.
+- Implement Tracking -> Notification gRPC use cases.
+- Implement Notification Worker consumption and Resend integration.
 - Implement tracking workflows and progress summaries.
 - Add tests around each implemented slice.

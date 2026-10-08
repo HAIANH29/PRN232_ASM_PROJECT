@@ -7,49 +7,67 @@ Before doing any work, read `AGENTS.md` in the repository root and treat it as t
 ## Goal
 Create the **initial project skeleton only** for the PRN232 assignment **Longevity Diet Platform**. Do not build the whole product yet.
 
-The system is based on the book *The Longevity Diet*. It helps users understand approved book-derived diet knowledge, create meal plans, track adherence/progress, and receive reminders. It is not a medical diagnosis/treatment platform.
+The system is based on the book *The Longevity Diet*. It helps users understand approved book-derived diet knowledge, create meal plans, track adherence/progress, receive reminders/notifications, and request AI-assisted meal recommendations. It is not a medical diagnosis/treatment platform.
 
 ## Required architecture
-Create a .NET solution that is ready for:
+Create a .NET solution ready for:
 
-- ASP.NET Core MVC Web Application
+- Web Application
 - YARP API Gateway
 - Identity Service
 - Diet Knowledge Service
 - Meal Planning Service
 - Tracking Service
+- Recommendation Service
+- Notification Service
 - RabbitMQ
-- .NET Reminder Worker
-- PostgreSQL database-per-service
+- .NET Notification Worker
+- PostgreSQL database-per-stateful-service
 - JWT authentication
 - Docker Compose
 - Swagger/OpenAPI
-- gRPC requirement
-- Optional AI Recommendation Service
+- gRPC
+- Google Gemini integration placeholder
+- Resend integration placeholder
 
-### gRPC choice
-Scaffold `Recommendation Service` and a minimal `.proto` contract so:
-`Meal Planning Service -> Recommendation Service` uses **gRPC**.
+## Required communication design
 
-Do not implement real AI logic yet. Provide an interface/configuration placeholder for a future external AI provider.
+### REST
+Web Application -> API Gateway -> public business services
 
-### Async messaging
-Scaffold:
-`Meal Planning Service -> RabbitMQ -> Reminder Worker`
+### gRPC
+Tracking Service -> Notification Service
 
-Do not implement a complex scheduling engine yet. Create only the contracts/configuration/placeholder consumer needed to prove the architecture.
+Create a minimal `.proto` contract for this flow.
 
-## Internal architecture
-Each REST microservice must follow:
-`API -> Services -> Repository`
+### RabbitMQ — Recommendation flow
+Meal Planning Service:
+- publishes `RecommendationRequest`
 
-Prefer projects/layers corresponding to:
-- `.Api`
-- `.Application`
-- `.Infrastructure`
-- `.Domain`
+Recommendation Service:
+- consumes `RecommendationRequest`
+- calls Google Gemini later over HTTPS
+- publishes `RecommendationResult`
 
-Do not let controllers access DbContext directly.
+Meal Planning Service:
+- consumes `RecommendationResult`
+
+### RabbitMQ — Notification/reminder flow
+Meal Planning Service:
+- publishes reminder messages
+
+Tracking Service:
+- calls Notification Service via gRPC
+
+Notification Service:
+- publishes notification messages
+
+Notification Worker:
+- consumes notification/reminder messages
+- calls Resend later over HTTPS
+
+Do not create a separate Reminder Worker. Use only:
+`Notification Worker [.NET Worker Service]`
 
 ## Databases
 Prepare separate PostgreSQL contexts/configuration for:
@@ -58,10 +76,15 @@ Prepare separate PostgreSQL contexts/configuration for:
 - MealPlanningDb
 - TrackingDb
 
+Do NOT create:
+- RecommendationDb
+- NotificationDb
+
+unless a later concrete requirement needs persistence.
+
 Never create cross-database foreign keys.
 
 ## Phase-1 entities
-Create only minimal domain model shells needed to establish ownership:
 
 Identity:
 - User
@@ -80,6 +103,7 @@ Meal Planning:
 Tracking:
 - DailyTracking
 - MealTracking
+- ProgressSummary
 
 Do not over-model the domain yet.
 
@@ -90,18 +114,20 @@ At the end, the repository should contain:
 2. Project structure for all required containers/services
 3. Correct project references
 4. Minimal `Program.cs` for each executable
-5. Swagger for REST APIs
+5. Swagger for public REST APIs
 6. Health check endpoints
-7. EF Core DbContext skeletons
+7. EF Core DbContext skeletons for 4 persistent services
 8. YARP routing skeleton
-9. RabbitMQ producer/consumer contract skeleton
-10. gRPC `.proto` + server/client skeleton
-11. Dockerfiles
-12. `docker-compose.yml`
-13. `.env.example`
-14. `README.md` explaining how to run the skeleton
-15. Keep and update `AGENTS.md`
-16. Architecture docs:
+9. RabbitMQ producer/consumer contract skeletons
+10. gRPC `.proto` + server/client skeleton for Tracking -> Notification
+11. Recommendation request/result message contracts
+12. Notification/reminder message contracts
+13. Dockerfiles
+14. `docker-compose.yml`
+15. `.env.example`
+16. `README.md`
+17. Keep and update `AGENTS.md`
+18. Architecture docs:
     - `docs/c4/C0-System-Context.md`
     - `docs/c4/C1-Internal-Architecture.md`
     - `docs/erd/Conceptual-ERD.md`
@@ -112,34 +138,33 @@ Keep C0 simple:
 - User
 - Admin
 - Longevity Diet Platform
-- Email Provider
-- AI Provider only because Recommendation Service is scaffolded
+- Google Gemini [AI Provider]
+- Resend [Email Service]
 
-Do not show internal services/databases in C0.
+Do not show internal services/databases/RabbitMQ in C0.
 
 ## C1 content
 Show:
 - Web Application
-- API Gateway
+- API Gateway [YARP]
 - Identity Service
 - Diet Knowledge Service
 - Meal Planning Service
 - Tracking Service
 - Recommendation Service
+- Notification Service
 - 4 owned PostgreSQL databases
-- RabbitMQ
-- Reminder Worker
-- Email Provider
-- AI Provider
+- RabbitMQ [Message Broker]
+- Notification Worker [.NET Worker Service]
+- Google Gemini [AI Provider]
+- Resend [Email Service]
 
-Label communication only where useful:
-- HTTPS / REST
+Communication labels should stay short:
+- HTTPS
 - HTTP / REST
 - gRPC
-- Publish / Consume
-- HTTPS
-
-Keep diagram text short.
+- Publish
+- Consume
 
 ## Important restrictions
 - Do not invent unrelated features.
@@ -149,9 +174,12 @@ Keep diagram text short.
 - Do not add Kubernetes.
 - Do not implement full CRUD yet.
 - Do not implement real email sending yet.
-- Do not implement real AI calls yet.
+- Do not implement real Gemini calls yet.
 - Do not use one shared database.
 - Do not create direct database access across services.
+- Do not create RecommendationDb or NotificationDb in Phase 1.
+- Do not keep the old `Meal Planning -> Recommendation` gRPC design.
+- Do not create a separate Reminder Worker.
 - Do not generate hundreds of files without need.
 
 ## Working style

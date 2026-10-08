@@ -5,13 +5,13 @@ flowchart LR
     User[User]
     Admin[Admin]
     Platform[Longevity Diet Platform]
-    Email[External Email Provider]
-    AI[External AI Provider]
+    Gemini[Google Gemini\nAI Provider]
+    Resend[Resend\nEmail Service]
 
-    User -->|HTTPS / REST| Platform
-    Admin -->|HTTPS / REST| Platform
-    Platform -->|HTTPS| Email
-    Platform -->|HTTPS, optional| AI
+    User -->|HTTPS| Platform
+    Admin -->|HTTPS| Platform
+    Platform -->|HTTPS| Gemini
+    Platform -->|HTTPS| Resend
 ```
 
 The platform is educational and planning-focused. It does not provide diagnosis, treatment, disease prediction, lifespan prediction, or medical advice.

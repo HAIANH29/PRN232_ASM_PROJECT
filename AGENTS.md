@@ -26,8 +26,8 @@ Do:
 - Foods and recipes compatible with those guidelines
 - Meal planning
 - Daily tracking / progress
-- Reminder emails
-- Optional AI-assisted recommendation based only on approved diet knowledge and user preferences
+- Reminder and notification emails
+- AI-assisted recommendation based only on approved diet knowledge and user preferences
 
 Do NOT:
 - Turn the product into a generic nutrition platform
@@ -45,21 +45,28 @@ Do NOT:
 - Admin
 
 ### External systems
-- Email Provider (e.g. Resend/Brevo/Mailjet)
-- AI Provider only when AI recommendation is enabled
+- Google Gemini — AI Provider
+- Resend — Email Service
 
-### Core containers
-- Web Application — ASP.NET Core MVC
+### Internal containers/services
+- Web Application
 - API Gateway — YARP
 - Identity Service — ASP.NET Core Web API
 - Diet Knowledge Service — ASP.NET Core Web API
 - Meal Planning Service — ASP.NET Core Web API
 - Tracking Service — ASP.NET Core Web API
+- Recommendation Service — internal AI orchestration service
+- Notification Service — internal notification orchestration service
 - RabbitMQ — Message Broker
-- Reminder Worker — .NET Worker Service
+- Notification Worker — .NET Worker Service
 
-### Optional AI container
-- Recommendation Service — internal service used by Meal Planning Service through gRPC
+### Databases
+- IdentityDb — PostgreSQL
+- DietKnowledgeDb — PostgreSQL
+- MealPlanningDb — PostgreSQL
+- TrackingDb — PostgreSQL
+
+Recommendation Service and Notification Service are stateless in the current scope and do not require their own databases.
 
 ## 4. Service Responsibilities
 
@@ -99,8 +106,10 @@ Database:
 Responsibilities:
 - Create/update/delete meal plans
 - Schedule meals
-- Validate or retrieve food/recipe knowledge from another service when required
-- Publish reminder-related messages to RabbitMQ
+- Work with approved diet knowledge when creating plans
+- Publish reminder messages to RabbitMQ
+- Publish AI recommendation requests to RabbitMQ
+- Consume AI recommendation results from RabbitMQ when needed
 
 ### Tracking Service
 Owns:
@@ -115,23 +124,33 @@ Responsibilities:
 - Mark planned meals completed/not completed
 - Store daily tracking
 - Calculate progress/history
+- Call Notification Service via gRPC when a progress-related notification is required
 
-### Reminder Worker
+### Recommendation Service
 Responsibilities:
-- Consume reminder messages from RabbitMQ
-- Process scheduled reminders
-- Call external Email Provider over HTTPS
-
-Do not make Reminder Worker a business REST API unless explicitly needed.
-
-### Recommendation Service (optional)
-Responsibilities:
-- Receive recommendation requests from Meal Planning Service using gRPC
-- Use only approved Diet Knowledge plus user preferences
-- Call an external AI Provider if configured
-- Return suggested meal plans/recipes
+- Consume recommendation requests from RabbitMQ
+- Prepare AI context/prompt from approved project data
+- Call Google Gemini over HTTPS
+- Publish recommendation results back to RabbitMQ
 - Never diagnose or provide medical treatment advice
 - Never write directly to MealPlanningDb
+- No database in the current scope
+
+### Notification Service
+Responsibilities:
+- Receive notification requests from Tracking Service via gRPC
+- Prepare notification messages
+- Publish notification messages to RabbitMQ
+- No notification history/read-unread feature in the current scope
+- No database in the current scope
+
+### Notification Worker
+Responsibilities:
+- Consume notification/reminder messages from RabbitMQ
+- Send email through Resend over HTTPS
+- Handle background delivery processing
+
+Do not create a second Reminder Worker. The previous Reminder Worker role is replaced by **Notification Worker**.
 
 ## 5. Communication Rules
 
@@ -139,27 +158,68 @@ Responsibilities:
 Web Application -> API Gateway:
 - HTTPS / REST
 
-API Gateway -> REST microservices:
+API Gateway -> public business REST services:
 - HTTP / REST
 
+Public business services behind the gateway:
+- Identity Service
+- Diet Knowledge Service
+- Meal Planning Service
+- Tracking Service
+
+Recommendation Service and Notification Service are internal services and do not need direct public routes unless explicitly required later.
+
 ### Internal synchronous communication
-When AI recommendation is enabled:
-- Meal Planning Service -> Recommendation Service: gRPC
+Tracking Service -> Notification Service:
+- **gRPC**
 
-If Meal Planning Service must read food/recipe data directly:
-- Prefer a small explicit service API; do not access DietKnowledgeDb directly.
+Use this as the project’s required gRPC communication flow.
 
-### Asynchronous communication
+### Internal asynchronous communication
+
+#### AI Recommendation
 Meal Planning Service -> RabbitMQ:
-- Publish reminder-related messages
+- Publish `RecommendationRequest`
 
-RabbitMQ -> Reminder Worker:
-- Consume messages
+RabbitMQ -> Recommendation Service:
+- Consume `RecommendationRequest`
 
-Reminder Worker -> Email Provider:
+Recommendation Service -> Google Gemini:
 - HTTPS
 
-## 6. Layered Architecture Inside REST Services
+Recommendation Service -> RabbitMQ:
+- Publish `RecommendationResult`
+
+RabbitMQ -> Meal Planning Service:
+- Consume `RecommendationResult`
+
+#### Reminder / Notification
+Meal Planning Service -> RabbitMQ:
+- Publish meal reminder messages
+
+Tracking Service -> Notification Service:
+- gRPC
+
+Notification Service -> RabbitMQ:
+- Publish notification messages
+
+RabbitMQ -> Notification Worker:
+- Consume notification/reminder messages
+
+Notification Worker -> Resend:
+- HTTPS
+
+## 6. Communication Intent
+Use each communication style for a clear reason:
+
+- **HTTPS**: public/external communication that must be protected in transit
+- **HTTP/REST**: normal synchronous API communication behind the gateway
+- **gRPC**: internal synchronous service-to-service communication where a typed contract is useful
+- **RabbitMQ**: asynchronous communication where the sender should not wait for the receiver to finish
+
+Do not use a technology just to satisfy a checklist.
+
+## 7. Layered Architecture Inside REST Services
 Each REST microservice should use exactly these logical layers:
 
 API
@@ -181,7 +241,7 @@ Mapping:
 Keep dependencies one-directional.
 Do not let Controllers call DbContext directly.
 
-## 7. Database Rules
+## 8. Database Rules
 Use PostgreSQL and database-per-service.
 
 - IdentityDb
@@ -190,13 +250,14 @@ Use PostgreSQL and database-per-service.
 - TrackingDb
 
 Rules:
-- Each service owns its database.
+- Each stateful business service owns its database.
 - No service reads another service database directly.
 - No cross-database foreign keys.
 - Cross-service references use IDs only.
 - Use EF Core migrations per service.
+- Do not create RecommendationDb or NotificationDb unless a concrete future requirement needs persistence.
 
-## 8. Initial Functional Scope
+## 9. Initial Functional Scope
 
 ### User
 - Register
@@ -206,10 +267,10 @@ Rules:
 - Search/filter foods
 - Search/filter recipes
 - Create/update meal plans
+- Request AI-assisted meal recommendations
 - Mark meal completion
 - View daily/weekly progress
-- Receive reminder emails
-- Request AI meal recommendation only if AI module is enabled
+- Receive reminder/notification emails
 
 ### Admin
 - Login
@@ -220,7 +281,25 @@ Rules:
 
 Do not add admin capabilities unrelated to this scope.
 
-## 9. API Quality Rules
+## 10. AI Recommendation Rules
+AI is an enhancement, not the source of truth.
+
+Recommendation must be based on:
+- Approved knowledge derived from *The Longevity Diet*
+- Foods/recipes available in the system
+- User preferences supplied by the user
+
+Google Gemini must not be used as a generic medical/nutrition authority.
+
+Never implement:
+- diagnosis
+- treatment advice
+- disease-specific medical recommendations
+- lifespan prediction
+
+The final meal plan is owned and saved by Meal Planning Service only after the user accepts/edits the recommendation.
+
+## 11. API Quality Rules
 For REST APIs:
 - Use RESTful resource naming
 - Use DTOs
@@ -232,55 +311,110 @@ For REST APIs:
 - Add global error handling
 - Do not expose EF entities directly
 
-## 10. Authentication Rules
+## 12. Authentication Rules
 - JWT Bearer authentication
 - Roles: User, Admin
 - Admin-only mutation endpoints for managed diet knowledge
 - User owns and can access only their own meal plans/tracking data
 
-## 11. Docker Rules
+## 13. Docker Rules
 Provide Dockerfiles for deployable services and a docker-compose.yml for local development.
 
 Docker Compose should eventually include:
+- web
 - api-gateway
 - identity-service
 - diet-knowledge-service
 - meal-planning-service
 - tracking-service
-- reminder-worker
+- recommendation-service
+- notification-service
+- notification-worker
 - rabbitmq
 - postgres databases
-- recommendation-service only if AI module is enabled
+
+External providers are not Docker containers:
+- Google Gemini
+- Resend
 
 Do not add Kubernetes unless explicitly requested.
 
-## 12. Architecture Documentation
+## 14. Architecture Documentation
 Maintain:
 - docs/c4/C0-System-Context.md
 - docs/c4/C1-Internal-Architecture.md
 - docs/erd/Conceptual-ERD.md
 - docs/database/Physical-Database.md
 
-C0 must show:
+### C0 — System Context
+Show only:
 - User
 - Admin
 - Longevity Diet Platform
-- External Email Provider
-- External AI Provider only if used
+- Google Gemini [AI Provider]
+- Resend [Email Service]
 
-C1 must show:
+Do not show internal microservices/databases/RabbitMQ in C0.
+
+### C1 — Internal Architecture
+Show:
 - Web Application
-- API Gateway
-- Internal services
-- Databases
-- RabbitMQ
-- Reminder Worker
-- External providers
-- Communication type labels such as REST, gRPC, Publish/Consume, HTTPS
+- API Gateway [YARP]
+- Identity Service
+- Diet Knowledge Service
+- Tracking Service
+- Meal Planning Service
+- Recommendation Service
+- Notification Service
+- 4 PostgreSQL databases
+- RabbitMQ [Message Broker]
+- Notification Worker [.NET Worker Service]
+- Google Gemini [AI Provider]
+- Resend [Email Service]
+
+Keep relationship labels short:
+- HTTPS
+- HTTP / REST
+- gRPC
+- Publish
+- Consume
 
 Keep diagrams simple: correct, sufficient, no unnecessary text.
 
-## 13. Coding Workflow
+## 15. Main Business Flow
+
+### Normal usage
+1. User/Admin accesses Web Application.
+2. Web Application calls API Gateway.
+3. Gateway routes REST requests to the appropriate business service.
+4. Each service reads/writes only its own database.
+
+### AI recommendation
+1. User requests an AI-assisted meal recommendation.
+2. Request reaches Meal Planning Service.
+3. Meal Planning Service publishes a recommendation request to RabbitMQ.
+4. Recommendation Service consumes the request.
+5. Recommendation Service calls Google Gemini over HTTPS.
+6. Recommendation Service publishes the recommendation result to RabbitMQ.
+7. Meal Planning Service consumes the result.
+8. User reviews/edits the recommendation.
+9. Accepted meal plan is saved in MealPlanningDb.
+
+### Progress notification
+1. User records meal completion.
+2. Tracking Service updates progress in TrackingDb.
+3. When a notification is needed, Tracking Service calls Notification Service via gRPC.
+4. Notification Service publishes a notification message to RabbitMQ.
+5. Notification Worker consumes the message.
+6. Notification Worker calls Resend over HTTPS.
+7. Resend sends the email to the user.
+
+### Meal reminder
+1. Meal Planning Service publishes a reminder message to RabbitMQ.
+2. Notification Worker consumes the reminder message.
+3. Notification Worker sends the reminder email through Resend.
+
+## 16. Coding Workflow
 Always work incrementally.
 
 Before coding:
@@ -298,24 +432,27 @@ For each implementation phase:
 5. Report created/changed files.
 6. Report assumptions and TODOs.
 
-## 14. Phase 1 — Scaffold Only
+## 17. Phase 1 — Scaffold Only
 When asked to "build the initial skeleton", create structure only:
 - Solution
 - Projects
 - Project references
 - Basic configuration
 - Health endpoints
-- Swagger for APIs
+- Swagger for public REST APIs
 - Empty/placeholder layers
-- DbContext shells
+- DbContext shells for the 4 persistent services
 - Docker Compose skeleton
-- RabbitMQ configuration skeleton
-- gRPC contract/service skeleton if AI module is enabled
+- RabbitMQ contracts/configuration skeleton
+- Recommendation request/result message contracts
+- Tracking -> Notification gRPC contract skeleton
+- Notification message contract
 - Documentation folders
 
 Do NOT implement all business features in Phase 1.
+Do NOT call real Gemini or Resend in Phase 1 unless explicitly requested.
 
-## 15. Source of Truth
+## 18. Source of Truth
 If a later prompt conflicts with this file, ask for clarification before making a major architecture change.
 
 When requirements change, update this file first so future AI work remains consistent.
