@@ -52,11 +52,9 @@ services:
     environment:
       ConnectionStrings__MealPlanningDb: Host=meal-planning-db;Port=5432;Database=MealPlanningDb;Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
       RabbitMq__HostName: rabbitmq
-      RecommendationService__GrpcAddress: http://recommendation-service:8080
     depends_on:
       - meal-planning-db
       - rabbitmq
-      - recommendation-service
 
   tracking-service:
     build:
@@ -66,27 +64,42 @@ services:
       - "5104:8080"
     environment:
       ConnectionStrings__TrackingDb: Host=tracking-db;Port=5432;Database=TrackingDb;Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
+      NotificationService__GrpcAddress: http://notification-service:8080
     depends_on:
       - tracking-db
+      - notification-service
 
   recommendation-service:
     build:
       context: .
-      dockerfile: src/Services/Recommendation/LongevityDiet.Recommendation.Grpc/Dockerfile
+      dockerfile: src/Services/Recommendation/LongevityDiet.Recommendation.Service/Dockerfile
+    environment:
+      RabbitMq__HostName: rabbitmq
+      Gemini__Enabled: ${GEMINI_ENABLED:-false}
+      Gemini__Endpoint: ${GEMINI_ENDPOINT:-https://generativelanguage.googleapis.com}
+      Gemini__ApiKey: ${GEMINI_API_KEY:-development-only}
+    depends_on:
+      - rabbitmq
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: src/Services/Notification/LongevityDiet.Notification.Grpc/Dockerfile
     ports:
       - "5105:8080"
     environment:
-      AiProvider__Enabled: ${AI_PROVIDER_ENABLED:-false}
-      AiProvider__Endpoint: ${AI_PROVIDER_ENDPOINT:-}
+      RabbitMq__HostName: rabbitmq
+    depends_on:
+      - rabbitmq
 
-  reminder-worker:
+  notification-worker:
     build:
       context: .
-      dockerfile: src/Workers/LongevityDiet.ReminderWorker/Dockerfile
+      dockerfile: src/Workers/LongevityDiet.NotificationWorker/Dockerfile
     environment:
       RabbitMq__HostName: rabbitmq
-      EmailProvider__BaseUrl: ${EMAIL_PROVIDER_BASE_URL:-https://email-provider.example}
-      EmailProvider__ApiKey: ${EMAIL_PROVIDER_API_KEY:-development-only}
+      Resend__BaseUrl: ${RESEND_BASE_URL:-https://api.resend.com}
+      Resend__ApiKey: ${RESEND_API_KEY:-development-only}
     depends_on:
       - rabbitmq
 

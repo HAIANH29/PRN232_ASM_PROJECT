@@ -8,6 +8,11 @@ public sealed class MealPlanningService : IMealPlanningService
             "Meal Planning Service",
             "MealPlanningDb",
             ["MealPlan", "MealPlanItem"],
-            ["Diet Knowledge REST lookup placeholder", "RabbitMQ reminder publisher", "Recommendation gRPC client"]);
+            [
+                "Diet Knowledge REST lookup placeholder",
+                "RabbitMQ reminder publisher",
+                "RabbitMQ recommendation request publisher",
+                "RabbitMQ recommendation result consumer"
+            ]);
     }
 }

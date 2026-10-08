@@ -1,6 +1,6 @@
 # Physical Database
 
-PostgreSQL is used with database-per-service ownership.
+PostgreSQL is used with database-per-stateful-service ownership.
 
 ## IdentityDb
 
@@ -32,13 +32,21 @@ Owned by `Meal Planning Service`.
 
 - `DailyTrackings`
 - `MealTrackings`
+- `ProgressSummaries`
 
 Owned by `Tracking Service`.
 
 `MealPlanItemId` is a cross-service identifier only.
 
+## Stateless Services
+
+- `Recommendation Service` has no database in Phase 1.
+- `Notification Service` has no database in Phase 1.
+- `Notification Worker` has no database in Phase 1.
+
 ## Rules
 
 - No service reads another service database directly.
 - No cross-database foreign keys.
-- EF Core migrations should be created per service in a later implementation phase.
+- Do not create `RecommendationDb` or `NotificationDb` unless a future persistence requirement needs them.
+- EF Core migrations should be created per stateful service in a later implementation phase.

@@ -1,7 +1,6 @@
 using LongevityDiet.MealPlanning.Application.Abstractions;
 using LongevityDiet.MealPlanning.Infrastructure.Messaging;
 using LongevityDiet.MealPlanning.Infrastructure.Persistence;
-using LongevityDiet.MealPlanning.Infrastructure.Recommendation;
 using LongevityDiet.MealPlanning.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -20,7 +19,8 @@ public static class DependencyInjection
 
         services.AddScoped<IMealPlanRepository, MealPlanRepository>();
         services.AddScoped<IReminderPublisher, RabbitMqReminderPublisher>();
-        services.AddScoped<IRecommendationClient, GrpcRecommendationClient>();
+        services.AddScoped<IRecommendationRequestPublisher, RabbitMqRecommendationRequestPublisher>();
+        services.AddScoped<IRecommendationResultConsumer, RabbitMqRecommendationResultConsumer>();
 
         return services;
     }

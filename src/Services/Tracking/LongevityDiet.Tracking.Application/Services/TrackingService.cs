@@ -7,6 +7,6 @@ public sealed class TrackingService : ITrackingService
         return new TrackingServiceStatus(
             "Tracking Service",
             "TrackingDb",
-            ["DailyTracking", "MealTracking", "ProgressSummary placeholder"]);
+            ["DailyTracking", "MealTracking", "ProgressSummary"]);
     }
 }

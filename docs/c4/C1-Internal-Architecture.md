@@ -4,27 +4,28 @@
 flowchart LR
     User[User]
     Admin[Admin]
-    Web[Web Application\nASP.NET Core MVC]
+    Web[Web Application]
     Gateway[API Gateway\nYARP]
 
-    Identity[Identity Service\nREST API]
-    Diet[Diet Knowledge Service\nREST API]
-    Meal[Meal Planning Service\nREST API]
-    Tracking[Tracking Service\nREST API]
-    Recommendation[Recommendation Service\ngRPC]
-    Worker[Reminder Worker\n.NET Worker]
-    Rabbit[RabbitMQ]
+    Identity[Identity Service]
+    Diet[Diet Knowledge Service]
+    Meal[Meal Planning Service]
+    Tracking[Tracking Service]
+    Recommendation[Recommendation Service]
+    Notification[Notification Service]
+    Worker[Notification Worker\n.NET Worker Service]
+    Rabbit[RabbitMQ\nMessage Broker]
 
-    IdentityDb[(IdentityDb)]
-    DietDb[(DietKnowledgeDb)]
-    MealDb[(MealPlanningDb)]
-    TrackingDb[(TrackingDb)]
-    Email[External Email Provider]
-    AI[External AI Provider]
+    IdentityDb[(IdentityDb\nPostgreSQL)]
+    DietDb[(DietKnowledgeDb\nPostgreSQL)]
+    MealDb[(MealPlanningDb\nPostgreSQL)]
+    TrackingDb[(TrackingDb\nPostgreSQL)]
+    Gemini[Google Gemini\nAI Provider]
+    Resend[Resend\nEmail Service]
 
-    User -->|HTTPS / REST| Web
-    Admin -->|HTTPS / REST| Web
-    Web -->|HTTPS / REST| Gateway
+    User -->|HTTPS| Web
+    Admin -->|HTTPS| Web
+    Web -->|HTTPS| Gateway
 
     Gateway -->|HTTP / REST| Identity
     Gateway -->|HTTP / REST| Diet
@@ -36,11 +37,16 @@ flowchart LR
     Meal --> MealDb
     Tracking --> TrackingDb
 
-    Meal -->|gRPC| Recommendation
-    Recommendation -->|HTTPS, optional| AI
     Meal -->|Publish| Rabbit
+    Rabbit -->|Consume| Recommendation
+    Recommendation -->|HTTPS| Gemini
+    Recommendation -->|Publish| Rabbit
+    Rabbit -->|Consume| Meal
+
+    Tracking -->|gRPC| Notification
+    Notification -->|Publish| Rabbit
     Rabbit -->|Consume| Worker
-    Worker -->|HTTPS| Email
+    Worker -->|HTTPS| Resend
 ```
 
-Each REST service owns its database. Cross-service references are IDs only.
+Recommendation Service and Notification Service are stateless in the current scope and do not own databases.
