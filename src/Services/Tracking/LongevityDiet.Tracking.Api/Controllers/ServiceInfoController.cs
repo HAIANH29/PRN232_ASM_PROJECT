@@ -1,3 +1,4 @@
+using LongevityDiet.ApiDefaults.Api;
 using LongevityDiet.Tracking.Application.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,8 +9,11 @@ namespace LongevityDiet.Tracking.Api.Controllers;
 public sealed class ServiceInfoController(ITrackingService trackingService) : ControllerBase
 {
     [HttpGet]
-    public ActionResult<TrackingServiceStatus> Get()
+    public ActionResult<ApiResponse<TrackingServiceStatus>> Get()
     {
-        return Ok(trackingService.GetStatus());
+        return Ok(ApiResponse<TrackingServiceStatus>.Success(
+            trackingService.GetStatus(),
+            "Tracking Service is running.",
+            HttpContext.TraceIdentifier));
     }
 }

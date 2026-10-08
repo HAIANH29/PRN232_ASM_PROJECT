@@ -6,6 +6,11 @@ This repository is Phase 1 only. It creates the structure and infrastructure hoo
 
 Project status and remaining work are tracked in `PROJECT_PROGRESS.md`. The completion roadmap is tracked in `PROJECT_SCHEDULE.md`. Update the progress file after each completed project change.
 
+Development conventions:
+
+- API conventions: `docs/development/Api-Conventions.md`
+- Seed data strategy: `docs/development/Seed-Data-Strategy.md`
+
 ## Containers
 
 - `LongevityDiet.Web` - ASP.NET Core MVC web application.

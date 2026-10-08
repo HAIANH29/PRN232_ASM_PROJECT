@@ -22,6 +22,7 @@ This file is the shared progress tracker for the project. Every human or AI agen
   - Meal Planning: `MealPlan`, `MealPlanItem`
   - Tracking: `DailyTracking`, `MealTracking`, `ProgressSummary`
 - Added Swagger and health endpoint scaffolding for public REST APIs.
+- Added shared API defaults for public REST APIs: response envelope, paged response model, validation error response factory, global exception middleware, Swagger Bearer setup, and health/controller pipeline extension.
 - Added Dockerfiles and `docker-compose.yml` skeleton for local development.
 - Added RabbitMQ contract/configuration skeletons for reminder, notification, and recommendation flows.
 - Updated Recommendation Service to use RabbitMQ request/result messages with Google Gemini placeholder configuration.
@@ -34,7 +35,7 @@ This file is the shared progress tracker for the project. Every human or AI agen
 ## Incomplete / Remaining Work
 
 - Implement real Identity Service register/login/profile APIs, JWT token issuance, password hashing, and role enforcement.
-- Add DTOs, validation, global error handling, and correct HTTP status handling to each public REST API.
+- Add business DTOs, endpoint-specific validation rules, and correct HTTP status handling to each public REST API.
 - Implement Diet Knowledge admin CRUD, user browse/search/filter/sort/pagination, and activation/deactivation.
 - Implement Meal Planning create/update/delete workflows, scheduling rules, ownership checks, and real reminder publishing behavior.
 - Implement Meal Planning consumption of `RecommendationResult` and the user accept/edit flow for AI recommendations.
@@ -63,6 +64,18 @@ Each update should include:
 Do not mark a feature as complete if it only has placeholders or configuration. Call it a scaffold until the real behavior exists and has been verified.
 
 ## Change Log
+
+### 2026-10-08 — Complete Milestone 0 baseline foundation
+
+- Added `LongevityDiet.ApiDefaults` shared building block.
+- Added shared `ApiResponse<T>`, `ApiError`, `PageRequest`, and `PagedResponse<T>` models.
+- Added global exception middleware and shared model-validation error response behavior.
+- Added shared public API startup extension for controllers, Swagger, JWT Bearer setup, health checks, authentication, and authorization.
+- Applied the shared API defaults to Identity, Diet Knowledge, Meal Planning, and Tracking public APIs.
+- Updated service-info endpoints to return the common API response envelope.
+- Added API convention and seed-data strategy docs.
+- Updated `PROJECT_SCHEDULE.md` to mark Milestone 0 complete.
+- Verification: `dotnet restore LongevityDietPlatform.sln`, `git diff --check`, `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, and `docker compose config` passed.
 
 ### 2026-10-08 — Add completion schedule
 

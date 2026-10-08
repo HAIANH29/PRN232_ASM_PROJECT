@@ -1,37 +1,15 @@
+using LongevityDiet.ApiDefaults.Extensions;
 using LongevityDiet.DietKnowledge.Application;
 using LongevityDiet.DietKnowledge.Infrastructure;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDietKnowledgeApplication();
 builder.Services.AddDietKnowledgeInfrastructure(builder.Configuration);
-
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-builder.Services.AddHealthChecks();
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
-builder.Services.AddAuthorization();
+builder.Services.AddLongevityPublicApiDefaults("Longevity Diet Knowledge Service");
 
 var app = builder.Build();
 
-app.UseExceptionHandler(errorApp =>
-{
-    errorApp.Run(async context =>
-    {
-        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-        await context.Response.WriteAsJsonAsync(new { error = "Unexpected server error." });
-    });
-});
-
-app.UseSwagger();
-app.UseSwaggerUI();
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapHealthChecks("/health");
-app.MapControllers();
+app.UseLongevityPublicApiDefaults();
 
 app.Run();
