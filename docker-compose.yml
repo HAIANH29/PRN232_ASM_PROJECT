@@ -29,6 +29,9 @@ services:
     environment:
       ConnectionStrings__IdentityDb: Host=identity-db;Port=5432;Database=IdentityDb;Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
       Jwt__SigningKey: ${JWT_SIGNING_KEY:-development-only-replace-with-secret}
+      IdentitySeed__AdminEmail: ${IDENTITY_ADMIN_EMAIL:-admin@longevity.local}
+      IdentitySeed__AdminPassword: ${IDENTITY_ADMIN_PASSWORD:-Admin@123456}
+      IdentitySeed__AdminDisplayName: ${IDENTITY_ADMIN_DISPLAY_NAME:-Demo Admin}
     depends_on:
       - identity-db
 
@@ -40,6 +43,7 @@ services:
       - "5102:8080"
     environment:
       ConnectionStrings__DietKnowledgeDb: Host=diet-knowledge-db;Port=5432;Database=DietKnowledgeDb;Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
+      Jwt__SigningKey: ${JWT_SIGNING_KEY:-development-only-replace-with-secret}
     depends_on:
       - diet-knowledge-db
 
@@ -51,6 +55,7 @@ services:
       - "5103:8080"
     environment:
       ConnectionStrings__MealPlanningDb: Host=meal-planning-db;Port=5432;Database=MealPlanningDb;Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
+      Jwt__SigningKey: ${JWT_SIGNING_KEY:-development-only-replace-with-secret}
       RabbitMq__HostName: rabbitmq
     depends_on:
       - meal-planning-db
@@ -64,6 +69,7 @@ services:
       - "5104:8080"
     environment:
       ConnectionStrings__TrackingDb: Host=tracking-db;Port=5432;Database=TrackingDb;Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
+      Jwt__SigningKey: ${JWT_SIGNING_KEY:-development-only-replace-with-secret}
       NotificationService__GrpcAddress: http://notification-service:8080
     depends_on:
       - tracking-db

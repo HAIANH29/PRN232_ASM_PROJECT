@@ -4,10 +4,10 @@ This file is the shared progress tracker for the project. Every human or AI agen
 
 ## Current Status
 
-- Phase: Phase 1 scaffold.
+- Phase: Milestone 1 Identity Service complete; continuing toward feature-complete microservices.
 - Branch: `HA/phase-1-microservices-scaffold`.
-- Last baseline: scaffold aligned with the updated microservice architecture after commit `6968459`.
-- Verification baseline: `dotnet restore LongevityDietPlatform.sln`, `dotnet build LongevityDietPlatform.sln --no-restore`, and `docker compose config` passed on 2026-10-08.
+- Last baseline: Milestone 0 shared foundation after commit `a8dd8e2`.
+- Verification baseline: `dotnet restore LongevityDietPlatform.sln`, `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `docker compose config`, and Identity Docker smoke tests passed on 2026-10-08.
 - Completion roadmap: `PROJECT_SCHEDULE.md`.
 
 ## Done
@@ -31,10 +31,10 @@ This file is the shared progress tracker for the project. Every human or AI agen
 - Added Notification Worker placeholder for notification/reminder messages and future Resend delivery.
 - Updated C4, ERD, physical database docs, README, `.env.example`, and instruction files to match the updated architecture.
 - Added `PROJECT_PROGRESS.md` and `PROJECT_SCHEDULE.md` to track current status and the path to a submission-ready product.
+- Implemented Identity Service register/login/profile/admin-check APIs with DTO validation, password hashing, JWT issuing, role seed data, demo admin seed, authorization policy, repository persistence, and the initial Identity EF Core migration.
 
 ## Incomplete / Remaining Work
 
-- Implement real Identity Service register/login/profile APIs, JWT token issuance, password hashing, and role enforcement.
 - Add business DTOs, endpoint-specific validation rules, and correct HTTP status handling to each public REST API.
 - Implement Diet Knowledge admin CRUD, user browse/search/filter/sort/pagination, and activation/deactivation.
 - Implement Meal Planning create/update/delete workflows, scheduling rules, ownership checks, and real reminder publishing behavior.
@@ -44,7 +44,7 @@ This file is the shared progress tracker for the project. Every human or AI agen
 - Wire real Tracking use cases to call Notification Service via gRPC when notifications are required.
 - Implement durable RabbitMQ topology, retries, error handling, idempotency, and dead-letter behavior where needed.
 - Implement Notification Worker email delivery through Resend, including retry/logging behavior.
-- Add EF Core migrations for each persistent service.
+- Add EF Core migrations for Diet Knowledge, Meal Planning, and Tracking.
 - Add automated tests for implemented slices.
 - Build the real Web Application screens and API Gateway integration.
 - Run an end-to-end Docker Compose smoke test once business flows exist.
@@ -64,6 +64,17 @@ Each update should include:
 Do not mark a feature as complete if it only has placeholders or configuration. Call it a scaffold until the real behavior exists and has been verified.
 
 ## Change Log
+
+### 2026-10-08 — Complete Milestone 1 Identity Service
+
+- Added Identity persistence for `User`, `Role`, and the EF-generated `UserRoles` join table, including normalized email/name uniqueness.
+- Added register, login, profile, and admin authorization check endpoints under `/api/auth`.
+- Added PBKDF2 password hashing, JWT access token generation, `User`/`Admin` role seed data, and a configurable demo admin account.
+- Added `AdminOnly` authorization policy and shared JWT validation configuration for public APIs.
+- Added the initial Identity EF Core migration and idempotent startup migration/seed with retry for Docker startup timing.
+- Updated Docker Compose and `.env.example` with Identity seed and JWT settings.
+- Updated README, seed/database docs, and `PROJECT_SCHEDULE.md`.
+- Verification: `dotnet restore LongevityDietPlatform.sln`, `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `docker compose config`, `docker compose up -d --build identity-service`, `GET /health`, register/login smoke tests, profile without/with invalid token returning `401`, admin-check returning `200` for admin and `403` for a normal user.
 
 ### 2026-10-08 — Complete Milestone 0 baseline foundation
 

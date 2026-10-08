@@ -4,8 +4,11 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Text;
 
 namespace LongevityDiet.ApiDefaults.Extensions;
 
@@ -13,7 +16,8 @@ public static class LongevityApiDefaultsExtensions
 {
     public static IServiceCollection AddLongevityPublicApiDefaults(
         this IServiceCollection services,
-        string serviceName)
+        string serviceName,
+        IConfiguration configuration)
     {
         services.AddControllers();
         services.Configure<ApiBehaviorOptions>(options =>
@@ -57,7 +61,26 @@ public static class LongevityApiDefaultsExtensions
         });
 
         services.AddHealthChecks();
-        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
+        services
+            .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                var issuer = configuration["Jwt:Issuer"] ?? "LongevityDiet.Identity";
+                var audience = configuration["Jwt:Audience"] ?? "LongevityDiet.Platform";
+                var signingKey = configuration["Jwt:SigningKey"] ?? "development-only-replace-with-secret";
+
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = issuer,
+                    ValidateAudience = true,
+                    ValidAudience = audience,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signingKey)),
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.FromMinutes(2)
+                };
+            });
         services.AddAuthorization();
 
         return services;

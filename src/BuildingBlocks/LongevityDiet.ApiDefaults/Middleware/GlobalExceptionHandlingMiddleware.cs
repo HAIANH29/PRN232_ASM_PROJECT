@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Security.Authentication;
 using LongevityDiet.ApiDefaults.Api;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -70,6 +71,11 @@ public sealed class GlobalExceptionHandlingMiddleware(
                 StatusCodes.Status403Forbidden,
                 "Access denied.",
                 new ApiError("Authorization.Forbidden", "You do not have access to this resource.")),
+
+            AuthenticationException authenticationException => (
+                StatusCodes.Status401Unauthorized,
+                "Authentication failed.",
+                new ApiError("Authentication.InvalidCredentials", authenticationException.Message)),
 
             KeyNotFoundException keyNotFoundException => (
                 StatusCodes.Status404NotFound,

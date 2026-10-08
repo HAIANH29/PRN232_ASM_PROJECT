@@ -8,9 +8,9 @@ Read together with:
 
 ## Current Snapshot
 
-Current phase: Phase 1 scaffold is complete.
+Current phase: Milestone 1 Identity Service is complete.
 
-Estimated product completion: about 20-25%.
+Estimated product completion: about 28-32%.
 
 What is already in code:
 - .NET solution and project structure exist.
@@ -29,13 +29,13 @@ What is already in code:
 - Notification Service exists as a gRPC service skeleton.
 - Notification Worker exists as a worker skeleton.
 - Architecture docs exist and match the updated microservice diagram.
+- Identity Service now supports register/login/profile/admin-check, password hashing, JWT generation, role seeding, demo admin seeding, and the initial Identity EF Core migration.
 
 What is not yet product-ready:
-- Real authentication is not implemented.
 - CRUD APIs are not implemented.
 - Search/filter/sort/pagination are not implemented.
-- JWT authorization and role policies are not enforced.
-- EF Core migrations are not created.
+- JWT ownership checks still need to be applied to future business workflows.
+- EF Core migrations are still needed for Diet Knowledge, Meal Planning, and Tracking.
 - RabbitMQ publish/consume behavior is mostly placeholder-level.
 - gRPC flow exists as a skeleton but is not connected to real tracking workflows.
 - Gemini and Resend integrations are placeholders.
@@ -90,26 +90,28 @@ Done when:
 
 ### Milestone 1 — Identity Service
 
+Status: Completed on 2026-10-08.
+
 Target: T+1 to T+2.5 days.
 
 Code/work to do:
-- Implement `User` and `Role` persistence.
-- Add register endpoint.
-- Add login endpoint.
-- Add password hashing.
-- Add JWT token generation.
-- Add profile endpoint.
-- Add role seed data: `User`, `Admin`.
-- Add admin demo account seed.
-- Add authorization policies and role checks.
-- Add DTOs and validation.
-- Add Identity EF Core migration.
+- [x] Implement `User` and `Role` persistence.
+- [x] Add register endpoint.
+- [x] Add login endpoint.
+- [x] Add password hashing.
+- [x] Add JWT token generation.
+- [x] Add profile endpoint.
+- [x] Add role seed data: `User`, `Admin`.
+- [x] Add admin demo account seed.
+- [x] Add authorization policies and role checks.
+- [x] Add DTOs and validation.
+- [x] Add Identity EF Core migration.
 
 Verification:
-- Register/login through Swagger.
-- Login returns a valid JWT.
-- Protected profile endpoint rejects missing/invalid token.
-- Admin-only test endpoint or protected operation rejects normal users.
+- [x] Register/login through API.
+- [x] Login returns a valid JWT.
+- [x] Protected profile endpoint rejects missing/invalid token.
+- [x] Admin-only test endpoint rejects normal users.
 
 Done when:
 - The rest of the system can rely on JWT Bearer authentication.
@@ -380,13 +382,13 @@ This minimum path is enough to demonstrate the required PRN232 architecture and 
 | Microservices architecture | Scaffolded | Implement real business APIs and flows |
 | ASP.NET Core REST APIs | Skeletons and shared API defaults exist | Add business DTOs, controllers, validation rules, status codes |
 | Layered architecture | Project structure exists | Keep controllers out of DbContext and business logic |
-| JWT auth/authorization | Not implemented | Register/login/JWT/roles/ownership |
+| JWT auth/authorization | Identity implemented | Add ownership checks to Diet Knowledge admin flows, Meal Planning, and Tracking |
 | Search/filter/sort/pagination | Not implemented | Diet Knowledge lists first, then other lists where useful |
 | gRPC internal flow | Skeleton exists | Connect Tracking workflow to Notification Service |
 | RabbitMQ async messaging | Contracts/config exist | Implement durable publish/consume flows |
 | .NET Worker Service | Skeleton exists | Implement notification/reminder processing |
-| PostgreSQL database-per-service | DbContext shells exist | Migrations, data model completion, seed data |
-| Docker Compose | Skeleton valid | Full startup verification with migrations and dependencies |
+| PostgreSQL database-per-service | Identity migration exists; other DbContext shells exist | Migrations, data model completion, seed data for remaining stateful services |
+| Docker Compose | Skeleton valid; Identity service startup smoke tested | Full startup verification with all services and dependencies |
 | C4 docs | Existing | Keep synchronized with implementation |
 | Web Application | MVC shell exists | Build real User/Admin screens |
 | External providers | Placeholders exist | Resend/Gemini abstractions and configured behavior |
@@ -396,14 +398,14 @@ This minimum path is enough to demonstrate the required PRN232 architecture and 
 
 ### Identity Service
 
-- [ ] Register API.
-- [ ] Login API.
-- [ ] JWT generation.
-- [ ] Password hashing.
-- [ ] Profile API.
-- [ ] Role seed.
-- [ ] Admin/User authorization policy.
-- [ ] Migration and seed data.
+- [x] Register API.
+- [x] Login API.
+- [x] JWT generation.
+- [x] Password hashing.
+- [x] Profile API.
+- [x] Role seed.
+- [x] Admin/User authorization policy.
+- [x] Migration and seed data.
 - [ ] Tests.
 
 ### Diet Knowledge Service

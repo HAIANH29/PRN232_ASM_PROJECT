@@ -19,8 +19,9 @@ Purpose:
 - Seed one demo user account if useful for browser demos.
 
 Implementation target:
-- Add an idempotent seeding component under Identity Infrastructure, for example `Persistence/Seed/IdentitySeedData.cs`.
-- Run seeding only in Development/Demo environments or through an explicit setup command.
+- Implemented through `IdentitySeeder`, which applies Identity migrations and seeds `User`/`Admin` roles plus a configurable demo admin account.
+- Demo admin settings are supplied through `IdentitySeed__AdminEmail`, `IdentitySeed__AdminPassword`, and `IdentitySeed__AdminDisplayName`.
+- The startup seed path retries briefly so Docker Compose can tolerate PostgreSQL startup timing.
 - Store demo passwords in configuration for local/demo use; never hard-code production secrets.
 
 ## Diet Knowledge Service
@@ -73,8 +74,8 @@ Recommended local/demo setup order:
 
 ## Future Implementation Checklist
 
-- [ ] Add Identity seed data after migrations exist.
+- [x] Add Identity seed data after migrations exist.
 - [ ] Add Diet Knowledge seed data after CRUD models are finalized.
 - [ ] Decide whether Meal Planning needs static sample plans or API-created demo data.
 - [ ] Decide whether Tracking needs static sample progress or API-created demo data.
-- [ ] Document demo account credentials in local-only docs or `.env.example` placeholders.
+- [x] Document demo account credentials in local-only docs or `.env.example` placeholders.

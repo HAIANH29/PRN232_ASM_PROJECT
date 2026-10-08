@@ -14,7 +14,7 @@ The shared implementation lives in `src/BuildingBlocks/LongevityDiet.ApiDefaults
 Public REST APIs should register the shared defaults:
 
 ```csharp
-builder.Services.AddLongevityPublicApiDefaults("Service Display Name");
+builder.Services.AddLongevityPublicApiDefaults("Service Display Name", builder.Configuration);
 ```
 
 They should apply the shared middleware/endpoints:

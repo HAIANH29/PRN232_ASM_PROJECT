@@ -2,7 +2,7 @@
 
 PRN232 microservices scaffold for an educational diet planning and tracking platform based on approved knowledge from *The Longevity Diet*.
 
-This repository is Phase 1 only. It creates the structure and infrastructure hooks, not full business CRUD.
+This repository has the Phase 1 microservice scaffold plus the Milestone 1 Identity implementation. The remaining business services are still being implemented incrementally.
 
 Project status and remaining work are tracked in `PROJECT_PROGRESS.md`. The completion roadmap is tracked in `PROJECT_SCHEDULE.md`. Update the progress file after each completed project change.
 
@@ -58,10 +58,14 @@ Useful URLs:
 - Notification Service health: `http://localhost:5105/health`
 - RabbitMQ Management: `http://localhost:15672`
 
-## Phase 1 TODO
+Local demo Identity credentials are configured through `.env`:
 
-- Add EF Core migrations per service.
-- Implement real authentication and JWT token issuance in Identity Service.
+- Admin email: `IDENTITY_ADMIN_EMAIL` defaults to `admin@longevity.local`
+- Admin password: `IDENTITY_ADMIN_PASSWORD` defaults to `Admin@123456`
+
+## Remaining TODO
+
+- Add EF Core migrations for Diet Knowledge, Meal Planning, and Tracking.
 - Implement CRUD and query endpoints for approved diet knowledge.
 - Implement meal plan workflows and real RabbitMQ publish/consume logic.
 - Implement Recommendation Service RabbitMQ consumption and Google Gemini integration.
