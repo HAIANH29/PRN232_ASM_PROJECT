@@ -32,9 +32,10 @@ Purpose:
 - Seed recipes and recipe ingredients for browsing, meal planning, and recommendation context.
 
 Implementation target:
-- Add an idempotent seeding component under Diet Knowledge Infrastructure.
-- Keep seed content concise but enough for demo search/filter/recipe flows.
-- Mark managed content as active by default unless a demo scenario needs inactive content.
+- Implemented through `DietKnowledgeSeeder`, which applies Diet Knowledge migrations and seeds active guidelines, foods, recipes, and recipe ingredients.
+- Seed content stays concise and inside the approved educational Longevity Diet scope.
+- Managed seed content is active by default so public browse/search/filter flows have demo data immediately.
+- The startup seed path retries briefly so Docker Compose can tolerate PostgreSQL startup timing.
 
 ## Meal Planning Service
 
@@ -75,7 +76,7 @@ Recommended local/demo setup order:
 ## Future Implementation Checklist
 
 - [x] Add Identity seed data after migrations exist.
-- [ ] Add Diet Knowledge seed data after CRUD models are finalized.
+- [x] Add Diet Knowledge seed data after CRUD models are finalized.
 - [ ] Decide whether Meal Planning needs static sample plans or API-created demo data.
 - [ ] Decide whether Tracking needs static sample progress or API-created demo data.
 - [x] Document demo account credentials in local-only docs or `.env.example` placeholders.

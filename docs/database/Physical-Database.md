@@ -25,11 +25,37 @@ Initial migration exists: `InitialIdentitySchema`.
 ## DietKnowledgeDb
 
 - `DietGuidelines`
+  - `Id`
+  - `Title`
+  - `Summary`
+  - `SourceNote`
+  - `IsActive`
+  - `CreatedAtUtc`
+  - `UpdatedAtUtc`
 - `Foods`
+  - `Id`
+  - `Name`
+  - `Category`
+  - `CompatibilityNotes`
+  - `IsActive`
+  - `CreatedAtUtc`
+  - `UpdatedAtUtc`
 - `Recipes`
+  - `Id`
+  - `Name`
+  - `Description`
+  - `IsActive`
+  - `CreatedAtUtc`
+  - `UpdatedAtUtc`
 - `RecipeIngredients`
+  - `Id`
+  - `RecipeId`
+  - `FoodId`
+  - `QuantityText`
 
 Owned by `Diet Knowledge Service`.
+
+Initial migration exists: `InitialDietKnowledgeSchema`.
 
 ## MealPlanningDb
 
@@ -61,4 +87,4 @@ Owned by `Tracking Service`.
 - No service reads another service database directly.
 - No cross-database foreign keys.
 - Do not create `RecommendationDb` or `NotificationDb` unless a future persistence requirement needs them.
-- EF Core migrations should be created per remaining stateful service in later implementation phases.
+- EF Core migrations should be created for Meal Planning and Tracking in later implementation phases.

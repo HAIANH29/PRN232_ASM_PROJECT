@@ -17,18 +17,23 @@ erDiagram
         guid Id
         string Title
         string Summary
+        string SourceNote
+        bool IsActive
     }
 
     FOOD {
         guid Id
         string Name
         string Category
+        string CompatibilityNotes
+        bool IsActive
     }
 
     RECIPE {
         guid Id
         string Name
         string Description
+        bool IsActive
     }
 
     RECIPE_INGREDIENT {

@@ -1,6 +1,7 @@
 using LongevityDiet.DietKnowledge.Application.Abstractions;
 using LongevityDiet.DietKnowledge.Infrastructure.Persistence;
 using LongevityDiet.DietKnowledge.Infrastructure.Repositories;
+using LongevityDiet.DietKnowledge.Infrastructure.Seed;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,9 +15,12 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         services.AddDbContext<DietKnowledgeDbContext>(options =>
-            options.UseNpgsql(configuration.GetConnectionString("DietKnowledgeDb")));
+            options.UseNpgsql(
+                configuration.GetConnectionString("DietKnowledgeDb"),
+                npgsql => npgsql.EnableRetryOnFailure()));
 
         services.AddScoped<IDietKnowledgeRepository, DietKnowledgeRepository>();
+        services.AddScoped<IDietKnowledgeSeeder, DietKnowledgeSeeder>();
 
         return services;
     }

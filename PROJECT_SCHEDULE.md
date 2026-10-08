@@ -8,9 +8,9 @@ Read together with:
 
 ## Current Snapshot
 
-Current phase: Milestone 1 Identity Service is complete.
+Current phase: Milestone 2 Diet Knowledge Service is complete.
 
-Estimated product completion: about 28-32%.
+Estimated product completion: about 38-42%.
 
 What is already in code:
 - .NET solution and project structure exist.
@@ -30,12 +30,13 @@ What is already in code:
 - Notification Worker exists as a worker skeleton.
 - Architecture docs exist and match the updated microservice diagram.
 - Identity Service now supports register/login/profile/admin-check, password hashing, JWT generation, role seeding, demo admin seeding, and the initial Identity EF Core migration.
+- Diet Knowledge Service now supports approved content seed data, public browsing/search/filter/sort/pagination, admin CRUD, activation/deactivation, and the initial Diet Knowledge EF Core migration.
 
 What is not yet product-ready:
-- CRUD APIs are not implemented.
-- Search/filter/sort/pagination are not implemented.
-- JWT ownership checks still need to be applied to future business workflows.
-- EF Core migrations are still needed for Diet Knowledge, Meal Planning, and Tracking.
+- CRUD APIs are not implemented yet for Meal Planning and Tracking.
+- Search/filter/sort/pagination are implemented for Diet Knowledge; other services still need list behavior where useful.
+- JWT ownership checks still need to be applied to Meal Planning and Tracking.
+- EF Core migrations are still needed for Meal Planning and Tracking.
 - RabbitMQ publish/consume behavior is mostly placeholder-level.
 - gRPC flow exists as a skeleton but is not connected to real tracking workflows.
 - Gemini and Resend integrations are placeholders.
@@ -118,24 +119,26 @@ Done when:
 
 ### Milestone 2 — Diet Knowledge Service
 
+Status: Completed on 2026-10-08.
+
 Target: T+2.5 to T+4 days.
 
 Code/work to do:
-- Implement DTOs for DietGuideline, Food, Recipe, RecipeIngredient.
-- Implement admin CRUD endpoints.
-- Implement activation/deactivation.
-- Implement list endpoints with pagination.
-- Implement search/filter/sort for foods and recipes.
-- Implement read-only user endpoints.
-- Add approved seed data from the allowed Longevity Diet domain.
-- Add Diet Knowledge EF Core migration.
-- Add authorization: Admin mutations only; public/user reads allowed as required.
+- [x] Implement DTOs for DietGuideline, Food, Recipe, RecipeIngredient.
+- [x] Implement admin CRUD endpoints.
+- [x] Implement activation/deactivation.
+- [x] Implement list endpoints with pagination.
+- [x] Implement search/filter/sort for foods and recipes.
+- [x] Implement read-only user endpoints.
+- [x] Add approved seed data from the allowed Longevity Diet domain.
+- [x] Add Diet Knowledge EF Core migration.
+- [x] Add authorization: Admin mutations only; public/user reads allowed as required.
 
 Verification:
-- Admin can create/update/deactivate content.
-- User can search/filter recipes and foods.
-- Pagination returns stable metadata.
-- No EF entities are exposed directly.
+- [x] Admin can create/update/deactivate content.
+- [x] User can search/filter recipes and foods.
+- [x] Pagination returns stable metadata.
+- [x] No EF entities are exposed directly.
 
 Done when:
 - Meal Planning and Recommendation can depend on approved knowledge content.
@@ -380,15 +383,15 @@ This minimum path is enough to demonstrate the required PRN232 architecture and 
 | Requirement | Current status | Remaining work |
 | --- | --- | --- |
 | Microservices architecture | Scaffolded | Implement real business APIs and flows |
-| ASP.NET Core REST APIs | Skeletons and shared API defaults exist | Add business DTOs, controllers, validation rules, status codes |
+| ASP.NET Core REST APIs | Identity and Diet Knowledge implemented; remaining APIs scaffolded | Add Meal Planning and Tracking business DTOs, controllers, validation rules, status codes |
 | Layered architecture | Project structure exists | Keep controllers out of DbContext and business logic |
-| JWT auth/authorization | Identity implemented | Add ownership checks to Diet Knowledge admin flows, Meal Planning, and Tracking |
-| Search/filter/sort/pagination | Not implemented | Diet Knowledge lists first, then other lists where useful |
+| JWT auth/authorization | Identity implemented; Diet Knowledge admin mutations protected | Add ownership checks to Meal Planning and Tracking |
+| Search/filter/sort/pagination | Implemented for Diet Knowledge | Add list behavior to other services where useful |
 | gRPC internal flow | Skeleton exists | Connect Tracking workflow to Notification Service |
 | RabbitMQ async messaging | Contracts/config exist | Implement durable publish/consume flows |
 | .NET Worker Service | Skeleton exists | Implement notification/reminder processing |
-| PostgreSQL database-per-service | Identity migration exists; other DbContext shells exist | Migrations, data model completion, seed data for remaining stateful services |
-| Docker Compose | Skeleton valid; Identity service startup smoke tested | Full startup verification with all services and dependencies |
+| PostgreSQL database-per-service | Identity and Diet Knowledge migrations exist; other DbContext shells exist | Migrations, data model completion, seed data for remaining stateful services |
+| Docker Compose | Skeleton valid; Identity and Diet Knowledge startup smoke tested | Full startup verification with all services and dependencies |
 | C4 docs | Existing | Keep synchronized with implementation |
 | Web Application | MVC shell exists | Build real User/Admin screens |
 | External providers | Placeholders exist | Resend/Gemini abstractions and configured behavior |
@@ -410,15 +413,15 @@ This minimum path is enough to demonstrate the required PRN232 architecture and 
 
 ### Diet Knowledge Service
 
-- [ ] DietGuideline CRUD.
-- [ ] Food CRUD.
-- [ ] Recipe CRUD.
-- [ ] RecipeIngredient handling.
-- [ ] Activate/deactivate content.
-- [ ] Search/filter/sort/pagination.
-- [ ] Admin-only mutations.
-- [ ] User read endpoints.
-- [ ] Migration and approved seed content.
+- [x] DietGuideline CRUD.
+- [x] Food CRUD.
+- [x] Recipe CRUD.
+- [x] RecipeIngredient handling.
+- [x] Activate/deactivate content.
+- [x] Search/filter/sort/pagination.
+- [x] Admin-only mutations.
+- [x] User read endpoints.
+- [x] Migration and approved seed content.
 - [ ] Tests.
 
 ### Meal Planning Service

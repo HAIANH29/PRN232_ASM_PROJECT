@@ -10,5 +10,7 @@ public sealed class RecipeIngredient
 
     public Guid FoodId { get; set; }
 
+    public Food? Food { get; set; }
+
     public string QuantityText { get; set; } = string.Empty;
 }
