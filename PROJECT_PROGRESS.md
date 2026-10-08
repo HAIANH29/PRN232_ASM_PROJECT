@@ -8,6 +8,7 @@ This file is the shared progress tracker for the project. Every human or AI agen
 - Branch: `HA/phase-1-microservices-scaffold`.
 - Last baseline: scaffold aligned with the updated microservice architecture after commit `6968459`.
 - Verification baseline: `dotnet restore LongevityDietPlatform.sln`, `dotnet build LongevityDietPlatform.sln --no-restore`, and `docker compose config` passed on 2026-10-08.
+- Completion roadmap: `PROJECT_SCHEDULE.md`.
 
 ## Done
 
@@ -28,6 +29,7 @@ This file is the shared progress tracker for the project. Every human or AI agen
 - Replaced the old Reminder Worker role with `NotificationWorker`.
 - Added Notification Worker placeholder for notification/reminder messages and future Resend delivery.
 - Updated C4, ERD, physical database docs, README, `.env.example`, and instruction files to match the updated architecture.
+- Added `PROJECT_PROGRESS.md` and `PROJECT_SCHEDULE.md` to track current status and the path to a submission-ready product.
 
 ## Incomplete / Remaining Work
 
@@ -61,6 +63,12 @@ Each update should include:
 Do not mark a feature as complete if it only has placeholders or configuration. Call it a scaffold until the real behavior exists and has been verified.
 
 ## Change Log
+
+### 2026-10-08 — Add completion schedule
+
+- Added `PROJECT_SCHEDULE.md` with the current completion snapshot, definition of 100% complete, milestone schedule, minimum submission path, and per-service checklist.
+- Updated `README.md` to link the schedule.
+- Verification: `git diff --check` passed; `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal` passed with 0 warnings and 0 errors.
 
 ### 2026-10-08 — Add project progress tracking
 
