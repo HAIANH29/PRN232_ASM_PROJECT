@@ -1,0 +1,9 @@
+@HostAddress = http://localhost:5103
+
+GET {{HostAddress}}/health
+Accept: application/json
+
+###
+
+GET {{HostAddress}}/api/service-info
+Accept: application/json

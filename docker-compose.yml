@@ -1,0 +1,150 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: src/Web/LongevityDiet.Web/Dockerfile
+    ports:
+      - "5000:8080"
+    depends_on:
+      - api-gateway
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: src/Gateways/LongevityDiet.ApiGateway/Dockerfile
+    ports:
+      - "5001:8080"
+    depends_on:
+      - identity-service
+      - diet-knowledge-service
+      - meal-planning-service
+      - tracking-service
+
+  identity-service:
+    build:
+      context: .
+      dockerfile: src/Services/Identity/LongevityDiet.Identity.Api/Dockerfile
+    ports:
+      - "5101:8080"
+    environment:
+      ConnectionStrings__IdentityDb: Host=identity-db;Port=5432;Database=IdentityDb;Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
+      Jwt__SigningKey: ${JWT_SIGNING_KEY:-development-only-replace-with-secret}
+    depends_on:
+      - identity-db
+
+  diet-knowledge-service:
+    build:
+      context: .
+      dockerfile: src/Services/DietKnowledge/LongevityDiet.DietKnowledge.Api/Dockerfile
+    ports:
+      - "5102:8080"
+    environment:
+      ConnectionStrings__DietKnowledgeDb: Host=diet-knowledge-db;Port=5432;Database=DietKnowledgeDb;Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
+    depends_on:
+      - diet-knowledge-db
+
+  meal-planning-service:
+    build:
+      context: .
+      dockerfile: src/Services/MealPlanning/LongevityDiet.MealPlanning.Api/Dockerfile
+    ports:
+      - "5103:8080"
+    environment:
+      ConnectionStrings__MealPlanningDb: Host=meal-planning-db;Port=5432;Database=MealPlanningDb;Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
+      RabbitMq__HostName: rabbitmq
+      RecommendationService__GrpcAddress: http://recommendation-service:8080
+    depends_on:
+      - meal-planning-db
+      - rabbitmq
+      - recommendation-service
+
+  tracking-service:
+    build:
+      context: .
+      dockerfile: src/Services/Tracking/LongevityDiet.Tracking.Api/Dockerfile
+    ports:
+      - "5104:8080"
+    environment:
+      ConnectionStrings__TrackingDb: Host=tracking-db;Port=5432;Database=TrackingDb;Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
+    depends_on:
+      - tracking-db
+
+  recommendation-service:
+    build:
+      context: .
+      dockerfile: src/Services/Recommendation/LongevityDiet.Recommendation.Grpc/Dockerfile
+    ports:
+      - "5105:8080"
+    environment:
+      AiProvider__Enabled: ${AI_PROVIDER_ENABLED:-false}
+      AiProvider__Endpoint: ${AI_PROVIDER_ENDPOINT:-}
+
+  reminder-worker:
+    build:
+      context: .
+      dockerfile: src/Workers/LongevityDiet.ReminderWorker/Dockerfile
+    environment:
+      RabbitMq__HostName: rabbitmq
+      EmailProvider__BaseUrl: ${EMAIL_PROVIDER_BASE_URL:-https://email-provider.example}
+      EmailProvider__ApiKey: ${EMAIL_PROVIDER_API_KEY:-development-only}
+    depends_on:
+      - rabbitmq
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-guest}
+
+  identity-db:
+    image: postgres:16
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: IdentityDb
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - identity-db-data:/var/lib/postgresql/data
+
+  diet-knowledge-db:
+    image: postgres:16
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_DB: DietKnowledgeDb
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - diet-knowledge-db-data:/var/lib/postgresql/data
+
+  meal-planning-db:
+    image: postgres:16
+    ports:
+      - "5435:5432"
+    environment:
+      POSTGRES_DB: MealPlanningDb
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - meal-planning-db-data:/var/lib/postgresql/data
+
+  tracking-db:
+    image: postgres:16
+    ports:
+      - "5436:5432"
+    environment:
+      POSTGRES_DB: TrackingDb
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - tracking-db-data:/var/lib/postgresql/data
+
+volumes:
+  identity-db-data:
+  diet-knowledge-db-data:
+  meal-planning-db-data:
+  tracking-db-data:

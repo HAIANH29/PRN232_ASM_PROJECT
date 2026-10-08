@@ -1,0 +1,10 @@
+.git
+.dotnet
+.nuget
+**/bin
+**/obj
+**/.vs
+**/.vscode
+**/.idea
+.env
+docker-compose.override.yml
