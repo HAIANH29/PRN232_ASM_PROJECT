@@ -2,7 +2,7 @@
 
 PRN232 microservices scaffold for an educational diet planning and tracking platform based on approved knowledge from *The Longevity Diet*.
 
-This repository has the Phase 1 microservice scaffold plus the Milestone 1 Identity implementation. The remaining business services are still being implemented incrementally.
+This repository has the Phase 1 microservice scaffold plus the Milestone 1 Identity implementation and Milestone 2 Diet Knowledge implementation. The remaining business services are still being implemented incrementally.
 
 Project status and remaining work are tracked in `PROJECT_PROGRESS.md`. The completion roadmap is tracked in `PROJECT_SCHEDULE.md`. Update the progress file after each completed project change.
 
@@ -63,10 +63,21 @@ Local demo Identity credentials are configured through `.env`:
 - Admin email: `IDENTITY_ADMIN_EMAIL` defaults to `admin@longevity.local`
 - Admin password: `IDENTITY_ADMIN_PASSWORD` defaults to `Admin@123456`
 
+Diet Knowledge endpoints:
+
+- Public reads:
+  - `GET /api/diet-guidelines`
+  - `GET /api/foods`
+  - `GET /api/recipes`
+- Admin mutations:
+  - `POST /api/admin/diet-guidelines`, `PUT|DELETE /api/admin/diet-guidelines/{id}`
+  - `POST /api/admin/foods`, `PUT|DELETE /api/admin/foods/{id}`
+  - `POST /api/admin/recipes`, `PUT|DELETE /api/admin/recipes/{id}`
+  - `PATCH /api/admin/{diet-guidelines|foods|recipes}/{id}/activation`
+
 ## Remaining TODO
 
-- Add EF Core migrations for Diet Knowledge, Meal Planning, and Tracking.
-- Implement CRUD and query endpoints for approved diet knowledge.
+- Add EF Core migrations for Meal Planning and Tracking.
 - Implement meal plan workflows and real RabbitMQ publish/consume logic.
 - Implement Recommendation Service RabbitMQ consumption and Google Gemini integration.
 - Implement Tracking -> Notification gRPC use cases.

@@ -107,6 +107,7 @@ The shared middleware currently maps common exceptions as follows:
 | --- | --- |
 | `ValidationException` | 400 |
 | `ArgumentException` | 400 |
+| `AuthenticationException` | 401 |
 | `UnauthorizedAccessException` | 403 |
 | `KeyNotFoundException` | 404 |
 | `InvalidOperationException` | 409 |
@@ -116,7 +117,7 @@ Future custom domain/application exceptions should be added to the shared middle
 
 ## Swagger
 
-Swagger is enabled for public REST APIs and includes a Bearer JWT security definition. Identity does not issue real JWTs yet; this prepares the API surface for Milestone 1.
+Swagger is enabled for public REST APIs and includes a Bearer JWT security definition. Identity issues JWTs in Milestone 1, and admin-only endpoints should use Bearer tokens with the `Admin` role.
 
 ## Package Management
 

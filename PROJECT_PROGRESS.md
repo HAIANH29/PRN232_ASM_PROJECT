@@ -4,10 +4,10 @@ This file is the shared progress tracker for the project. Every human or AI agen
 
 ## Current Status
 
-- Phase: Milestone 1 Identity Service complete; continuing toward feature-complete microservices.
+- Phase: Milestone 2 Diet Knowledge Service complete; continuing toward feature-complete microservices.
 - Branch: `HA/phase-1-microservices-scaffold`.
-- Last baseline: Milestone 0 shared foundation after commit `a8dd8e2`.
-- Verification baseline: `dotnet restore LongevityDietPlatform.sln`, `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `docker compose config`, and Identity Docker smoke tests passed on 2026-10-08.
+- Last baseline: Milestone 1 Identity Service after commit `58203c9`.
+- Verification baseline: `dotnet restore LongevityDietPlatform.sln`, `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `docker compose config`, and Identity/Diet Knowledge Docker smoke tests passed on 2026-10-08.
 - Completion roadmap: `PROJECT_SCHEDULE.md`.
 
 ## Done
@@ -32,11 +32,11 @@ This file is the shared progress tracker for the project. Every human or AI agen
 - Updated C4, ERD, physical database docs, README, `.env.example`, and instruction files to match the updated architecture.
 - Added `PROJECT_PROGRESS.md` and `PROJECT_SCHEDULE.md` to track current status and the path to a submission-ready product.
 - Implemented Identity Service register/login/profile/admin-check APIs with DTO validation, password hashing, JWT issuing, role seed data, demo admin seed, authorization policy, repository persistence, and the initial Identity EF Core migration.
+- Implemented Diet Knowledge Service admin CRUD, activation/deactivation, public read endpoints, search/filter/sort/pagination, approved seed content, and the initial Diet Knowledge EF Core migration.
 
 ## Incomplete / Remaining Work
 
-- Add business DTOs, endpoint-specific validation rules, and correct HTTP status handling to each public REST API.
-- Implement Diet Knowledge admin CRUD, user browse/search/filter/sort/pagination, and activation/deactivation.
+- Add business DTOs, endpoint-specific validation rules, and correct HTTP status handling to Meal Planning and Tracking public APIs.
 - Implement Meal Planning create/update/delete workflows, scheduling rules, ownership checks, and real reminder publishing behavior.
 - Implement Meal Planning consumption of `RecommendationResult` and the user accept/edit flow for AI recommendations.
 - Implement Recommendation Service prompt/context creation from approved knowledge and optional real Google Gemini calls.
@@ -44,7 +44,7 @@ This file is the shared progress tracker for the project. Every human or AI agen
 - Wire real Tracking use cases to call Notification Service via gRPC when notifications are required.
 - Implement durable RabbitMQ topology, retries, error handling, idempotency, and dead-letter behavior where needed.
 - Implement Notification Worker email delivery through Resend, including retry/logging behavior.
-- Add EF Core migrations for Diet Knowledge, Meal Planning, and Tracking.
+- Add EF Core migrations for Meal Planning and Tracking.
 - Add automated tests for implemented slices.
 - Build the real Web Application screens and API Gateway integration.
 - Run an end-to-end Docker Compose smoke test once business flows exist.
@@ -64,6 +64,18 @@ Each update should include:
 Do not mark a feature as complete if it only has placeholders or configuration. Call it a scaffold until the real behavior exists and has been verified.
 
 ## Change Log
+
+### 2026-10-08 — Complete Milestone 2 Diet Knowledge Service
+
+- Added public read endpoints for diet guidelines, foods, and recipes.
+- Added admin endpoints for diet guideline, food, and recipe create/update/read/list plus activation/deactivation.
+- Added API DTOs and Application models/commands so EF entities are not returned directly.
+- Added food/recipe search, category/ingredient filtering, sort options, and paged list responses.
+- Added recipe ingredient handling with validation that recipes reference active approved foods.
+- Added approved demo seed data for guidelines, foods, recipes, and recipe ingredients.
+- Added the initial Diet Knowledge EF Core migration and idempotent startup migration/seed with retry for Docker startup timing.
+- Updated README, API conventions, seed/database docs, ERD, and `PROJECT_SCHEDULE.md`.
+- Verification: `dotnet restore LongevityDietPlatform.sln`, `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `docker compose config`, `git diff --check`, `docker compose up -d --build identity-service diet-knowledge-service`, `GET /health`, public food/recipe search/filter/pagination, admin create/update/deactivate for guidelines/foods/recipes, admin endpoint without token returning `401`, normal user admin mutation returning `403`, public inactive resource lookup returning `404`, and admin inactive resource lookup returning `200`.
 
 ### 2026-10-08 — Complete Milestone 1 Identity Service
 

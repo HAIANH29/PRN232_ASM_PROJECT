@@ -10,5 +10,9 @@ public sealed class Recipe
 
     public bool IsActive { get; set; } = true;
 
+    public DateTimeOffset CreatedAtUtc { get; set; } = DateTimeOffset.UtcNow;
+
+    public DateTimeOffset? UpdatedAtUtc { get; set; }
+
     public ICollection<RecipeIngredient> Ingredients { get; } = new List<RecipeIngredient>();
 }
