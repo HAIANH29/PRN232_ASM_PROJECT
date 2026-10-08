@@ -71,6 +71,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Workers", "Workers", "{FE5F
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LongevityDiet.NotificationWorker", "src\Workers\LongevityDiet.NotificationWorker\LongevityDiet.NotificationWorker.csproj", "{EAC0C13F-83CA-4FA6-8859-83DB9CF3385E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LongevityDiet.ApiDefaults", "src\BuildingBlocks\LongevityDiet.ApiDefaults\LongevityDiet.ApiDefaults.csproj", "{BB339E62-BCDF-46DE-AE17-9A75AAB48D1D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -345,6 +347,18 @@ Global
 		{EAC0C13F-83CA-4FA6-8859-83DB9CF3385E}.Release|x64.Build.0 = Release|Any CPU
 		{EAC0C13F-83CA-4FA6-8859-83DB9CF3385E}.Release|x86.ActiveCfg = Release|Any CPU
 		{EAC0C13F-83CA-4FA6-8859-83DB9CF3385E}.Release|x86.Build.0 = Release|Any CPU
+		{BB339E62-BCDF-46DE-AE17-9A75AAB48D1D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB339E62-BCDF-46DE-AE17-9A75AAB48D1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB339E62-BCDF-46DE-AE17-9A75AAB48D1D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{BB339E62-BCDF-46DE-AE17-9A75AAB48D1D}.Debug|x64.Build.0 = Debug|Any CPU
+		{BB339E62-BCDF-46DE-AE17-9A75AAB48D1D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{BB339E62-BCDF-46DE-AE17-9A75AAB48D1D}.Debug|x86.Build.0 = Debug|Any CPU
+		{BB339E62-BCDF-46DE-AE17-9A75AAB48D1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB339E62-BCDF-46DE-AE17-9A75AAB48D1D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB339E62-BCDF-46DE-AE17-9A75AAB48D1D}.Release|x64.ActiveCfg = Release|Any CPU
+		{BB339E62-BCDF-46DE-AE17-9A75AAB48D1D}.Release|x64.Build.0 = Release|Any CPU
+		{BB339E62-BCDF-46DE-AE17-9A75AAB48D1D}.Release|x86.ActiveCfg = Release|Any CPU
+		{BB339E62-BCDF-46DE-AE17-9A75AAB48D1D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -383,5 +397,6 @@ Global
 		{E46089E6-AFF6-4658-97FC-4FCCBBF1A8A1} = {C5FBE174-8E0F-F5A3-B929-8BD0C55C0A32}
 		{FE5F7021-A3C9-35C7-FF50-8DA81625868E} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{EAC0C13F-83CA-4FA6-8859-83DB9CF3385E} = {FE5F7021-A3C9-35C7-FF50-8DA81625868E}
+		{BB339E62-BCDF-46DE-AE17-9A75AAB48D1D} = {90298CBA-BD6F-3A0A-69D5-97CAD7B05E7E}
 	EndGlobalSection
 EndGlobal

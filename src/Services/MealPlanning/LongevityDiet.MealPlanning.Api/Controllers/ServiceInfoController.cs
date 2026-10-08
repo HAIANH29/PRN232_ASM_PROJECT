@@ -1,3 +1,4 @@
+using LongevityDiet.ApiDefaults.Api;
 using LongevityDiet.MealPlanning.Application.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,8 +9,11 @@ namespace LongevityDiet.MealPlanning.Api.Controllers;
 public sealed class ServiceInfoController(IMealPlanningService mealPlanningService) : ControllerBase
 {
     [HttpGet]
-    public ActionResult<MealPlanningServiceStatus> Get()
+    public ActionResult<ApiResponse<MealPlanningServiceStatus>> Get()
     {
-        return Ok(mealPlanningService.GetStatus());
+        return Ok(ApiResponse<MealPlanningServiceStatus>.Success(
+            mealPlanningService.GetStatus(),
+            "Meal Planning Service is running.",
+            HttpContext.TraceIdentifier));
     }
 }

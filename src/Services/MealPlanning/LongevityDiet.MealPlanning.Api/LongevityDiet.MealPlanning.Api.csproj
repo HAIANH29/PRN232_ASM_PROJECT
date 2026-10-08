@@ -15,6 +15,7 @@
     <ProjectReference Include="..\LongevityDiet.MealPlanning.Application\LongevityDiet.MealPlanning.Application.csproj" />
     <ProjectReference Include="..\LongevityDiet.MealPlanning.Infrastructure\LongevityDiet.MealPlanning.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\LongevityDiet.Contracts\LongevityDiet.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\LongevityDiet.ApiDefaults\LongevityDiet.ApiDefaults.csproj" />
   </ItemGroup>
 
 </Project>

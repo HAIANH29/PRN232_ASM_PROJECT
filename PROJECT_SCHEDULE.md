@@ -68,15 +68,17 @@ Assumption: one developer working in focused slices. If the deadline is shorter,
 
 ### Milestone 0 — Baseline And Shared Foundation
 
+Status: Completed on 2026-10-08.
+
 Target: T+0.5 to T+1 day.
 
 Code/work to do:
-- Add shared API response conventions where useful.
-- Add global exception handling per public API.
-- Add validation approach for request DTOs.
-- Confirm package versions and central package management.
-- Decide seed data strategy for demo accounts and approved diet content.
-- Keep `AGENTS.md`, `PROJECT_PROGRESS.md`, and docs synchronized.
+- [x] Add shared API response conventions where useful.
+- [x] Add global exception handling per public API.
+- [x] Add validation approach for request DTOs.
+- [x] Confirm package versions and central package management.
+- [x] Decide seed data strategy for demo accounts and approved diet content.
+- [x] Keep `AGENTS.md`, `PROJECT_PROGRESS.md`, and docs synchronized.
 
 Verification:
 - `dotnet build LongevityDietPlatform.sln`
@@ -376,7 +378,7 @@ This minimum path is enough to demonstrate the required PRN232 architecture and 
 | Requirement | Current status | Remaining work |
 | --- | --- | --- |
 | Microservices architecture | Scaffolded | Implement real business APIs and flows |
-| ASP.NET Core REST APIs | Skeletons exist | Add DTOs, controllers, validation, status codes |
+| ASP.NET Core REST APIs | Skeletons and shared API defaults exist | Add business DTOs, controllers, validation rules, status codes |
 | Layered architecture | Project structure exists | Keep controllers out of DbContext and business logic |
 | JWT auth/authorization | Not implemented | Register/login/JWT/roles/ownership |
 | Search/filter/sort/pagination | Not implemented | Diet Knowledge lists first, then other lists where useful |
