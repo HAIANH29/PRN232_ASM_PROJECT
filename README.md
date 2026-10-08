@@ -4,6 +4,8 @@ PRN232 microservices scaffold for an educational diet planning and tracking plat
 
 This repository is Phase 1 only. It creates the structure and infrastructure hooks, not full business CRUD.
 
+Project status and remaining work are tracked in `PROJECT_PROGRESS.md`. Update that file after each completed project change.
+
 ## Containers
 
 - `LongevityDiet.Web` - ASP.NET Core MVC web application.

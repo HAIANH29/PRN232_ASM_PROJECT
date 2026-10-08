@@ -419,10 +419,11 @@ Always work incrementally.
 
 Before coding:
 1. Read this AGENTS.md.
-2. Inspect the repository.
-3. State what you will create/change.
-4. Do not invent missing requirements.
-5. Prefer a minimal correct scaffold over a large speculative implementation.
+2. Read PROJECT_PROGRESS.md to understand what has already been built, what is incomplete, and what the next expected work is.
+3. Inspect the repository.
+4. State what you will create/change.
+5. Do not invent missing requirements.
+6. Prefer a minimal correct scaffold over a large speculative implementation.
 
 For each implementation phase:
 1. Update architecture/docs if architecture changed.
@@ -431,6 +432,17 @@ For each implementation phase:
 4. Fix compilation errors.
 5. Report created/changed files.
 6. Report assumptions and TODOs.
+7. Update PROJECT_PROGRESS.md in the same change set with completed work, remaining work, verification results, and any new assumptions/TODOs.
+
+### Project progress tracking
+Maintain PROJECT_PROGRESS.md at the repository root as the shared progress tracker for humans and AI agents.
+
+Rules:
+- Every agent must read PROJECT_PROGRESS.md before making project changes.
+- Every completed change must update PROJECT_PROGRESS.md before commit/push or before reporting completion.
+- Keep progress entries factual and concise: date, branch/commit when known, completed work, verification, remaining work, and blockers.
+- Do not mark a feature complete unless the code, documentation, and verification for that feature are actually done.
+- If a task changes architecture, update both the architecture docs and PROJECT_PROGRESS.md.
 
 ## 17. Phase 1 — Scaffold Only
 When asked to "build the initial skeleton", create structure only:
