@@ -4,10 +4,10 @@ This file is the shared progress tracker for the project. Every human or AI agen
 
 ## Current Status
 
-- Phase: Milestone 3 Meal Planning Service complete; manual book source review/approval remains.
+- Phase: Milestone 4 Tracking Service and gRPC Notification complete; manual book source review/approval remains.
 - Branch: `HA/phase-1-microservices-scaffold`.
-- Last pushed baseline before this update: Milestone 2.5 Book Knowledge integration after commit `7ec8268`.
-- Verification baseline: `dotnet restore LongevityDietPlatform.sln`, `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `dotnet test LongevityDietPlatform.sln --no-restore -m:1 --verbosity minimal`, `docker compose config`, and Identity/Diet Knowledge/Meal Planning/RabbitMQ Docker smoke tests passed on 2026-10-09.
+- Last pushed baseline before this update: Milestone 3 Meal Planning Service after commit `5b9394c`.
+- Verification baseline: `dotnet restore LongevityDietPlatform.sln`, `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `dotnet test LongevityDietPlatform.sln --no-restore -m:1 --verbosity minimal`, `docker compose config`, and Identity/Diet Knowledge/Meal Planning/Tracking/Notification/RabbitMQ Docker smoke tests passed on 2026-10-09.
 - Completion roadmap: `PROJECT_SCHEDULE.md`.
 
 ## Done
@@ -37,20 +37,19 @@ This file is the shared progress tracker for the project. Every human or AI agen
 - Moved Diet Knowledge seed data to a version-controlled JSON file with seed entries marked `NeedsReview` until team source verification.
 - Restricted public Diet Knowledge reads and recipe ingredient validation to active `Approved` content.
 - Implemented Meal Planning Service meal plan CRUD, meal plan item scheduling, ownership checks, approved Diet Knowledge validation through REST, RabbitMQ reminder publishing, RabbitMQ recommendation request publishing, recommendation result consumption/storage, recommendation accept flow, and the initial Meal Planning EF Core migration.
+- Implemented Tracking Service daily tracking, meal completion/not-completion tracking, progress summary calculation, ownership checks, startup migration, and the initial Tracking EF Core migration.
+- Implemented the real Tracking Service -> Notification Service gRPC progress notification flow.
+- Updated Notification Service to publish accepted progress notification messages to RabbitMQ.
 
 ## Incomplete / Remaining Work
 
-- Add business DTOs, endpoint-specific validation rules, and correct HTTP status handling to Tracking public API.
 - Verify each seeded book-knowledge item against a legally obtained source copy and approve only reviewed items.
 - Implement Recommendation Service prompt/context creation from approved knowledge and optional real Google Gemini calls.
-- Implement Tracking APIs for meal completion, daily tracking, history, and progress summaries.
-- Wire real Tracking use cases to call Notification Service via gRPC when notifications are required.
 - Implement durable RabbitMQ topology, retries, error handling, idempotency, and dead-letter behavior where needed.
 - Implement Notification Worker email delivery through Resend, including retry/logging behavior.
-- Add EF Core migration for Tracking.
 - Add automated tests for implemented slices.
 - Build the real Web Application screens and API Gateway integration.
-- Run an end-to-end Docker Compose smoke test once business flows exist.
+- Run a full end-to-end Docker Compose smoke test once Notification Worker, Recommendation Service, Gateway, and Web flows exist.
 
 ## Update Rules
 
@@ -67,6 +66,20 @@ Each update should include:
 Do not mark a feature as complete if it only has placeholders or configuration. Call it a scaffold until the real behavior exists and has been verified.
 
 ## Change Log
+
+### 2026-10-09 — Complete Milestone 4 Tracking Service and gRPC Notification
+
+- Added authenticated Tracking API contracts and controllers for daily tracking history, daily tracking upsert/delete, meal completion/not-completion, and progress summary reads.
+- Added application-layer ownership checks using the user id from JWT claims.
+- Added Tracking Service progress summary calculation for daily/weekly-style date ranges.
+- Added the real progress-notification business trigger: when a user completes all planned meals for a tracked day, Tracking Service calls Notification Service through gRPC.
+- Added Tracking persistence for `DailyTracking`, `MealTracking`, and `ProgressSummary`, including internal-only `MealTracking -> DailyTracking` relationship and cross-service `MealPlanItemId` references by id only.
+- Added startup migration initialization and the initial Tracking EF Core migration `InitialTrackingSchema`.
+- Updated Notification Service to accept progress notification gRPC requests and publish `NotificationRequested` messages to RabbitMQ.
+- Split Notification Service Kestrel endpoints so internal gRPC uses HTTP/2 on port `8080` and host health checks use HTTP/1 on port `8081`.
+- Updated Docker Compose, README, ERD, physical database docs, seed strategy, and `PROJECT_SCHEDULE.md`.
+- Verification: `dotnet restore LongevityDietPlatform.sln`, `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `dotnet test LongevityDietPlatform.sln --no-restore -m:1 --verbosity minimal`, `docker compose config`, `git diff --check`, `docker compose up -d --build notification-service tracking-service`, Tracking and Notification health checks, user daily tracking upsert, meal marked not completed then completed, progress summary updated from `0/1` to `1/1`, another user denied access with `404`, and RabbitMQ `notification.messages` increased after the gRPC notification flow.
+- Remaining TODO: add automated tests for Tracking/Notification, implement Notification Worker consumption and Resend delivery, implement full Recommendation Service processing/Gemini-safe context, finalize API Gateway routes, and build Web Application screens.
 
 ### 2026-10-09 — Complete Milestone 3 Meal Planning Service
 

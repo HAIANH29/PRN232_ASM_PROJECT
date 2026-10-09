@@ -13,4 +13,8 @@ public sealed class MealTracking
     public bool IsCompleted { get; set; }
 
     public DateTimeOffset? CompletedAtUtc { get; set; }
+
+    public DateTimeOffset CreatedAtUtc { get; set; } = DateTimeOffset.UtcNow;
+
+    public DateTimeOffset? UpdatedAtUtc { get; set; }
 }

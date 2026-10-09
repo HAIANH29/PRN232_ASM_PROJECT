@@ -2,7 +2,7 @@
 
 PRN232 microservices scaffold for an educational diet planning and tracking platform based on approved knowledge from *The Longevity Diet*.
 
-This repository has the Phase 1 microservice scaffold plus the Milestone 1 Identity, Milestone 2 Diet Knowledge, and Milestone 3 Meal Planning implementations. The remaining business services are still being implemented incrementally.
+This repository has the Phase 1 microservice scaffold plus the Milestone 1 Identity, Milestone 2 Diet Knowledge, Milestone 3 Meal Planning, and Milestone 4 Tracking/gRPC Notification implementations. The remaining business services are still being implemented incrementally.
 
 Project status and remaining work are tracked in `PROJECT_PROGRESS.md`. The completion roadmap is tracked in `PROJECT_SCHEDULE.md`. Update the progress file after each completed project change.
 
@@ -101,11 +101,23 @@ Meal Planning endpoints:
 - Recommendation requests are published to RabbitMQ; completed recommendation results are consumed and stored for user review.
 - A separate `MealSchedule` table is not used in this milestone; schedule data is represented by `MealPlanItem.PlannedDate`, `MealSlot`, and `ReminderAtUtc`.
 
+Tracking endpoints:
+
+- All Tracking endpoints require a JWT Bearer token.
+- Daily tracking workflow:
+  - `GET /api/daily-trackings`
+  - `GET /api/daily-trackings/{trackingDate}`
+  - `PUT /api/daily-trackings/{trackingDate}`
+  - `DELETE /api/daily-trackings/{trackingDate}`
+  - `PUT /api/daily-trackings/{trackingDate}/meals/{mealPlanItemId}`
+- Progress summary workflow:
+  - `GET /api/progress-summaries?periodStartDate=YYYY-MM-DD&periodEndDate=YYYY-MM-DD`
+- Tracking stores only `MealPlanItemId` as a cross-service ID; it does not read `MealPlanningDb`.
+- When a daily progress summary reaches all tracked meals completed, Tracking calls Notification Service through gRPC.
+- Notification Service publishes a `NotificationRequested` message to RabbitMQ for later worker delivery.
+
 ## Remaining TODO
 
 - Implement Recommendation Service RabbitMQ consumption and Google Gemini integration.
-- Implement Tracking -> Notification gRPC use cases.
 - Implement Notification Worker consumption and Resend integration.
-- Implement tracking workflows and progress summaries.
-- Add EF Core migration for Tracking.
 - Add tests around each implemented slice.

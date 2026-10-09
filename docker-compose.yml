@@ -94,7 +94,7 @@ services:
       context: .
       dockerfile: src/Services/Notification/LongevityDiet.Notification.Grpc/Dockerfile
     ports:
-      - "5105:8080"
+      - "5105:8081"
     environment:
       RabbitMq__HostName: rabbitmq
     depends_on:

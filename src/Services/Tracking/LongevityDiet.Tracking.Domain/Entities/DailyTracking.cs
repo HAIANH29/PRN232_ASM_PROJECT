@@ -12,5 +12,7 @@ public sealed class DailyTracking
 
     public DateTimeOffset CreatedAtUtc { get; set; } = DateTimeOffset.UtcNow;
 
+    public DateTimeOffset? UpdatedAtUtc { get; set; }
+
     public ICollection<MealTracking> Meals { get; } = new List<MealTracking>();
 }

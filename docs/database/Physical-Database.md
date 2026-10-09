@@ -123,12 +123,36 @@ Initial migration exists: `InitialMealPlanningSchema`.
 ## TrackingDb
 
 - `DailyTrackings`
+  - `Id`
+  - `UserId`
+  - `TrackingDate`
+  - `Notes`
+  - `CreatedAtUtc`
+  - `UpdatedAtUtc`
 - `MealTrackings`
+  - `Id`
+  - `DailyTrackingId`
+  - `MealPlanItemId`
+  - `IsCompleted`
+  - `CompletedAtUtc`
+  - `CreatedAtUtc`
+  - `UpdatedAtUtc`
 - `ProgressSummaries`
+  - `Id`
+  - `UserId`
+  - `PeriodStartDate`
+  - `PeriodEndDate`
+  - `PlannedMeals`
+  - `CompletedMeals`
+  - `CalculatedAtUtc`
+  - `LastNotificationId`
+  - `LastNotificationSentAtUtc`
 
 Owned by `Tracking Service`.
 
-`MealPlanItemId` is a cross-service identifier only.
+`MealPlanItemId` is a cross-service identifier only. `UserId` and `MealPlanItemId` do not have cross-database foreign keys. `MealTrackings` has an internal foreign key to `DailyTrackings` only.
+
+Initial migration exists: `InitialTrackingSchema`.
 
 ## Stateless Services
 
@@ -141,4 +165,4 @@ Owned by `Tracking Service`.
 - No service reads another service database directly.
 - No cross-database foreign keys.
 - Do not create `RecommendationDb` or `NotificationDb` unless a future persistence requirement needs them.
-- EF Core migrations should be created for Tracking in a later implementation phase.
+- EF Core migrations exist for Identity, Diet Knowledge, Meal Planning, and Tracking.
