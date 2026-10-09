@@ -47,6 +47,8 @@ Purpose:
 Implementation target:
 - Prefer creating meal plans through APIs during demo setup after Identity and Diet Knowledge are ready.
 - If static seed is needed, store only cross-service IDs, not foreign keys.
+- Current implementation applies the `InitialMealPlanningSchema` migration on startup.
+- No static meal plan seed is included because meal plans are user-owned and should be created through authenticated APIs.
 
 ## Tracking Service
 
@@ -80,6 +82,6 @@ Recommended local/demo setup order:
 
 - [x] Add Identity seed data after migrations exist.
 - [x] Add Diet Knowledge seed data after CRUD models are finalized.
-- [ ] Decide whether Meal Planning needs static sample plans or API-created demo data.
+- [x] Decide whether Meal Planning needs static sample plans or API-created demo data.
 - [ ] Decide whether Tracking needs static sample progress or API-created demo data.
 - [x] Document demo account credentials in local-only docs or `.env.example` placeholders.

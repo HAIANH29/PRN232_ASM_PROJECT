@@ -55,10 +55,12 @@ services:
       - "5103:8080"
     environment:
       ConnectionStrings__MealPlanningDb: Host=meal-planning-db;Port=5432;Database=MealPlanningDb;Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
+      DietKnowledgeService__BaseUrl: http://diet-knowledge-service:8080
       Jwt__SigningKey: ${JWT_SIGNING_KEY:-development-only-replace-with-secret}
       RabbitMq__HostName: rabbitmq
     depends_on:
       - meal-planning-db
+      - diet-knowledge-service
       - rabbitmq
 
   tracking-service:

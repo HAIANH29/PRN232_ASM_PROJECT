@@ -4,10 +4,10 @@ This file is the shared progress tracker for the project. Every human or AI agen
 
 ## Current Status
 
-- Phase: Milestone 2.5 Book Knowledge technical integration complete; manual source review/approval remains.
+- Phase: Milestone 3 Meal Planning Service complete; manual book source review/approval remains.
 - Branch: `HA/phase-1-microservices-scaffold`.
-- Last pushed baseline before this update: Milestone 2 Diet Knowledge Service after commit `876d139`.
-- Verification baseline: `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `docker compose config`, and Identity/Diet Knowledge Docker smoke tests passed on 2026-10-09.
+- Last pushed baseline before this update: Milestone 2.5 Book Knowledge integration after commit `7ec8268`.
+- Verification baseline: `dotnet restore LongevityDietPlatform.sln`, `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `dotnet test LongevityDietPlatform.sln --no-restore -m:1 --verbosity minimal`, `docker compose config`, and Identity/Diet Knowledge/Meal Planning/RabbitMQ Docker smoke tests passed on 2026-10-09.
 - Completion roadmap: `PROJECT_SCHEDULE.md`.
 
 ## Done
@@ -36,19 +36,18 @@ This file is the shared progress tracker for the project. Every human or AI agen
 - Added Diet Knowledge source/provenance and review metadata for book-derived guidelines, foods, and recipes.
 - Moved Diet Knowledge seed data to a version-controlled JSON file with seed entries marked `NeedsReview` until team source verification.
 - Restricted public Diet Knowledge reads and recipe ingredient validation to active `Approved` content.
+- Implemented Meal Planning Service meal plan CRUD, meal plan item scheduling, ownership checks, approved Diet Knowledge validation through REST, RabbitMQ reminder publishing, RabbitMQ recommendation request publishing, recommendation result consumption/storage, recommendation accept flow, and the initial Meal Planning EF Core migration.
 
 ## Incomplete / Remaining Work
 
-- Add business DTOs, endpoint-specific validation rules, and correct HTTP status handling to Meal Planning and Tracking public APIs.
+- Add business DTOs, endpoint-specific validation rules, and correct HTTP status handling to Tracking public API.
 - Verify each seeded book-knowledge item against a legally obtained source copy and approve only reviewed items.
-- Implement Meal Planning create/update/delete workflows, scheduling rules, ownership checks, and real reminder publishing behavior.
-- Implement Meal Planning consumption of `RecommendationResult` and the user accept/edit flow for AI recommendations.
 - Implement Recommendation Service prompt/context creation from approved knowledge and optional real Google Gemini calls.
 - Implement Tracking APIs for meal completion, daily tracking, history, and progress summaries.
 - Wire real Tracking use cases to call Notification Service via gRPC when notifications are required.
 - Implement durable RabbitMQ topology, retries, error handling, idempotency, and dead-letter behavior where needed.
 - Implement Notification Worker email delivery through Resend, including retry/logging behavior.
-- Add EF Core migrations for Meal Planning and Tracking.
+- Add EF Core migration for Tracking.
 - Add automated tests for implemented slices.
 - Build the real Web Application screens and API Gateway integration.
 - Run an end-to-end Docker Compose smoke test once business flows exist.
@@ -68,6 +67,22 @@ Each update should include:
 Do not mark a feature as complete if it only has placeholders or configuration. Call it a scaffold until the real behavior exists and has been verified.
 
 ## Change Log
+
+### 2026-10-09 — Complete Milestone 3 Meal Planning Service
+
+- Added Meal Planning API DTOs and authenticated controllers for meal plan CRUD, meal plan item CRUD, recommendation request review, and recommendation accept flow.
+- Added application-layer ownership checks using the user id from JWT claims.
+- Added validation for meal plan date ranges, item planned dates, meal slots, exactly one food/recipe reference per item, and recommendation request duration.
+- Added an HTTP Diet Knowledge catalog client so Meal Planning validates `FoodId` and `RecipeId` through public Diet Knowledge REST APIs instead of reading another service database.
+- Added RabbitMQ publishing for scheduled meal reminders and recommendation requests.
+- Added RabbitMQ recommendation result consumer/hosted worker that stores completed recommendation result data for user review.
+- Added `MealRecommendationRequest` persistence and the initial Meal Planning EF Core migration `InitialMealPlanningSchema`.
+- Added startup migration initialization for `MealPlanningDb`.
+- Updated Docker Compose with Meal Planning dependency on Diet Knowledge and RabbitMQ, plus Diet Knowledge base URL configuration.
+- Updated README, ERD, physical database docs, seed strategy, and `PROJECT_SCHEDULE.md`.
+- Implementation note: a separate `MealSchedule` table was not needed for the current workflow; schedule data is represented by `MealPlanItem.PlannedDate`, `MealSlot`, and `ReminderAtUtc`.
+- Verification: `dotnet restore LongevityDietPlatform.sln`, `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `dotnet test LongevityDietPlatform.sln --no-restore -m:1 --verbosity minimal`, `docker compose config`, `docker compose up -d --build identity-service diet-knowledge-service meal-planning-service`, health checks for Identity/Diet Knowledge/Meal Planning, admin-created approved food through Diet Knowledge, user-created meal plan through Meal Planning, invalid food reference rejected with `400`, another user denied access to the first user's plan with `404`, recommendation request published to RabbitMQ, synthetic recommendation result consumed and stored as `Completed`, accepted recommendation saved as a new meal plan, RabbitMQ showed `reminder.requests` with 2 messages, `recommendation.requests` with 1 message, and `recommendation.results` consumed/acked to 0 messages.
+- Remaining TODO: add automated tests for the Meal Planning slice, implement real Recommendation Service processing/Gemini context, implement Notification Worker consumption, and complete Tracking Service.
 
 ### 2026-10-09 — Add Book Knowledge integration foundation
 

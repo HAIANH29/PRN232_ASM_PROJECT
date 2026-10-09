@@ -81,11 +81,44 @@ Migrations exist: `InitialDietKnowledgeSchema`, `AddBookKnowledgeReviewMetadata`
 ## MealPlanningDb
 
 - `MealPlans`
+  - `Id`
+  - `UserId`
+  - `Name`
+  - `StartDate`
+  - `EndDate`
+  - `CreatedAtUtc`
+  - `UpdatedAtUtc`
 - `MealPlanItems`
+  - `Id`
+  - `MealPlanId`
+  - `PlannedDate`
+  - `MealSlot`
+  - `RecipeId`
+  - `FoodId`
+  - `Notes`
+  - `ReminderAtUtc`
+  - `CreatedAtUtc`
+  - `UpdatedAtUtc`
+- `MealRecommendationRequests`
+  - `Id`
+  - `UserId`
+  - `PreferenceTagsJson`
+  - `Days`
+  - `Status`
+  - `SuggestedMealTitlesJson`
+  - `Disclaimer`
+  - `AcceptedMealPlanId`
+  - `RequestedAtUtc`
+  - `CompletedAtUtc`
+  - `UpdatedAtUtc`
 
 Owned by `Meal Planning Service`.
 
-`UserId`, `RecipeId`, and `FoodId` are cross-service identifiers only.
+`UserId`, `RecipeId`, and `FoodId` are cross-service identifiers only. They are indexed where useful but do not have cross-database foreign keys. `MealPlanItems` has an internal foreign key to `MealPlans` only.
+
+Initial migration exists: `InitialMealPlanningSchema`.
+
+`MealSchedule` is not represented as a separate table in the current workflow. The scheduling data is stored on `MealPlanItems` through `PlannedDate`, `MealSlot`, and `ReminderAtUtc`.
 
 ## TrackingDb
 
@@ -108,4 +141,4 @@ Owned by `Tracking Service`.
 - No service reads another service database directly.
 - No cross-database foreign keys.
 - Do not create `RecommendationDb` or `NotificationDb` unless a future persistence requirement needs them.
-- EF Core migrations should be created for Meal Planning and Tracking in later implementation phases.
+- EF Core migrations should be created for Tracking in a later implementation phase.
