@@ -2,7 +2,7 @@
 
 PRN232 microservices scaffold for an educational diet planning and tracking platform based on approved knowledge from *The Longevity Diet*.
 
-This repository has the Phase 1 microservice scaffold plus the Milestone 1 Identity, Milestone 2 Diet Knowledge, Milestone 3 Meal Planning, and Milestone 4 Tracking/gRPC Notification implementations. The remaining business services are still being implemented incrementally.
+This repository has the Phase 1 microservice scaffold plus the Milestone 1 Identity, Milestone 2 Diet Knowledge, Milestone 3 Meal Planning, Milestone 4 Tracking/gRPC Notification, and Milestone 5 RabbitMQ notification delivery implementations. The remaining business services are still being implemented incrementally.
 
 Project status and remaining work are tracked in `PROJECT_PROGRESS.md`. The completion roadmap is tracked in `PROJECT_SCHEDULE.md`. Update the progress file after each completed project change.
 
@@ -22,7 +22,7 @@ Development conventions:
 - `LongevityDiet.Tracking.Api` - REST API for daily and meal tracking.
 - `LongevityDiet.Recommendation.Service` - internal RabbitMQ recommendation worker with Google Gemini placeholder.
 - `LongevityDiet.Notification.Grpc` - internal gRPC notification service called by Tracking.
-- `LongevityDiet.NotificationWorker` - worker skeleton for RabbitMQ notification/reminder messages and future Resend calls.
+- `LongevityDiet.NotificationWorker` - worker service for RabbitMQ notification/reminder messages and Resend/logged email delivery.
 
 Each REST service is split into:
 
@@ -116,8 +116,16 @@ Tracking endpoints:
 - When a daily progress summary reaches all tracked meals completed, Tracking calls Notification Service through gRPC.
 - Notification Service publishes a `NotificationRequested` message to RabbitMQ for later worker delivery.
 
+Notification Worker:
+
+- Consumes scheduled meal reminders from `reminder.requests`.
+- Consumes progress notifications from `notification.messages`.
+- Declares durable RabbitMQ exchanges/queues plus dead-letter exchanges/queues for both flows.
+- Retries failed messages using `RabbitMq__MaxDeliveryAttempts` and `RabbitMq__RetryDelaySeconds`.
+- Sends through Resend when `RESEND_API_KEY` is configured.
+- Logs the expected email payload when `RESEND_API_KEY` is empty or `development-only`, which is the default local fallback.
+
 ## Remaining TODO
 
 - Implement Recommendation Service RabbitMQ consumption and Google Gemini integration.
-- Implement Notification Worker consumption and Resend integration.
 - Add tests around each implemented slice.

@@ -8,9 +8,9 @@ Read together with:
 
 ## Current Snapshot
 
-Current phase: Milestone 4 Tracking Service and gRPC Notification is complete; Book Knowledge manual source review remains pending.
+Current phase: Milestone 5 RabbitMQ and Notification Delivery is complete in code; Book Knowledge manual source review remains pending.
 
-Estimated product completion: about 62-66%.
+Estimated product completion: about 68-72%.
 
 What is already in code:
 - .NET solution and project structure exist.
@@ -27,19 +27,20 @@ What is already in code:
 - RabbitMQ message contract/configuration skeletons exist.
 - Recommendation Service exists as a RabbitMQ worker skeleton.
 - Notification Service exists as a gRPC service skeleton.
-- Notification Worker exists as a worker skeleton.
+- Notification Worker consumes RabbitMQ reminder/notification messages and sends through Resend or logs email payloads in development fallback mode.
 - Architecture docs exist and match the updated microservice diagram.
 - Identity Service now supports register/login/profile/admin-check, password hashing, JWT generation, role seeding, demo admin seeding, and the initial Identity EF Core migration.
 - Diet Knowledge Service now supports book-knowledge review metadata, JSON seed data, public browsing/search/filter/sort/pagination for active approved content, admin CRUD, activation/deactivation, and Diet Knowledge EF Core migrations.
 - Meal Planning Service now supports authenticated meal plan CRUD, meal plan item scheduling, ownership checks, Diet Knowledge validation through REST, RabbitMQ reminder publishing, recommendation request publishing, recommendation result consumption/storage, recommendation accept flow, and the initial Meal Planning EF Core migration.
 - Tracking Service now supports authenticated daily tracking, meal completion/not-completion tracking, progress summary calculation, ownership checks, Tracking EF Core migration, and the real Tracking -> Notification Service gRPC flow.
 - Notification Service now accepts progress notification gRPC requests and publishes notification messages to RabbitMQ.
+- Notification Worker now declares durable reminder/notification queues, dead-letter queues, retry handling, Resend sender abstraction, and local log fallback delivery.
 
 What is not yet product-ready:
 - The team still needs to verify book-derived seed items against a legally obtained source copy before marking them `Approved`.
 - Search/filter/sort/pagination are implemented for Diet Knowledge and Meal Planning; Tracking supports date-filtered paged history.
-- RabbitMQ publish/consume behavior exists for the Meal Planning side of reminders/recommendations and the Notification Service publisher; Recommendation Service and Notification Worker still need their full business consumers.
-- Gemini and Resend integrations are placeholders.
+- RabbitMQ publish/consume behavior exists for Meal Planning reminders/recommendations, Notification Service notifications, and Notification Worker delivery; Recommendation Service still needs its full business consumer.
+- Gemini integration is still a placeholder; Resend has a sender abstraction with development log fallback and needs a real API key/sender for production sending.
 - Web Application is still mostly the default MVC shell.
 - Tests and end-to-end Docker smoke tests are not complete.
 
@@ -231,20 +232,25 @@ Done when:
 
 Target: T+7.5 to T+9 days.
 
+Status: Completed in code on 2026-10-09; Docker runtime smoke is blocked by local Docker/C drive storage.
+
 Code/work to do:
-- Implement durable RabbitMQ exchange/queue declarations.
-- Implement reminder consumer in Notification Worker.
-- Implement notification consumer in Notification Worker.
-- Implement retry/logging strategy.
-- Add dead-letter queue if time allows.
-- Implement Resend email sender abstraction.
-- Keep a development fallback that logs email payloads when Resend is not configured.
+- [x] Implement durable RabbitMQ exchange/queue declarations.
+- [x] Implement reminder consumer in Notification Worker.
+- [x] Implement notification consumer in Notification Worker.
+- [x] Implement retry/logging strategy.
+- [x] Add dead-letter queue if time allows.
+- [x] Implement Resend email sender abstraction.
+- [x] Keep a development fallback that logs email payloads when Resend is not configured.
 
 Verification:
-- Scheduling a meal eventually reaches Notification Worker.
-- Tracking progress notification eventually reaches Notification Worker.
-- Worker logs or sends expected email payload.
-- RabbitMQ Management UI shows expected queues/exchanges.
+- [ ] Scheduling a meal eventually reaches Notification Worker. Local Docker smoke blocked by Docker Desktop/C drive storage.
+- [ ] Tracking progress notification eventually reaches Notification Worker. Local Docker smoke blocked by Docker Desktop/C drive storage.
+- [x] Worker builds and contains logged fallback delivery when Resend is not configured.
+- [ ] RabbitMQ Management UI shows expected queues/exchanges. Local Docker smoke blocked by Docker Desktop/C drive storage.
+- [x] `dotnet build LongevityDietPlatform.sln`
+- [x] `dotnet test LongevityDietPlatform.sln`
+- [x] `docker compose config`
 
 Done when:
 - Asynchronous messaging is demonstrable end to end.
@@ -424,13 +430,13 @@ This minimum path is enough to demonstrate the required PRN232 architecture and 
 | JWT auth/authorization | Identity implemented; Diet Knowledge admin mutations protected; Meal Planning and Tracking ownership checks implemented | Extend to Web flows and future APIs |
 | Search/filter/sort/pagination | Implemented for Diet Knowledge, Meal Planning, and Tracking history | Add more list behavior only where useful |
 | gRPC internal flow | Tracking -> Notification implemented in a real progress use case | Add tests/smoke documentation |
-| RabbitMQ async messaging | Contracts/config exist; Meal Planning publishes reminders and recommendation requests and consumes recommendation results; Notification Service publishes notification messages | Implement full Recommendation and Worker flows |
-| .NET Worker Service | Skeleton exists | Implement notification/reminder processing |
+| RabbitMQ async messaging | Contracts/config exist; Meal Planning publishes reminders and recommendation requests and consumes recommendation results; Notification Service publishes notification messages; Notification Worker consumes reminder/notification messages | Implement full Recommendation flow and complete Docker runtime smoke |
+| .NET Worker Service | Notification Worker implemented for reminder/notification delivery | Add runtime smoke and tests |
 | PostgreSQL database-per-service | Identity, Diet Knowledge, Meal Planning, and Tracking migrations exist | Keep service ownership boundaries intact |
 | Docker Compose | Skeleton valid; Identity and Diet Knowledge startup smoke tested | Full startup verification with all services and dependencies |
 | C4 docs | Existing | Keep synchronized with implementation |
 | Web Application | MVC shell exists | Build real User/Admin screens |
-| External providers | Placeholders exist | Resend/Gemini abstractions and configured behavior |
+| External providers | Resend sender abstraction with log fallback exists; Gemini placeholder exists | Configure real Resend/Gemini keys only for demo/production if needed |
 | Tests | Not present | Add unit/integration/API tests |
 
 ## Per-Service Checklist
@@ -508,11 +514,12 @@ Note: schedule support is represented on `MealPlanItem` rather than a separate t
 
 ### Notification Worker
 
-- [ ] Reminder consumer.
-- [ ] Notification consumer.
-- [ ] Resend email sender abstraction.
-- [ ] Development logging fallback.
-- [ ] Retry/error handling.
+- [x] Reminder consumer.
+- [x] Notification consumer.
+- [x] Resend email sender abstraction.
+- [x] Development logging fallback.
+- [x] Retry/error handling.
+- [x] Dead-letter queues.
 - [ ] Tests or smoke checks.
 
 ### API Gateway
