@@ -33,7 +33,7 @@ This project uses book-derived knowledge as curated educational content. Do not 
 
 ## AI Safety Rule
 
-Recommendation context must be built only from active `Approved` knowledge plus user preferences. It must not ask Gemini to invent medical advice, diagnosis, treatment, disease prediction, or lifespan prediction.
+Recommendation context is built only from active `Approved` knowledge returned by the public Diet Knowledge APIs plus sanitized user preferences. It must not ask Gemini to invent medical advice, diagnosis, treatment, disease prediction, or lifespan prediction.
 
 ## Team TODO
 

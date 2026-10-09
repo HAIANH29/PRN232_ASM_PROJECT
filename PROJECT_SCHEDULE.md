@@ -8,9 +8,9 @@ Read together with:
 
 ## Current Snapshot
 
-Current phase: Milestone 5 RabbitMQ and Notification Delivery is complete, including Docker runtime smoke; Book Knowledge manual source review remains pending.
+Current phase: Milestone 6 Recommendation Service and Gemini Placeholder/Integration is complete, including Docker runtime smoke; Book Knowledge manual source review remains pending.
 
-Estimated product completion: about 68-72%.
+Estimated product completion: about 74-78%.
 
 What is already in code:
 - .NET solution and project structure exist.
@@ -25,7 +25,7 @@ What is already in code:
 - Dockerfiles and Docker Compose skeleton exist.
 - YARP API Gateway skeleton exists.
 - RabbitMQ message contract/configuration skeletons exist.
-- Recommendation Service exists as a RabbitMQ worker skeleton.
+- Recommendation Service consumes RabbitMQ recommendation requests, builds context from active `Approved` Diet Knowledge data, applies safety guardrails, uses safe fallback recommendations when Gemini is disabled, and publishes recommendation results.
 - Notification Service exists as a gRPC service skeleton.
 - Notification Worker consumes RabbitMQ reminder/notification messages and sends through Resend or logs email payloads in development fallback mode.
 - Architecture docs exist and match the updated microservice diagram.
@@ -39,8 +39,8 @@ What is already in code:
 What is not yet product-ready:
 - The team still needs to verify book-derived seed items against a legally obtained source copy before marking them `Approved`.
 - Search/filter/sort/pagination are implemented for Diet Knowledge and Meal Planning; Tracking supports date-filtered paged history.
-- RabbitMQ publish/consume behavior exists for Meal Planning reminders/recommendations, Notification Service notifications, and Notification Worker delivery; Recommendation Service still needs its full business consumer.
-- Gemini integration is still a placeholder; Resend has a sender abstraction with development log fallback and needs a real API key/sender for production sending.
+- RabbitMQ publish/consume behavior exists for Meal Planning reminders/recommendations, Recommendation Service processing/results, Notification Service notifications, and Notification Worker delivery.
+- Gemini integration has a configurable HTTP client abstraction with safe disabled-mode fallback; real Gemini and Resend delivery need configured API keys for production/demo external calls.
 - Web Application is still mostly the default MVC shell.
 - Tests and end-to-end Docker smoke tests are not complete.
 
@@ -160,13 +160,13 @@ Code/work to do:
 - [x] Let admins create/update/deactivate managed knowledge.
 - [x] Restrict public reads to active `Approved` knowledge.
 - [x] Require source metadata and reviewer when admin marks content `Approved`.
-- [ ] Build Recommendation context only from active `Approved` knowledge during Milestone 6.
+- [x] Build Recommendation context only from active `Approved` knowledge during Milestone 6.
 
 Verification:
 - [x] `dotnet build LongevityDietPlatform.sln`
 - [x] Diet Knowledge migration added for provenance/review metadata.
 - [ ] Team review confirms source chapter/page/reference for each seed item.
-- [ ] Future Recommendation smoke test proves AI context excludes unapproved content.
+- [x] Recommendation smoke test proves the context path uses public active `Approved` Diet Knowledge reads.
 
 Done when:
 - The app has technical support for book-derived knowledge, and the team has verified/approved the dataset it wants to expose in demos.
@@ -259,20 +259,25 @@ Done when:
 
 Target: T+9 to T+10.5 days.
 
+Status: Completed on 2026-10-09.
+
 Code/work to do:
-- Implement Recommendation Service consumer for `RecommendationRequest`.
-- Build AI prompt/context only from approved knowledge and user preferences.
-- Add safety guardrails: no diagnosis, treatment advice, disease prediction, or lifespan prediction.
-- Add Gemini client abstraction.
-- Keep fallback recommendation behavior when Gemini is disabled.
-- Publish `RecommendationResult` back to RabbitMQ.
-- Add Meal Planning handling for results.
+- [x] Implement Recommendation Service consumer for `RecommendationRequest`.
+- [x] Build AI prompt/context only from approved knowledge and user preferences.
+- [x] Add safety guardrails: no diagnosis, treatment advice, disease prediction, or lifespan prediction.
+- [x] Add Gemini client abstraction.
+- [x] Keep fallback recommendation behavior when Gemini is disabled.
+- [x] Publish `RecommendationResult` back to RabbitMQ.
+- [x] Add Meal Planning handling for results.
 
 Verification:
-- Recommendation request produces a result message.
-- Gemini-disabled mode still returns a safe placeholder recommendation.
-- Gemini-enabled mode is isolated behind configuration.
-- Output stays within project scope.
+- [x] Recommendation request produces a result message.
+- [x] Gemini-disabled mode still returns a safe placeholder recommendation.
+- [x] Gemini-enabled mode is isolated behind configuration.
+- [x] Output stays within project scope.
+- [x] `dotnet build LongevityDietPlatform.sln`
+- [x] `dotnet test LongevityDietPlatform.sln`
+- [x] `docker compose config`
 
 Done when:
 - AI-assisted recommendation flow is demonstrable without violating domain rules.
@@ -430,13 +435,13 @@ This minimum path is enough to demonstrate the required PRN232 architecture and 
 | JWT auth/authorization | Identity implemented; Diet Knowledge admin mutations protected; Meal Planning and Tracking ownership checks implemented | Extend to Web flows and future APIs |
 | Search/filter/sort/pagination | Implemented for Diet Knowledge, Meal Planning, and Tracking history | Add more list behavior only where useful |
 | gRPC internal flow | Tracking -> Notification implemented in a real progress use case | Add tests/smoke documentation |
-| RabbitMQ async messaging | Contracts/config exist; Meal Planning publishes reminders and recommendation requests and consumes recommendation results; Notification Service publishes notification messages; Notification Worker consumes reminder/notification messages | Implement full Recommendation flow |
+| RabbitMQ async messaging | Meal Planning publishes reminders/recommendation requests and consumes recommendation results; Recommendation Service consumes requests and publishes results; Notification Service publishes notification messages; Notification Worker consumes reminder/notification messages | Add tests and final demo script |
 | .NET Worker Service | Notification Worker implemented and Docker-smoke-tested for reminder/notification delivery | Add tests |
 | PostgreSQL database-per-service | Identity, Diet Knowledge, Meal Planning, and Tracking migrations exist | Keep service ownership boundaries intact |
 | Docker Compose | Skeleton valid; Identity and Diet Knowledge startup smoke tested | Full startup verification with all services and dependencies |
 | C4 docs | Existing | Keep synchronized with implementation |
 | Web Application | MVC shell exists | Build real User/Admin screens |
-| External providers | Resend sender abstraction with log fallback exists; Gemini placeholder exists | Configure real Resend/Gemini keys only for demo/production if needed |
+| External providers | Resend sender abstraction with log fallback exists; Gemini client abstraction with disabled-mode fallback exists | Configure real Resend/Gemini keys only for demo/production if needed |
 | Tests | Not present | Add unit/integration/API tests |
 
 ## Per-Service Checklist
@@ -496,13 +501,13 @@ Note: schedule support is represented on `MealPlanItem` rather than a separate t
 
 ### Recommendation Service
 
-- [ ] RabbitMQ consumer.
-- [ ] Gemini client abstraction.
-- [ ] Safe prompt/context builder.
-- [ ] Disabled-mode fallback.
-- [ ] Result publisher.
-- [ ] Logging/error handling.
-- [ ] Tests or smoke checks.
+- [x] RabbitMQ consumer.
+- [x] Gemini client abstraction.
+- [x] Safe prompt/context builder.
+- [x] Disabled-mode fallback.
+- [x] Result publisher.
+- [x] Logging/error handling.
+- [x] Tests or smoke checks.
 
 ### Notification Service
 

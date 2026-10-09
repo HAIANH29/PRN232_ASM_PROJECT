@@ -83,10 +83,13 @@ services:
       dockerfile: src/Services/Recommendation/LongevityDiet.Recommendation.Service/Dockerfile
     environment:
       RabbitMq__HostName: rabbitmq
+      DietKnowledgeService__BaseUrl: http://diet-knowledge-service:8080
       Gemini__Enabled: ${GEMINI_ENABLED:-false}
       Gemini__Endpoint: ${GEMINI_ENDPOINT:-https://generativelanguage.googleapis.com}
       Gemini__ApiKey: ${GEMINI_API_KEY:-development-only}
+      Gemini__Model: ${GEMINI_MODEL:-gemini-2.0-flash}
     depends_on:
+      - diet-knowledge-service
       - rabbitmq
 
   notification-service:
