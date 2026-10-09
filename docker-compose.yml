@@ -108,6 +108,8 @@ services:
       RabbitMq__HostName: rabbitmq
       Resend__BaseUrl: ${RESEND_BASE_URL:-https://api.resend.com}
       Resend__ApiKey: ${RESEND_API_KEY:-development-only}
+      Resend__FromEmail: ${RESEND_FROM_EMAIL:-onboarding@resend.dev}
+      Resend__FromName: ${RESEND_FROM_NAME:-Longevity Diet Platform}
     depends_on:
       - rabbitmq
 

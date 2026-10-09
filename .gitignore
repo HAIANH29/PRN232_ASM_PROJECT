@@ -5,6 +5,7 @@ obj/
 .idea/
 .dotnet/
 .nuget/
+.tmp/
 *.user
 *.suo
 *.swp
