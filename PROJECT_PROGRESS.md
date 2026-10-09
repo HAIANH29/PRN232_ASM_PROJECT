@@ -4,10 +4,10 @@ This file is the shared progress tracker for the project. Every human or AI agen
 
 ## Current Status
 
-- Phase: Milestone 6 Recommendation Service and Gemini-safe integration complete, including Docker runtime smoke; manual book source review/approval remains.
+- Phase: Milestone 7 API Gateway Integration complete, including Docker runtime smoke; manual book source review/approval remains.
 - Branch: `HA/phase-1-microservices-scaffold`.
 - Last pushed baseline before this update: Milestone 4 Tracking Service and gRPC Notification after commit `f045546`.
-- Verification baseline: `dotnet restore LongevityDietPlatform.sln`, `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `dotnet test LongevityDietPlatform.sln --no-restore -m:1 --verbosity minimal`, `docker compose config`, and Milestone 6 Docker runtime smoke passed on 2026-10-09.
+- Verification baseline: `dotnet restore LongevityDietPlatform.sln`, `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `dotnet test LongevityDietPlatform.sln --no-restore -m:1 --verbosity minimal`, `docker compose config`, and Milestone 7 Docker runtime smoke passed on 2026-10-09.
 - Completion roadmap: `PROJECT_SCHEDULE.md`.
 
 ## Done
@@ -42,13 +42,14 @@ This file is the shared progress tracker for the project. Every human or AI agen
 - Updated Notification Service to publish accepted progress notification messages to RabbitMQ.
 - Implemented Notification Worker reminder and notification consumers, durable RabbitMQ topology declarations, retry handling, dead-letter queues, Resend sender abstraction, and development log fallback delivery.
 - Implemented Recommendation Service RabbitMQ consumer, approved-knowledge REST context loading, safe prompt builder, Gemini client abstraction, disabled-mode fallback recommendations, retry/dead-letter handling, and result publishing back to RabbitMQ.
+- Finalized API Gateway YARP routes for Identity, Diet Knowledge, Meal Planning, and Tracking, with internal Recommendation/Notification services kept unrouted.
 
 ## Incomplete / Remaining Work
 
 - Verify each seeded book-knowledge item against a legally obtained source copy and approve only reviewed items.
 - Add automated tests for implemented slices.
-- Build the real Web Application screens and API Gateway integration.
-- Run a full end-to-end Docker Compose smoke test once Gateway and Web flows exist.
+- Build the real Web Application screens.
+- Run a full end-to-end Docker Compose smoke test once Web flows exist.
 
 ## Update Rules
 
@@ -65,6 +66,21 @@ Each update should include:
 Do not mark a feature as complete if it only has placeholders or configuration. Call it a scaffold until the real behavior exists and has been verified.
 
 ## Change Log
+
+### 2026-10-09 — Complete Milestone 7 API Gateway Integration
+
+- Kept the gateway as the single backend entry point for public REST services.
+- Finalized YARP routes for:
+  - `/identity/**` -> Identity Service
+  - `/diet-knowledge/**` -> Diet Knowledge Service
+  - `/meal-planning/**` -> Meal Planning Service
+  - `/tracking/**` -> Tracking Service
+- Added a `/routes` gateway endpoint that lists public route prefixes for local inspection.
+- Added Development environment downstream addresses for running the gateway against services exposed on localhost ports `5101`-`5104`.
+- Added `docs/development/Gateway-Routes.md` and README route examples.
+- Confirmed Recommendation Service, Notification Service, Notification Worker, RabbitMQ, and PostgreSQL are not exposed through gateway routes.
+- Verification: `dotnet build src/Gateways/LongevityDiet.ApiGateway/LongevityDiet.ApiGateway.csproj --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `dotnet test LongevityDietPlatform.sln --no-restore -m:1 --verbosity minimal`, `docker compose config --quiet`, `docker compose up -d --build api-gateway identity-service diet-knowledge-service meal-planning-service tracking-service`, API Gateway health check, route summary check, Diet Knowledge public read through gateway, Identity login/profile through gateway, Meal Planning protected route returned `401` without token and `200` with token, Tracking progress summary returned through gateway with token, and `/recommendation/health` plus `/notification/health` returned `404` through the gateway.
+- Remaining TODO: build the real Web Application screens, add automated tests, add final demo script/checklist, and keep book source approval work explicit.
 
 ### 2026-10-09 — Complete Milestone 6 Recommendation Service and Gemini Placeholder/Integration
 

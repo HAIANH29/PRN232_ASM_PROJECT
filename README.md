@@ -2,13 +2,14 @@
 
 PRN232 microservices scaffold for an educational diet planning and tracking platform based on approved knowledge from *The Longevity Diet*.
 
-This repository has the Phase 1 microservice scaffold plus the Milestone 1 Identity, Milestone 2 Diet Knowledge, Milestone 3 Meal Planning, Milestone 4 Tracking/gRPC Notification, Milestone 5 RabbitMQ notification delivery, and Milestone 6 Recommendation Service implementations. The remaining web/gateway/testing work is still being implemented incrementally.
+This repository has the Phase 1 microservice scaffold plus the Milestone 1 Identity, Milestone 2 Diet Knowledge, Milestone 3 Meal Planning, Milestone 4 Tracking/gRPC Notification, Milestone 5 RabbitMQ notification delivery, Milestone 6 Recommendation Service, and Milestone 7 API Gateway implementations. The remaining web UI, tests, and final demo package are still being implemented incrementally.
 
 Project status and remaining work are tracked in `PROJECT_PROGRESS.md`. The completion roadmap is tracked in `PROJECT_SCHEDULE.md`. Update the progress file after each completed project change.
 
 Development conventions:
 
 - API conventions: `docs/development/Api-Conventions.md`
+- API Gateway routes: `docs/development/Gateway-Routes.md`
 - Seed data strategy: `docs/development/Seed-Data-Strategy.md`
 - Book knowledge workflow: `docs/book-knowledge/Book-Knowledge-Integration.md`
 
@@ -52,12 +53,22 @@ Useful URLs:
 
 - Web: `http://localhost:5000`
 - API Gateway: `http://localhost:5001`
+- API Gateway route summary: `http://localhost:5001/routes`
 - Identity Swagger: `http://localhost:5101/swagger`
 - Diet Knowledge Swagger: `http://localhost:5102/swagger`
 - Meal Planning Swagger: `http://localhost:5103/swagger`
 - Tracking Swagger: `http://localhost:5104/swagger`
 - Notification Service health: `http://localhost:5105/health`
 - RabbitMQ Management: `http://localhost:15672`
+
+API Gateway route prefixes:
+
+- Identity: `http://localhost:5001/identity/api/auth/login`
+- Diet Knowledge: `http://localhost:5001/diet-knowledge/api/foods`
+- Meal Planning: `http://localhost:5001/meal-planning/api/meal-plans`
+- Tracking: `http://localhost:5001/tracking/api/daily-trackings`
+
+Send the same `Authorization: Bearer <token>` header through the gateway for protected endpoints. Recommendation Service, Notification Service, Notification Worker, RabbitMQ, and databases are intentionally not exposed through gateway routes.
 
 Local demo Identity credentials are configured through `.env`:
 
@@ -137,5 +148,5 @@ Recommendation Service:
 
 ## Remaining TODO
 
-- Finalize API Gateway routes and build the real Web Application screens.
+- Build the real Web Application screens.
 - Add tests around each implemented slice.
