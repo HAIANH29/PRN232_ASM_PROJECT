@@ -18,6 +18,12 @@ erDiagram
         string Title
         string Summary
         string SourceNote
+        string SourceTitle
+        string SourceChapter
+        string SourcePage
+        string SourceReference
+        string ReviewStatus
+        string ReviewedBy
         bool IsActive
     }
 
@@ -26,6 +32,12 @@ erDiagram
         string Name
         string Category
         string CompatibilityNotes
+        string SourceTitle
+        string SourceChapter
+        string SourcePage
+        string SourceReference
+        string ReviewStatus
+        string ReviewedBy
         bool IsActive
     }
 
@@ -33,6 +45,12 @@ erDiagram
         guid Id
         string Name
         string Description
+        string SourceTitle
+        string SourceChapter
+        string SourcePage
+        string SourceReference
+        string ReviewStatus
+        string ReviewedBy
         bool IsActive
     }
 

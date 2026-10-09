@@ -12,6 +12,7 @@ public interface IDietKnowledgeRepository
     Task<DietGuideline?> GetGuidelineByIdAsync(
         Guid id,
         bool includeInactive,
+        bool approvedOnly,
         CancellationToken cancellationToken = default);
 
     Task<bool> GuidelineTitleExistsAsync(
@@ -30,6 +31,7 @@ public interface IDietKnowledgeRepository
     Task<Food?> GetFoodByIdAsync(
         Guid id,
         bool includeInactive,
+        bool approvedOnly,
         CancellationToken cancellationToken = default);
 
     Task<IReadOnlyCollection<Guid>> GetActiveFoodIdsAsync(
@@ -52,6 +54,7 @@ public interface IDietKnowledgeRepository
     Task<Recipe?> GetRecipeByIdAsync(
         Guid id,
         bool includeInactive,
+        bool approvedOnly,
         CancellationToken cancellationToken = default);
 
     Task<bool> RecipeNameExistsAsync(

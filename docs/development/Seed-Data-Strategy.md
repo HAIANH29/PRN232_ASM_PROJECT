@@ -27,14 +27,16 @@ Implementation target:
 ## Diet Knowledge Service
 
 Purpose:
-- Seed approved book-derived diet guidelines.
-- Seed foods compatible with the approved guidelines.
+- Seed book-derived diet guidelines for review.
+- Seed foods compatible with the scoped guidelines.
 - Seed recipes and recipe ingredients for browsing, meal planning, and recommendation context.
 
 Implementation target:
-- Implemented through `DietKnowledgeSeeder`, which applies Diet Knowledge migrations and seeds active guidelines, foods, recipes, and recipe ingredients.
-- Seed content stays concise and inside the approved educational Longevity Diet scope.
-- Managed seed content is active by default so public browse/search/filter flows have demo data immediately.
+- Implemented through `DietKnowledgeSeeder`, which applies Diet Knowledge migrations and loads `book-knowledge-seed.json`.
+- Seed content stays concise, summarized in the team's own words, and inside the approved educational Longevity Diet scope.
+- Seed content is active but `NeedsReview` by default until the team verifies exact source locations from a legally obtained copy.
+- Public browse/search/filter endpoints expose only active `Approved` content.
+- Admin endpoints can manage and filter `NeedsReview`, `Approved`, and `Rejected` content.
 - The startup seed path retries briefly so Docker Compose can tolerate PostgreSQL startup timing.
 
 ## Meal Planning Service
@@ -68,10 +70,11 @@ Recommended local/demo setup order:
 1. Apply Identity migrations.
 2. Seed Identity roles and demo accounts.
 3. Apply Diet Knowledge migrations.
-4. Seed approved guidelines, foods, and recipes.
-5. Apply Meal Planning migrations.
-6. Apply Tracking migrations.
-7. Create sample meal plans and tracking data through APIs if needed.
+4. Seed book knowledge review data.
+5. Approve verified Diet Knowledge items through admin APIs or by updating reviewed seed metadata before demo reset.
+6. Apply Meal Planning migrations.
+7. Apply Tracking migrations.
+8. Create sample meal plans and tracking data through APIs if needed.
 
 ## Future Implementation Checklist
 
