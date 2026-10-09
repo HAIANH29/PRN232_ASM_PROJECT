@@ -8,9 +8,9 @@ Read together with:
 
 ## Current Snapshot
 
-Current phase: Milestone 3 Meal Planning Service is complete; Book Knowledge manual source review remains pending.
+Current phase: Milestone 4 Tracking Service and gRPC Notification is complete; Book Knowledge manual source review remains pending.
 
-Estimated product completion: about 52-56%.
+Estimated product completion: about 62-66%.
 
 What is already in code:
 - .NET solution and project structure exist.
@@ -32,15 +32,13 @@ What is already in code:
 - Identity Service now supports register/login/profile/admin-check, password hashing, JWT generation, role seeding, demo admin seeding, and the initial Identity EF Core migration.
 - Diet Knowledge Service now supports book-knowledge review metadata, JSON seed data, public browsing/search/filter/sort/pagination for active approved content, admin CRUD, activation/deactivation, and Diet Knowledge EF Core migrations.
 - Meal Planning Service now supports authenticated meal plan CRUD, meal plan item scheduling, ownership checks, Diet Knowledge validation through REST, RabbitMQ reminder publishing, recommendation request publishing, recommendation result consumption/storage, recommendation accept flow, and the initial Meal Planning EF Core migration.
+- Tracking Service now supports authenticated daily tracking, meal completion/not-completion tracking, progress summary calculation, ownership checks, Tracking EF Core migration, and the real Tracking -> Notification Service gRPC flow.
+- Notification Service now accepts progress notification gRPC requests and publishes notification messages to RabbitMQ.
 
 What is not yet product-ready:
-- CRUD APIs are not implemented yet for Tracking.
 - The team still needs to verify book-derived seed items against a legally obtained source copy before marking them `Approved`.
-- Search/filter/sort/pagination are implemented for Diet Knowledge and Meal Planning; Tracking still needs list/history behavior where useful.
-- JWT ownership checks still need to be applied to Tracking.
-- EF Core migration is still needed for Tracking.
-- RabbitMQ publish/consume behavior exists for the Meal Planning side of reminders and recommendations; Recommendation Service, Notification Service, and Notification Worker still need their full business consumers/publishers.
-- gRPC flow exists as a skeleton but is not connected to real tracking workflows.
+- Search/filter/sort/pagination are implemented for Diet Knowledge and Meal Planning; Tracking supports date-filtered paged history.
+- RabbitMQ publish/consume behavior exists for the Meal Planning side of reminders/recommendations and the Notification Service publisher; Recommendation Service and Notification Worker still need their full business consumers.
 - Gemini and Resend integrations are placeholders.
 - Web Application is still mostly the default MVC shell.
 - Tests and end-to-end Docker smoke tests are not complete.
@@ -207,21 +205,24 @@ Done when:
 
 ### Milestone 4 — Tracking Service And gRPC Notification
 
+Status: Completed on 2026-10-09.
+
 Target: T+6 to T+7.5 days.
 
 Code/work to do:
-- Implement DailyTracking endpoints.
-- Implement MealTracking endpoints for completed/not completed meals.
-- Implement ProgressSummary calculation.
-- Add ownership checks using JWT.
-- Call Notification Service through gRPC when progress notifications are required.
-- Add Tracking EF Core migration.
+- [x] Implement DailyTracking endpoints.
+- [x] Implement MealTracking endpoints for completed/not completed meals.
+- [x] Implement ProgressSummary calculation.
+- [x] Add ownership checks using JWT.
+- [x] Call Notification Service through gRPC when progress notifications are required.
+- [x] Add Tracking EF Core migration.
 
 Verification:
-- User can mark meals completed/not completed.
-- Progress summary updates correctly.
-- Tracking Service sends a real gRPC request to Notification Service.
-- Tracking data remains in `TrackingDb` only.
+- [x] User can mark meals completed/not completed.
+- [x] Progress summary updates correctly.
+- [x] Tracking Service sends a real gRPC request to Notification Service.
+- [x] Notification Service publishes the accepted progress notification to RabbitMQ.
+- [x] Tracking data remains in `TrackingDb` only.
 
 Done when:
 - The required gRPC flow is part of a real business use case.
@@ -418,14 +419,14 @@ This minimum path is enough to demonstrate the required PRN232 architecture and 
 | Requirement | Current status | Remaining work |
 | --- | --- | --- |
 | Microservices architecture | Scaffolded | Implement real business APIs and flows |
-| ASP.NET Core REST APIs | Identity, Diet Knowledge, and Meal Planning implemented; Tracking API scaffolded | Add Tracking business DTOs, controllers, validation rules, status codes |
+| ASP.NET Core REST APIs | Identity, Diet Knowledge, Meal Planning, and Tracking implemented | Keep endpoint behavior aligned as remaining services are added |
 | Layered architecture | Project structure exists | Keep controllers out of DbContext and business logic |
-| JWT auth/authorization | Identity implemented; Diet Knowledge admin mutations protected; Meal Planning ownership checks implemented | Add ownership checks to Tracking |
-| Search/filter/sort/pagination | Implemented for Diet Knowledge and Meal Planning | Add history/list behavior to Tracking where useful |
-| gRPC internal flow | Skeleton exists | Connect Tracking workflow to Notification Service |
-| RabbitMQ async messaging | Contracts/config exist; Meal Planning publishes reminders and recommendation requests and consumes recommendation results | Implement full Recommendation, Notification, and Worker flows |
+| JWT auth/authorization | Identity implemented; Diet Knowledge admin mutations protected; Meal Planning and Tracking ownership checks implemented | Extend to Web flows and future APIs |
+| Search/filter/sort/pagination | Implemented for Diet Knowledge, Meal Planning, and Tracking history | Add more list behavior only where useful |
+| gRPC internal flow | Tracking -> Notification implemented in a real progress use case | Add tests/smoke documentation |
+| RabbitMQ async messaging | Contracts/config exist; Meal Planning publishes reminders and recommendation requests and consumes recommendation results; Notification Service publishes notification messages | Implement full Recommendation and Worker flows |
 | .NET Worker Service | Skeleton exists | Implement notification/reminder processing |
-| PostgreSQL database-per-service | Identity, Diet Knowledge, and Meal Planning migrations exist; Tracking DbContext shell exists | Tracking migration and data model completion |
+| PostgreSQL database-per-service | Identity, Diet Knowledge, Meal Planning, and Tracking migrations exist | Keep service ownership boundaries intact |
 | Docker Compose | Skeleton valid; Identity and Diet Knowledge startup smoke tested | Full startup verification with all services and dependencies |
 | C4 docs | Existing | Keep synchronized with implementation |
 | Web Application | MVC shell exists | Build real User/Admin screens |
@@ -479,12 +480,12 @@ Note: schedule support is represented on `MealPlanItem` rather than a separate t
 
 ### Tracking Service
 
-- [ ] DailyTracking CRUD/use cases.
-- [ ] MealTracking completion use case.
-- [ ] ProgressSummary calculation.
-- [ ] Ownership checks.
-- [ ] gRPC call to Notification Service.
-- [ ] Migration.
+- [x] DailyTracking CRUD/use cases.
+- [x] MealTracking completion use case.
+- [x] ProgressSummary calculation.
+- [x] Ownership checks.
+- [x] gRPC call to Notification Service.
+- [x] Migration.
 - [ ] Tests.
 
 ### Recommendation Service
@@ -499,9 +500,9 @@ Note: schedule support is represented on `MealPlanItem` rather than a separate t
 
 ### Notification Service
 
-- [ ] gRPC contract finalization.
-- [ ] Notification message preparation.
-- [ ] RabbitMQ publisher.
+- [x] gRPC contract finalization.
+- [x] Notification message preparation.
+- [x] RabbitMQ publisher.
 - [ ] Error handling/logging.
 - [ ] Tests or smoke checks.
 

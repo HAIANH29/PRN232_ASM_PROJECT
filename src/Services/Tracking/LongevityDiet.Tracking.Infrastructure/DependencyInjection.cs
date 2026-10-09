@@ -2,6 +2,7 @@ using LongevityDiet.Tracking.Application.Abstractions;
 using LongevityDiet.Tracking.Infrastructure.Notification;
 using LongevityDiet.Tracking.Infrastructure.Persistence;
 using LongevityDiet.Tracking.Infrastructure.Repositories;
+using LongevityDiet.Tracking.Infrastructure.Seed;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +20,7 @@ public static class DependencyInjection
 
         services.AddScoped<ITrackingRepository, TrackingRepository>();
         services.AddScoped<INotificationClient, GrpcNotificationClient>();
+        services.AddScoped<ITrackingDatabaseInitializer, TrackingDatabaseInitializer>();
 
         return services;
     }

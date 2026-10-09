@@ -58,6 +58,8 @@ Purpose:
 Implementation target:
 - Prefer creating tracking records through APIs during demo setup.
 - Store planned meal references as IDs only.
+- Current implementation applies the `InitialTrackingSchema` migration on startup.
+- No static tracking seed is included because tracking records are user-owned and should be created through authenticated APIs.
 
 ## Recommendation And Notification Services
 
@@ -83,5 +85,5 @@ Recommended local/demo setup order:
 - [x] Add Identity seed data after migrations exist.
 - [x] Add Diet Knowledge seed data after CRUD models are finalized.
 - [x] Decide whether Meal Planning needs static sample plans or API-created demo data.
-- [ ] Decide whether Tracking needs static sample progress or API-created demo data.
+- [x] Decide whether Tracking needs static sample progress or API-created demo data.
 - [x] Document demo account credentials in local-only docs or `.env.example` placeholders.

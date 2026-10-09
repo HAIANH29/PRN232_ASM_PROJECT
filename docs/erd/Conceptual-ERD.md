@@ -99,6 +99,9 @@ erDiagram
         guid Id
         guid UserId
         date TrackingDate
+        string Notes
+        datetime CreatedAtUtc
+        datetime UpdatedAtUtc
     }
 
     MEAL_TRACKING {
@@ -106,6 +109,9 @@ erDiagram
         guid DailyTrackingId
         guid MealPlanItemId
         bool IsCompleted
+        datetime CompletedAtUtc
+        datetime CreatedAtUtc
+        datetime UpdatedAtUtc
     }
 
     PROGRESS_SUMMARY {
@@ -115,6 +121,9 @@ erDiagram
         date PeriodEndDate
         int PlannedMeals
         int CompletedMeals
+        datetime CalculatedAtUtc
+        guid LastNotificationId
+        datetime LastNotificationSentAtUtc
     }
 
     USER }o--o{ ROLE : has

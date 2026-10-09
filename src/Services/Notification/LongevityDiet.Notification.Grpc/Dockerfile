@@ -6,7 +6,7 @@ RUN dotnet publish "src/Services/Notification/LongevityDiet.Notification.Grpc/Lo
 
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
-ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
+EXPOSE 8081
 COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "LongevityDiet.Notification.Grpc.dll"]

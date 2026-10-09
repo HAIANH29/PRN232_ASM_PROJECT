@@ -15,4 +15,8 @@ public sealed class ProgressSummary
     public int CompletedMeals { get; set; }
 
     public DateTimeOffset CalculatedAtUtc { get; set; } = DateTimeOffset.UtcNow;
+
+    public Guid? LastNotificationId { get; set; }
+
+    public DateTimeOffset? LastNotificationSentAtUtc { get; set; }
 }
