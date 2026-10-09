@@ -4,10 +4,10 @@ This file is the shared progress tracker for the project. Every human or AI agen
 
 ## Current Status
 
-- Phase: Milestone 5 RabbitMQ and Notification Delivery complete, including Docker runtime smoke; manual book source review/approval remains.
+- Phase: Milestone 6 Recommendation Service and Gemini-safe integration complete, including Docker runtime smoke; manual book source review/approval remains.
 - Branch: `HA/phase-1-microservices-scaffold`.
 - Last pushed baseline before this update: Milestone 4 Tracking Service and gRPC Notification after commit `f045546`.
-- Verification baseline: `dotnet restore LongevityDietPlatform.sln`, `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `dotnet test LongevityDietPlatform.sln --no-restore -m:1 --verbosity minimal`, `docker compose config`, and Milestone 5 Docker runtime smoke passed on 2026-10-09.
+- Verification baseline: `dotnet restore LongevityDietPlatform.sln`, `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `dotnet test LongevityDietPlatform.sln --no-restore -m:1 --verbosity minimal`, `docker compose config`, and Milestone 6 Docker runtime smoke passed on 2026-10-09.
 - Completion roadmap: `PROJECT_SCHEDULE.md`.
 
 ## Done
@@ -25,7 +25,7 @@ This file is the shared progress tracker for the project. Every human or AI agen
 - Added shared API defaults for public REST APIs: response envelope, paged response model, validation error response factory, global exception middleware, Swagger Bearer setup, and health/controller pipeline extension.
 - Added Dockerfiles and `docker-compose.yml` skeleton for local development.
 - Added RabbitMQ contract/configuration skeletons for reminder, notification, and recommendation flows.
-- Updated Recommendation Service to use RabbitMQ request/result messages with Google Gemini placeholder configuration.
+- Updated Recommendation Service to use RabbitMQ request/result messages with approved Diet Knowledge context, Google Gemini client configuration, and safe disabled-mode fallback.
 - Added Notification Service as the required internal gRPC service for `Tracking Service -> Notification Service`.
 - Replaced the old Reminder Worker role with `NotificationWorker`.
 - Added Notification Worker placeholder for notification/reminder messages and future Resend delivery.
@@ -41,14 +41,14 @@ This file is the shared progress tracker for the project. Every human or AI agen
 - Implemented the real Tracking Service -> Notification Service gRPC progress notification flow.
 - Updated Notification Service to publish accepted progress notification messages to RabbitMQ.
 - Implemented Notification Worker reminder and notification consumers, durable RabbitMQ topology declarations, retry handling, dead-letter queues, Resend sender abstraction, and development log fallback delivery.
+- Implemented Recommendation Service RabbitMQ consumer, approved-knowledge REST context loading, safe prompt builder, Gemini client abstraction, disabled-mode fallback recommendations, retry/dead-letter handling, and result publishing back to RabbitMQ.
 
 ## Incomplete / Remaining Work
 
 - Verify each seeded book-knowledge item against a legally obtained source copy and approve only reviewed items.
-- Implement Recommendation Service prompt/context creation from approved knowledge and optional real Google Gemini calls.
 - Add automated tests for implemented slices.
 - Build the real Web Application screens and API Gateway integration.
-- Run a full end-to-end Docker Compose smoke test once Notification Worker, Recommendation Service, Gateway, and Web flows exist.
+- Run a full end-to-end Docker Compose smoke test once Gateway and Web flows exist.
 
 ## Update Rules
 
@@ -65,6 +65,22 @@ Each update should include:
 Do not mark a feature as complete if it only has placeholders or configuration. Call it a scaffold until the real behavior exists and has been verified.
 
 ## Change Log
+
+### 2026-10-09 — Complete Milestone 6 Recommendation Service and Gemini Placeholder/Integration
+
+- Replaced the Recommendation Service placeholder loop with a real RabbitMQ consumer for `recommendation.requests`.
+- Added durable recommendation request/result topology declarations plus a manual dead-letter exchange/queue for failed recommendation requests.
+- Added retry handling through `RabbitMq__MaxDeliveryAttempts`, `RabbitMq__RetryDelaySeconds`, and persistent republished retry messages.
+- Added `IApprovedKnowledgeClient` and HTTP Diet Knowledge reads for public active `Approved` guidelines, foods, and recipes.
+- Added safe recommendation context/prompt construction from approved project knowledge plus sanitized user preference tags.
+- Added safety guardrails so suggestion titles do not include diagnosis, treatment, disease prediction, lifespan prediction, or similar out-of-scope terms.
+- Added `IGeminiClient` and configurable Gemini HTTP integration behind `Gemini__Enabled`, `Gemini__ApiKey`, and `Gemini__Model`.
+- Added disabled-mode fallback recommendations for local/demo use when Gemini is not configured.
+- Published `RecommendationResult` messages back to RabbitMQ for Meal Planning to consume and store as completed recommendation requests.
+- Updated Docker Compose, `.env.example`, README, book-knowledge docs, and `PROJECT_SCHEDULE.md`.
+- Verification: `dotnet restore src/Services/Recommendation/LongevityDiet.Recommendation.Service/LongevityDiet.Recommendation.Service.csproj`, `dotnet build src/Services/Recommendation/LongevityDiet.Recommendation.Service/LongevityDiet.Recommendation.Service.csproj --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `dotnet test LongevityDietPlatform.sln --no-restore -m:1 --verbosity minimal`, `docker compose config --quiet`, `docker compose up -d --build identity-service diet-knowledge-service meal-planning-service recommendation-service`, health checks for Identity/Diet Knowledge/Meal Planning, admin-created approved guideline/food/recipe through Diet Knowledge, user-created recommendation request through Meal Planning, confirmed the request became `Completed`, confirmed Gemini-disabled fallback returned safe suggestion titles and a non-medical disclaimer, confirmed RabbitMQ `recommendation.requests` and `recommendation.results` were drained to 0 messages with active consumers, and confirmed Recommendation Service logs showed request completion.
+- Smoke run: `1791554427`; request `58abd464-a58f-4f59-a8c6-71c89b3b3451` completed with 3 suggestions.
+- Remaining TODO: add automated tests, finalize API Gateway routes, build Web Application screens, and configure real Gemini/Resend keys only if needed for demo/production external calls.
 
 ### 2026-10-09 — Complete Milestone 5 RabbitMQ and Notification Delivery
 

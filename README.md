@@ -2,7 +2,7 @@
 
 PRN232 microservices scaffold for an educational diet planning and tracking platform based on approved knowledge from *The Longevity Diet*.
 
-This repository has the Phase 1 microservice scaffold plus the Milestone 1 Identity, Milestone 2 Diet Knowledge, Milestone 3 Meal Planning, Milestone 4 Tracking/gRPC Notification, and Milestone 5 RabbitMQ notification delivery implementations. The remaining business services are still being implemented incrementally.
+This repository has the Phase 1 microservice scaffold plus the Milestone 1 Identity, Milestone 2 Diet Knowledge, Milestone 3 Meal Planning, Milestone 4 Tracking/gRPC Notification, Milestone 5 RabbitMQ notification delivery, and Milestone 6 Recommendation Service implementations. The remaining web/gateway/testing work is still being implemented incrementally.
 
 Project status and remaining work are tracked in `PROJECT_PROGRESS.md`. The completion roadmap is tracked in `PROJECT_SCHEDULE.md`. Update the progress file after each completed project change.
 
@@ -20,7 +20,7 @@ Development conventions:
 - `LongevityDiet.DietKnowledge.Api` - REST API for guidelines, foods, recipes, and ingredients.
 - `LongevityDiet.MealPlanning.Api` - REST API for meal plans, reminder publishing, and AI recommendation request publishing.
 - `LongevityDiet.Tracking.Api` - REST API for daily and meal tracking.
-- `LongevityDiet.Recommendation.Service` - internal RabbitMQ recommendation worker with Google Gemini placeholder.
+- `LongevityDiet.Recommendation.Service` - internal RabbitMQ recommendation worker with approved-knowledge context, safe fallback behavior, and optional Google Gemini integration.
 - `LongevityDiet.Notification.Grpc` - internal gRPC notification service called by Tracking.
 - `LongevityDiet.NotificationWorker` - worker service for RabbitMQ notification/reminder messages and Resend/logged email delivery.
 
@@ -125,7 +125,17 @@ Notification Worker:
 - Sends through Resend when `RESEND_API_KEY` is configured.
 - Logs the expected email payload when `RESEND_API_KEY` is empty or `development-only`, which is the default local fallback.
 
+Recommendation Service:
+
+- Consumes `RecommendationRequest` messages from `recommendation.requests`.
+- Calls Diet Knowledge public APIs to build context only from active `Approved` knowledge.
+- Filters unsafe user preference tags before they are used in recommendation titles.
+- Uses local safe fallback recommendations when `GEMINI_ENABLED=false` or `GEMINI_API_KEY` is empty/`development-only`.
+- Can call Gemini through a configurable HTTP client when `GEMINI_ENABLED=true`, `GEMINI_API_KEY` is configured, and `GEMINI_MODEL` is set.
+- Publishes `RecommendationResult` messages to `recommendation.results`, where Meal Planning consumes and stores them for user review.
+- Keeps the required safety disclaimer and avoids diagnosis, treatment advice, disease prediction, and lifespan prediction.
+
 ## Remaining TODO
 
-- Implement Recommendation Service RabbitMQ consumption and Google Gemini integration.
+- Finalize API Gateway routes and build the real Web Application screens.
 - Add tests around each implemented slice.
