@@ -12,6 +12,10 @@
     <ProjectReference Include="..\LongevityDiet.DietKnowledge.Domain\LongevityDiet.DietKnowledge.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Seed\Data\book-knowledge-seed.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>

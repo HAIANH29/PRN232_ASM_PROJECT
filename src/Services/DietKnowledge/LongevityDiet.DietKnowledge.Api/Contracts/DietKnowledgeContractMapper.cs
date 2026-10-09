@@ -25,6 +25,8 @@ internal static class DietKnowledgeContractMapper
             request.PageSize,
             request.Search,
             IncludeInactive: !forceActiveOnly && request.IncludeInactive,
+            ApprovedOnly: forceActiveOnly,
+            request.ReviewStatus,
             request.SortBy,
             request.SortDirection);
     }
@@ -39,6 +41,8 @@ internal static class DietKnowledgeContractMapper
             request.Search,
             request.Category,
             IncludeInactive: !forceActiveOnly && request.IncludeInactive,
+            ApprovedOnly: forceActiveOnly,
+            request.ReviewStatus,
             request.SortBy,
             request.SortDirection);
     }
@@ -53,28 +57,66 @@ internal static class DietKnowledgeContractMapper
             request.Search,
             request.FoodId,
             IncludeInactive: !forceActiveOnly && request.IncludeInactive,
+            ApprovedOnly: forceActiveOnly,
+            request.ReviewStatus,
             request.SortBy,
             request.SortDirection);
     }
 
     public static CreateDietGuidelineCommand ToCommand(this CreateDietGuidelineRequest request)
     {
-        return new CreateDietGuidelineCommand(request.Title, request.Summary, request.SourceNote);
+        return new CreateDietGuidelineCommand(
+            request.Title,
+            request.Summary,
+            request.SourceNote,
+            request.SourceTitle,
+            request.SourceChapter,
+            request.SourcePage,
+            request.SourceReference,
+            request.ReviewStatus,
+            request.ReviewedBy);
     }
 
     public static UpdateDietGuidelineCommand ToCommand(this UpdateDietGuidelineRequest request)
     {
-        return new UpdateDietGuidelineCommand(request.Title, request.Summary, request.SourceNote);
+        return new UpdateDietGuidelineCommand(
+            request.Title,
+            request.Summary,
+            request.SourceNote,
+            request.SourceTitle,
+            request.SourceChapter,
+            request.SourcePage,
+            request.SourceReference,
+            request.ReviewStatus,
+            request.ReviewedBy);
     }
 
     public static CreateFoodCommand ToCommand(this CreateFoodRequest request)
     {
-        return new CreateFoodCommand(request.Name, request.Category, request.CompatibilityNotes);
+        return new CreateFoodCommand(
+            request.Name,
+            request.Category,
+            request.CompatibilityNotes,
+            request.SourceTitle,
+            request.SourceChapter,
+            request.SourcePage,
+            request.SourceReference,
+            request.ReviewStatus,
+            request.ReviewedBy);
     }
 
     public static UpdateFoodCommand ToCommand(this UpdateFoodRequest request)
     {
-        return new UpdateFoodCommand(request.Name, request.Category, request.CompatibilityNotes);
+        return new UpdateFoodCommand(
+            request.Name,
+            request.Category,
+            request.CompatibilityNotes,
+            request.SourceTitle,
+            request.SourceChapter,
+            request.SourcePage,
+            request.SourceReference,
+            request.ReviewStatus,
+            request.ReviewedBy);
     }
 
     public static CreateRecipeCommand ToCommand(this CreateRecipeRequest request)
@@ -82,6 +124,12 @@ internal static class DietKnowledgeContractMapper
         return new CreateRecipeCommand(
             request.Name,
             request.Description,
+            request.SourceTitle,
+            request.SourceChapter,
+            request.SourcePage,
+            request.SourceReference,
+            request.ReviewStatus,
+            request.ReviewedBy,
             request.Ingredients.Select(ToCommand).ToArray());
     }
 
@@ -90,6 +138,12 @@ internal static class DietKnowledgeContractMapper
         return new UpdateRecipeCommand(
             request.Name,
             request.Description,
+            request.SourceTitle,
+            request.SourceChapter,
+            request.SourcePage,
+            request.SourceReference,
+            request.ReviewStatus,
+            request.ReviewedBy,
             request.Ingredients.Select(ToCommand).ToArray());
     }
 
@@ -100,6 +154,13 @@ internal static class DietKnowledgeContractMapper
             model.Title,
             model.Summary,
             model.SourceNote,
+            model.SourceTitle,
+            model.SourceChapter,
+            model.SourcePage,
+            model.SourceReference,
+            model.ReviewStatus,
+            model.ReviewedBy,
+            model.ReviewedAtUtc,
             model.IsActive,
             model.CreatedAtUtc,
             model.UpdatedAtUtc);
@@ -112,6 +173,13 @@ internal static class DietKnowledgeContractMapper
             model.Name,
             model.Category,
             model.CompatibilityNotes,
+            model.SourceTitle,
+            model.SourceChapter,
+            model.SourcePage,
+            model.SourceReference,
+            model.ReviewStatus,
+            model.ReviewedBy,
+            model.ReviewedAtUtc,
             model.IsActive,
             model.CreatedAtUtc,
             model.UpdatedAtUtc);
@@ -124,6 +192,13 @@ internal static class DietKnowledgeContractMapper
             model.Name,
             model.Description,
             model.IsActive,
+            model.SourceTitle,
+            model.SourceChapter,
+            model.SourcePage,
+            model.SourceReference,
+            model.ReviewStatus,
+            model.ReviewedBy,
+            model.ReviewedAtUtc,
             model.Ingredients.Select(ToResponse).ToArray(),
             model.CreatedAtUtc,
             model.UpdatedAtUtc);

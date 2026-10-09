@@ -10,6 +10,7 @@ Development conventions:
 
 - API conventions: `docs/development/Api-Conventions.md`
 - Seed data strategy: `docs/development/Seed-Data-Strategy.md`
+- Book knowledge workflow: `docs/book-knowledge/Book-Knowledge-Integration.md`
 
 ## Containers
 
@@ -69,11 +70,14 @@ Diet Knowledge endpoints:
   - `GET /api/diet-guidelines`
   - `GET /api/foods`
   - `GET /api/recipes`
+- Public reads return active `Approved` knowledge only.
 - Admin mutations:
   - `POST /api/admin/diet-guidelines`, `PUT|DELETE /api/admin/diet-guidelines/{id}`
   - `POST /api/admin/foods`, `PUT|DELETE /api/admin/foods/{id}`
   - `POST /api/admin/recipes`, `PUT|DELETE /api/admin/recipes/{id}`
   - `PATCH /api/admin/{diet-guidelines|foods|recipes}/{id}/activation`
+- Admin list endpoints can filter by `reviewStatus=NeedsReview|Approved|Rejected`.
+- Seeded book-knowledge items are `NeedsReview` until the team fills source metadata and approves them.
 
 ## Remaining TODO
 

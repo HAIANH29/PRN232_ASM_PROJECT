@@ -8,9 +8,9 @@ Read together with:
 
 ## Current Snapshot
 
-Current phase: Milestone 2 Diet Knowledge Service is complete.
+Current phase: Milestone 2 Diet Knowledge Service is complete; Book Knowledge technical integration is complete with manual source review pending.
 
-Estimated product completion: about 38-42%.
+Estimated product completion: about 40-44%.
 
 What is already in code:
 - .NET solution and project structure exist.
@@ -30,10 +30,11 @@ What is already in code:
 - Notification Worker exists as a worker skeleton.
 - Architecture docs exist and match the updated microservice diagram.
 - Identity Service now supports register/login/profile/admin-check, password hashing, JWT generation, role seeding, demo admin seeding, and the initial Identity EF Core migration.
-- Diet Knowledge Service now supports approved content seed data, public browsing/search/filter/sort/pagination, admin CRUD, activation/deactivation, and the initial Diet Knowledge EF Core migration.
+- Diet Knowledge Service now supports book-knowledge review metadata, JSON seed data, public browsing/search/filter/sort/pagination for active approved content, admin CRUD, activation/deactivation, and Diet Knowledge EF Core migrations.
 
 What is not yet product-ready:
 - CRUD APIs are not implemented yet for Meal Planning and Tracking.
+- The team still needs to verify book-derived seed items against a legally obtained source copy before marking them `Approved`.
 - Search/filter/sort/pagination are implemented for Diet Knowledge; other services still need list behavior where useful.
 - JWT ownership checks still need to be applied to Meal Planning and Tracking.
 - EF Core migrations are still needed for Meal Planning and Tracking.
@@ -130,7 +131,7 @@ Code/work to do:
 - [x] Implement list endpoints with pagination.
 - [x] Implement search/filter/sort for foods and recipes.
 - [x] Implement read-only user endpoints.
-- [x] Add approved seed data from the allowed Longevity Diet domain.
+- [x] Add managed seed data from the allowed Longevity Diet domain.
 - [x] Add Diet Knowledge EF Core migration.
 - [x] Add authorization: Admin mutations only; public/user reads allowed as required.
 
@@ -142,6 +143,33 @@ Verification:
 
 Done when:
 - Meal Planning and Recommendation can depend on approved knowledge content.
+
+### Milestone 2.5 — Book Knowledge Integration
+
+Status: Technical foundation completed on 2026-10-09; source-copy verification is still a team responsibility.
+
+Target: T+4 to T+4.5 days.
+
+Code/work to do:
+- [ ] Confirm the team has a legitimately obtained copy of *The Longevity Diet* for project research.
+- [ ] Approve the scoped chapter/section list used for project knowledge.
+- [x] Store source and review metadata for DietGuideline, Food, and Recipe.
+- [x] Keep seeded summaries in a version-controlled JSON file.
+- [x] Import JSON seed data through EF Core startup seeding.
+- [x] Keep seed entries `NeedsReview` until exact source locations are verified.
+- [x] Let admins create/update/deactivate managed knowledge.
+- [x] Restrict public reads to active `Approved` knowledge.
+- [x] Require source metadata and reviewer when admin marks content `Approved`.
+- [ ] Build Recommendation context only from active `Approved` knowledge during Milestone 6.
+
+Verification:
+- [x] `dotnet build LongevityDietPlatform.sln`
+- [x] Diet Knowledge migration added for provenance/review metadata.
+- [ ] Team review confirms source chapter/page/reference for each seed item.
+- [ ] Future Recommendation smoke test proves AI context excludes unapproved content.
+
+Done when:
+- The app has technical support for book-derived knowledge, and the team has verified/approved the dataset it wants to expose in demos.
 
 ### Milestone 3 — Meal Planning Service
 
@@ -421,7 +449,9 @@ This minimum path is enough to demonstrate the required PRN232 architecture and 
 - [x] Search/filter/sort/pagination.
 - [x] Admin-only mutations.
 - [x] User read endpoints.
-- [x] Migration and approved seed content.
+- [x] Migration and JSON seed content.
+- [x] Source/review metadata for book knowledge.
+- [ ] Team source verification and approval of seed content.
 - [ ] Tests.
 
 ### Meal Planning Service

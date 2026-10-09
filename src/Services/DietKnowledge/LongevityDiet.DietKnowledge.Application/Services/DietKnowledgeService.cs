@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using LongevityDiet.DietKnowledge.Application.Abstractions;
+using LongevityDiet.DietKnowledge.Application.Common;
 using LongevityDiet.DietKnowledge.Application.Models;
 using LongevityDiet.DietKnowledge.Domain.Entities;
 
@@ -28,7 +29,11 @@ public sealed class DietKnowledgeService(IDietKnowledgeRepository repository) : 
         bool includeInactive = false,
         CancellationToken cancellationToken = default)
     {
-        var guideline = await repository.GetGuidelineByIdAsync(id, includeInactive, cancellationToken)
+        var guideline = await repository.GetGuidelineByIdAsync(
+                id,
+                includeInactive,
+                approvedOnly: !includeInactive,
+                cancellationToken)
             ?? throw new KeyNotFoundException("Diet guideline was not found.");
 
         return MapGuideline(guideline);
@@ -44,12 +49,27 @@ public sealed class DietKnowledgeService(IDietKnowledgeRepository repository) : 
             throw new InvalidOperationException("A diet guideline with this title already exists.");
         }
 
+        var reviewMetadata = CreateReviewMetadata(
+            command.SourceTitle,
+            command.SourceChapter,
+            command.SourcePage,
+            command.SourceReference,
+            command.ReviewStatus,
+            command.ReviewedBy);
+
         var guideline = new DietGuideline
         {
             Id = Guid.NewGuid(),
             Title = title,
             Summary = Clean(command.Summary),
             SourceNote = CleanOptional(command.SourceNote),
+            SourceTitle = reviewMetadata.SourceTitle,
+            SourceChapter = reviewMetadata.SourceChapter,
+            SourcePage = reviewMetadata.SourcePage,
+            SourceReference = reviewMetadata.SourceReference,
+            ReviewStatus = reviewMetadata.ReviewStatus,
+            ReviewedBy = reviewMetadata.ReviewedBy,
+            ReviewedAtUtc = reviewMetadata.ReviewedAtUtc,
             IsActive = true,
             CreatedAtUtc = DateTimeOffset.UtcNow
         };
@@ -65,7 +85,11 @@ public sealed class DietKnowledgeService(IDietKnowledgeRepository repository) : 
         UpdateDietGuidelineCommand command,
         CancellationToken cancellationToken = default)
     {
-        var guideline = await repository.GetGuidelineByIdAsync(id, includeInactive: true, cancellationToken)
+        var guideline = await repository.GetGuidelineByIdAsync(
+                id,
+                includeInactive: true,
+                approvedOnly: false,
+                cancellationToken)
             ?? throw new KeyNotFoundException("Diet guideline was not found.");
 
         var title = Clean(command.Title);
@@ -74,9 +98,18 @@ public sealed class DietKnowledgeService(IDietKnowledgeRepository repository) : 
             throw new InvalidOperationException("A diet guideline with this title already exists.");
         }
 
+        var reviewMetadata = CreateReviewMetadata(
+            command.SourceTitle,
+            command.SourceChapter,
+            command.SourcePage,
+            command.SourceReference,
+            command.ReviewStatus,
+            command.ReviewedBy);
+
         guideline.Title = title;
         guideline.Summary = Clean(command.Summary);
         guideline.SourceNote = CleanOptional(command.SourceNote);
+        ApplyReviewMetadata(guideline, reviewMetadata);
         guideline.UpdatedAtUtc = DateTimeOffset.UtcNow;
 
         await repository.SaveChangesAsync(cancellationToken);
@@ -88,7 +121,11 @@ public sealed class DietKnowledgeService(IDietKnowledgeRepository repository) : 
         bool isActive,
         CancellationToken cancellationToken = default)
     {
-        var guideline = await repository.GetGuidelineByIdAsync(id, includeInactive: true, cancellationToken)
+        var guideline = await repository.GetGuidelineByIdAsync(
+                id,
+                includeInactive: true,
+                approvedOnly: false,
+                cancellationToken)
             ?? throw new KeyNotFoundException("Diet guideline was not found.");
 
         guideline.IsActive = isActive;
@@ -111,7 +148,11 @@ public sealed class DietKnowledgeService(IDietKnowledgeRepository repository) : 
         bool includeInactive = false,
         CancellationToken cancellationToken = default)
     {
-        var food = await repository.GetFoodByIdAsync(id, includeInactive, cancellationToken)
+        var food = await repository.GetFoodByIdAsync(
+                id,
+                includeInactive,
+                approvedOnly: !includeInactive,
+                cancellationToken)
             ?? throw new KeyNotFoundException("Food was not found.");
 
         return MapFood(food);
@@ -127,12 +168,27 @@ public sealed class DietKnowledgeService(IDietKnowledgeRepository repository) : 
             throw new InvalidOperationException("A food with this name already exists.");
         }
 
+        var reviewMetadata = CreateReviewMetadata(
+            command.SourceTitle,
+            command.SourceChapter,
+            command.SourcePage,
+            command.SourceReference,
+            command.ReviewStatus,
+            command.ReviewedBy);
+
         var food = new Food
         {
             Id = Guid.NewGuid(),
             Name = name,
             Category = Clean(command.Category),
             CompatibilityNotes = CleanOptional(command.CompatibilityNotes),
+            SourceTitle = reviewMetadata.SourceTitle,
+            SourceChapter = reviewMetadata.SourceChapter,
+            SourcePage = reviewMetadata.SourcePage,
+            SourceReference = reviewMetadata.SourceReference,
+            ReviewStatus = reviewMetadata.ReviewStatus,
+            ReviewedBy = reviewMetadata.ReviewedBy,
+            ReviewedAtUtc = reviewMetadata.ReviewedAtUtc,
             IsActive = true,
             CreatedAtUtc = DateTimeOffset.UtcNow
         };
@@ -148,7 +204,11 @@ public sealed class DietKnowledgeService(IDietKnowledgeRepository repository) : 
         UpdateFoodCommand command,
         CancellationToken cancellationToken = default)
     {
-        var food = await repository.GetFoodByIdAsync(id, includeInactive: true, cancellationToken)
+        var food = await repository.GetFoodByIdAsync(
+                id,
+                includeInactive: true,
+                approvedOnly: false,
+                cancellationToken)
             ?? throw new KeyNotFoundException("Food was not found.");
 
         var name = Clean(command.Name);
@@ -157,9 +217,18 @@ public sealed class DietKnowledgeService(IDietKnowledgeRepository repository) : 
             throw new InvalidOperationException("A food with this name already exists.");
         }
 
+        var reviewMetadata = CreateReviewMetadata(
+            command.SourceTitle,
+            command.SourceChapter,
+            command.SourcePage,
+            command.SourceReference,
+            command.ReviewStatus,
+            command.ReviewedBy);
+
         food.Name = name;
         food.Category = Clean(command.Category);
         food.CompatibilityNotes = CleanOptional(command.CompatibilityNotes);
+        ApplyReviewMetadata(food, reviewMetadata);
         food.UpdatedAtUtc = DateTimeOffset.UtcNow;
 
         await repository.SaveChangesAsync(cancellationToken);
@@ -171,7 +240,11 @@ public sealed class DietKnowledgeService(IDietKnowledgeRepository repository) : 
         bool isActive,
         CancellationToken cancellationToken = default)
     {
-        var food = await repository.GetFoodByIdAsync(id, includeInactive: true, cancellationToken)
+        var food = await repository.GetFoodByIdAsync(
+                id,
+                includeInactive: true,
+                approvedOnly: false,
+                cancellationToken)
             ?? throw new KeyNotFoundException("Food was not found.");
 
         food.IsActive = isActive;
@@ -194,7 +267,11 @@ public sealed class DietKnowledgeService(IDietKnowledgeRepository repository) : 
         bool includeInactive = false,
         CancellationToken cancellationToken = default)
     {
-        var recipe = await repository.GetRecipeByIdAsync(id, includeInactive, cancellationToken)
+        var recipe = await repository.GetRecipeByIdAsync(
+                id,
+                includeInactive,
+                approvedOnly: !includeInactive,
+                cancellationToken)
             ?? throw new KeyNotFoundException("Recipe was not found.");
 
         return MapRecipe(recipe);
@@ -212,11 +289,26 @@ public sealed class DietKnowledgeService(IDietKnowledgeRepository repository) : 
 
         await EnsureRecipeFoodsAreActiveAsync(command.Ingredients, cancellationToken);
 
+        var reviewMetadata = CreateReviewMetadata(
+            command.SourceTitle,
+            command.SourceChapter,
+            command.SourcePage,
+            command.SourceReference,
+            command.ReviewStatus,
+            command.ReviewedBy);
+
         var recipe = new Recipe
         {
             Id = Guid.NewGuid(),
             Name = name,
             Description = Clean(command.Description),
+            SourceTitle = reviewMetadata.SourceTitle,
+            SourceChapter = reviewMetadata.SourceChapter,
+            SourcePage = reviewMetadata.SourcePage,
+            SourceReference = reviewMetadata.SourceReference,
+            ReviewStatus = reviewMetadata.ReviewStatus,
+            ReviewedBy = reviewMetadata.ReviewedBy,
+            ReviewedAtUtc = reviewMetadata.ReviewedAtUtc,
             IsActive = true,
             CreatedAtUtc = DateTimeOffset.UtcNow
         };
@@ -237,7 +329,11 @@ public sealed class DietKnowledgeService(IDietKnowledgeRepository repository) : 
         UpdateRecipeCommand command,
         CancellationToken cancellationToken = default)
     {
-        var recipe = await repository.GetRecipeByIdAsync(id, includeInactive: true, cancellationToken)
+        var recipe = await repository.GetRecipeByIdAsync(
+                id,
+                includeInactive: true,
+                approvedOnly: false,
+                cancellationToken)
             ?? throw new KeyNotFoundException("Recipe was not found.");
 
         var name = Clean(command.Name);
@@ -248,8 +344,17 @@ public sealed class DietKnowledgeService(IDietKnowledgeRepository repository) : 
 
         await EnsureRecipeFoodsAreActiveAsync(command.Ingredients, cancellationToken);
 
+        var reviewMetadata = CreateReviewMetadata(
+            command.SourceTitle,
+            command.SourceChapter,
+            command.SourcePage,
+            command.SourceReference,
+            command.ReviewStatus,
+            command.ReviewedBy);
+
         recipe.Name = name;
         recipe.Description = Clean(command.Description);
+        ApplyReviewMetadata(recipe, reviewMetadata);
         recipe.UpdatedAtUtc = DateTimeOffset.UtcNow;
         repository.ReplaceRecipeIngredients(recipe, MapIngredients(command.Ingredients));
 
@@ -262,7 +367,11 @@ public sealed class DietKnowledgeService(IDietKnowledgeRepository repository) : 
         bool isActive,
         CancellationToken cancellationToken = default)
     {
-        var recipe = await repository.GetRecipeByIdAsync(id, includeInactive: true, cancellationToken)
+        var recipe = await repository.GetRecipeByIdAsync(
+                id,
+                includeInactive: true,
+                approvedOnly: false,
+                cancellationToken)
             ?? throw new KeyNotFoundException("Recipe was not found.");
 
         recipe.IsActive = isActive;
@@ -333,6 +442,13 @@ public sealed class DietKnowledgeService(IDietKnowledgeRepository repository) : 
             guideline.Title,
             guideline.Summary,
             guideline.SourceNote,
+            guideline.SourceTitle,
+            guideline.SourceChapter,
+            guideline.SourcePage,
+            guideline.SourceReference,
+            guideline.ReviewStatus,
+            guideline.ReviewedBy,
+            guideline.ReviewedAtUtc,
             guideline.IsActive,
             guideline.CreatedAtUtc,
             guideline.UpdatedAtUtc);
@@ -345,6 +461,13 @@ public sealed class DietKnowledgeService(IDietKnowledgeRepository repository) : 
             food.Name,
             food.Category,
             food.CompatibilityNotes,
+            food.SourceTitle,
+            food.SourceChapter,
+            food.SourcePage,
+            food.SourceReference,
+            food.ReviewStatus,
+            food.ReviewedBy,
+            food.ReviewedAtUtc,
             food.IsActive,
             food.CreatedAtUtc,
             food.UpdatedAtUtc);
@@ -357,6 +480,13 @@ public sealed class DietKnowledgeService(IDietKnowledgeRepository repository) : 
             recipe.Name,
             recipe.Description,
             recipe.IsActive,
+            recipe.SourceTitle,
+            recipe.SourceChapter,
+            recipe.SourcePage,
+            recipe.SourceReference,
+            recipe.ReviewStatus,
+            recipe.ReviewedBy,
+            recipe.ReviewedAtUtc,
             recipe.Ingredients
                 .OrderBy(ingredient => ingredient.Food?.Name ?? string.Empty)
                 .Select(ingredient => new RecipeIngredientModel(
@@ -377,6 +507,7 @@ public sealed class DietKnowledgeService(IDietKnowledgeRepository repository) : 
             PageNumber = Math.Max(1, query.PageNumber),
             PageSize = Math.Clamp(query.PageSize, 1, 100),
             Search = CleanOptional(query.Search),
+            ReviewStatus = NormalizeReviewStatusFilter(query.ReviewStatus),
             SortBy = CleanOptional(query.SortBy),
             SortDirection = CleanOptional(query.SortDirection)
         };
@@ -390,6 +521,7 @@ public sealed class DietKnowledgeService(IDietKnowledgeRepository repository) : 
             PageSize = Math.Clamp(query.PageSize, 1, 100),
             Search = CleanOptional(query.Search),
             Category = CleanOptional(query.Category),
+            ReviewStatus = NormalizeReviewStatusFilter(query.ReviewStatus),
             SortBy = CleanOptional(query.SortBy),
             SortDirection = CleanOptional(query.SortDirection)
         };
@@ -402,9 +534,114 @@ public sealed class DietKnowledgeService(IDietKnowledgeRepository repository) : 
             PageNumber = Math.Max(1, query.PageNumber),
             PageSize = Math.Clamp(query.PageSize, 1, 100),
             Search = CleanOptional(query.Search),
+            ReviewStatus = NormalizeReviewStatusFilter(query.ReviewStatus),
             SortBy = CleanOptional(query.SortBy),
             SortDirection = CleanOptional(query.SortDirection)
         };
+    }
+
+    private static string NormalizeReviewStatusFilter(string? reviewStatus)
+    {
+        if (string.IsNullOrWhiteSpace(reviewStatus))
+        {
+            return string.Empty;
+        }
+
+        if (!KnowledgeReviewStatuses.IsValid(reviewStatus))
+        {
+            throw new ValidationException("ReviewStatus must be NeedsReview, Approved, or Rejected.");
+        }
+
+        return KnowledgeReviewStatuses.Normalize(reviewStatus);
+    }
+
+    private static ReviewMetadata CreateReviewMetadata(
+        string sourceTitle,
+        string sourceChapter,
+        string sourcePage,
+        string sourceReference,
+        string reviewStatus,
+        string reviewedBy)
+    {
+        if (!KnowledgeReviewStatuses.IsValid(reviewStatus))
+        {
+            throw new ValidationException("ReviewStatus must be NeedsReview, Approved, or Rejected.");
+        }
+
+        var normalizedStatus = KnowledgeReviewStatuses.Normalize(reviewStatus);
+        var cleanSourceTitle = string.IsNullOrWhiteSpace(sourceTitle)
+            ? "The Longevity Diet"
+            : sourceTitle.Trim();
+        var cleanSourceChapter = CleanOptional(sourceChapter);
+        var cleanSourcePage = CleanOptional(sourcePage);
+        var cleanSourceReference = CleanOptional(sourceReference);
+        var cleanReviewedBy = CleanOptional(reviewedBy);
+
+        if (normalizedStatus == KnowledgeReviewStatuses.Approved)
+        {
+            if (string.IsNullOrWhiteSpace(cleanSourceChapter))
+            {
+                throw new ValidationException("Approved knowledge must include SourceChapter.");
+            }
+
+            if (string.IsNullOrWhiteSpace(cleanSourcePage) &&
+                string.IsNullOrWhiteSpace(cleanSourceReference))
+            {
+                throw new ValidationException(
+                    "Approved knowledge must include SourcePage or SourceReference.");
+            }
+
+            if (string.IsNullOrWhiteSpace(cleanReviewedBy))
+            {
+                throw new ValidationException("Approved knowledge must include ReviewedBy.");
+            }
+        }
+
+        DateTimeOffset? reviewedAtUtc = normalizedStatus == KnowledgeReviewStatuses.NeedsReview
+            ? null
+            : DateTimeOffset.UtcNow;
+
+        return new ReviewMetadata(
+            cleanSourceTitle,
+            cleanSourceChapter,
+            cleanSourcePage,
+            cleanSourceReference,
+            normalizedStatus,
+            cleanReviewedBy,
+            reviewedAtUtc);
+    }
+
+    private static void ApplyReviewMetadata(DietGuideline guideline, ReviewMetadata metadata)
+    {
+        guideline.SourceTitle = metadata.SourceTitle;
+        guideline.SourceChapter = metadata.SourceChapter;
+        guideline.SourcePage = metadata.SourcePage;
+        guideline.SourceReference = metadata.SourceReference;
+        guideline.ReviewStatus = metadata.ReviewStatus;
+        guideline.ReviewedBy = metadata.ReviewedBy;
+        guideline.ReviewedAtUtc = metadata.ReviewedAtUtc;
+    }
+
+    private static void ApplyReviewMetadata(Food food, ReviewMetadata metadata)
+    {
+        food.SourceTitle = metadata.SourceTitle;
+        food.SourceChapter = metadata.SourceChapter;
+        food.SourcePage = metadata.SourcePage;
+        food.SourceReference = metadata.SourceReference;
+        food.ReviewStatus = metadata.ReviewStatus;
+        food.ReviewedBy = metadata.ReviewedBy;
+        food.ReviewedAtUtc = metadata.ReviewedAtUtc;
+    }
+
+    private static void ApplyReviewMetadata(Recipe recipe, ReviewMetadata metadata)
+    {
+        recipe.SourceTitle = metadata.SourceTitle;
+        recipe.SourceChapter = metadata.SourceChapter;
+        recipe.SourcePage = metadata.SourcePage;
+        recipe.SourceReference = metadata.SourceReference;
+        recipe.ReviewStatus = metadata.ReviewStatus;
+        recipe.ReviewedBy = metadata.ReviewedBy;
+        recipe.ReviewedAtUtc = metadata.ReviewedAtUtc;
     }
 
     private static string Clean(string value)
@@ -421,4 +658,13 @@ public sealed class DietKnowledgeService(IDietKnowledgeRepository repository) : 
     {
         return value?.Trim() ?? string.Empty;
     }
+
+    private sealed record ReviewMetadata(
+        string SourceTitle,
+        string SourceChapter,
+        string SourcePage,
+        string SourceReference,
+        string ReviewStatus,
+        string ReviewedBy,
+        DateTimeOffset? ReviewedAtUtc);
 }

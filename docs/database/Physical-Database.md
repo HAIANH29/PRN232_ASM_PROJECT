@@ -29,6 +29,13 @@ Initial migration exists: `InitialIdentitySchema`.
   - `Title`
   - `Summary`
   - `SourceNote`
+  - `SourceTitle`
+  - `SourceChapter`
+  - `SourcePage`
+  - `SourceReference`
+  - `ReviewStatus`
+  - `ReviewedBy`
+  - `ReviewedAtUtc`
   - `IsActive`
   - `CreatedAtUtc`
   - `UpdatedAtUtc`
@@ -37,6 +44,13 @@ Initial migration exists: `InitialIdentitySchema`.
   - `Name`
   - `Category`
   - `CompatibilityNotes`
+  - `SourceTitle`
+  - `SourceChapter`
+  - `SourcePage`
+  - `SourceReference`
+  - `ReviewStatus`
+  - `ReviewedBy`
+  - `ReviewedAtUtc`
   - `IsActive`
   - `CreatedAtUtc`
   - `UpdatedAtUtc`
@@ -44,6 +58,13 @@ Initial migration exists: `InitialIdentitySchema`.
   - `Id`
   - `Name`
   - `Description`
+  - `SourceTitle`
+  - `SourceChapter`
+  - `SourcePage`
+  - `SourceReference`
+  - `ReviewStatus`
+  - `ReviewedBy`
+  - `ReviewedAtUtc`
   - `IsActive`
   - `CreatedAtUtc`
   - `UpdatedAtUtc`
@@ -55,7 +76,7 @@ Initial migration exists: `InitialIdentitySchema`.
 
 Owned by `Diet Knowledge Service`.
 
-Initial migration exists: `InitialDietKnowledgeSchema`.
+Migrations exist: `InitialDietKnowledgeSchema`, `AddBookKnowledgeReviewMetadata`.
 
 ## MealPlanningDb
 

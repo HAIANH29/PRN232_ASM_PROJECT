@@ -1,0 +1,276 @@
+{
+  "guidelines": [
+    {
+      "title": "Plant-forward daily meals",
+      "summary": "Build most meals around vegetables, legumes, whole grains, nuts, and olive-oil-based fats. Keep this guidance educational and planning-focused.",
+      "sourceNote": "Project-ready summary in the team's own words. Verify against the legally obtained source copy before approval.",
+      "sourceTitle": "The Longevity Diet",
+      "sourceChapter": "",
+      "sourcePage": "",
+      "sourceReference": "TODO: team must verify exact source location.",
+      "reviewStatus": "NeedsReview",
+      "reviewedBy": "",
+      "isActive": true
+    },
+    {
+      "title": "Prefer legumes and whole grains",
+      "summary": "Use beans, lentils, chickpeas, and minimally refined grains as regular staples for meal plans and recipe ideas.",
+      "sourceNote": "Project-ready summary in the team's own words. Verify against the legally obtained source copy before approval.",
+      "sourceTitle": "The Longevity Diet",
+      "sourceChapter": "",
+      "sourcePage": "",
+      "sourceReference": "TODO: team must verify exact source location.",
+      "reviewStatus": "NeedsReview",
+      "reviewedBy": "",
+      "isActive": true
+    },
+    {
+      "title": "Keep added sugar and refined grains limited",
+      "summary": "Treat highly refined grains, sweetened drinks, and dessert-style foods as occasional choices rather than everyday planned meals.",
+      "sourceNote": "Project-ready summary in the team's own words. Verify against the legally obtained source copy before approval.",
+      "sourceTitle": "The Longevity Diet",
+      "sourceChapter": "",
+      "sourcePage": "",
+      "sourceReference": "TODO: team must verify exact source location.",
+      "reviewStatus": "NeedsReview",
+      "reviewedBy": "",
+      "isActive": true
+    },
+    {
+      "title": "Use simple meal timing for planning",
+      "summary": "Keep meal schedules consistent and practical for the user. Do not present timing guidance as treatment for any disease.",
+      "sourceNote": "Project-ready summary in the team's own words. Verify against the legally obtained source copy before approval.",
+      "sourceTitle": "The Longevity Diet",
+      "sourceChapter": "",
+      "sourcePage": "",
+      "sourceReference": "TODO: team must verify exact source location.",
+      "reviewStatus": "NeedsReview",
+      "reviewedBy": "",
+      "isActive": true
+    }
+  ],
+  "foods": [
+    {
+      "name": "Lentils",
+      "category": "Legume",
+      "compatibilityNotes": "Useful base for soups, salads, and bowls.",
+      "sourceTitle": "The Longevity Diet",
+      "sourceChapter": "",
+      "sourcePage": "",
+      "sourceReference": "TODO: team must verify exact source location.",
+      "reviewStatus": "NeedsReview",
+      "reviewedBy": "",
+      "isActive": true
+    },
+    {
+      "name": "Chickpeas",
+      "category": "Legume",
+      "compatibilityNotes": "Plant-protein staple for salads, stews, and bowls.",
+      "sourceTitle": "The Longevity Diet",
+      "sourceChapter": "",
+      "sourcePage": "",
+      "sourceReference": "TODO: team must verify exact source location.",
+      "reviewStatus": "NeedsReview",
+      "reviewedBy": "",
+      "isActive": true
+    },
+    {
+      "name": "Cannellini beans",
+      "category": "Legume",
+      "compatibilityNotes": "Mild bean option for soups and vegetable dishes.",
+      "sourceTitle": "The Longevity Diet",
+      "sourceChapter": "",
+      "sourcePage": "",
+      "sourceReference": "TODO: team must verify exact source location.",
+      "reviewStatus": "NeedsReview",
+      "reviewedBy": "",
+      "isActive": true
+    },
+    {
+      "name": "Brown rice",
+      "category": "Whole grain",
+      "compatibilityNotes": "Minimally refined grain for balanced meal bowls.",
+      "sourceTitle": "The Longevity Diet",
+      "sourceChapter": "",
+      "sourcePage": "",
+      "sourceReference": "TODO: team must verify exact source location.",
+      "reviewStatus": "NeedsReview",
+      "reviewedBy": "",
+      "isActive": true
+    },
+    {
+      "name": "Whole-grain pasta",
+      "category": "Whole grain",
+      "compatibilityNotes": "Use moderate portions with vegetables and legumes.",
+      "sourceTitle": "The Longevity Diet",
+      "sourceChapter": "",
+      "sourcePage": "",
+      "sourceReference": "TODO: team must verify exact source location.",
+      "reviewStatus": "NeedsReview",
+      "reviewedBy": "",
+      "isActive": true
+    },
+    {
+      "name": "Leafy greens",
+      "category": "Vegetable",
+      "compatibilityNotes": "Flexible vegetable base for salads, soups, and warm bowls.",
+      "sourceTitle": "The Longevity Diet",
+      "sourceChapter": "",
+      "sourcePage": "",
+      "sourceReference": "TODO: team must verify exact source location.",
+      "reviewStatus": "NeedsReview",
+      "reviewedBy": "",
+      "isActive": true
+    },
+    {
+      "name": "Broccoli",
+      "category": "Vegetable",
+      "compatibilityNotes": "Cruciferous vegetable suitable for simple meals.",
+      "sourceTitle": "The Longevity Diet",
+      "sourceChapter": "",
+      "sourcePage": "",
+      "sourceReference": "TODO: team must verify exact source location.",
+      "reviewStatus": "NeedsReview",
+      "reviewedBy": "",
+      "isActive": true
+    },
+    {
+      "name": "Tomatoes",
+      "category": "Vegetable",
+      "compatibilityNotes": "Works well in soups, sauces, salads, and grain bowls.",
+      "sourceTitle": "The Longevity Diet",
+      "sourceChapter": "",
+      "sourcePage": "",
+      "sourceReference": "TODO: team must verify exact source location.",
+      "reviewStatus": "NeedsReview",
+      "reviewedBy": "",
+      "isActive": true
+    },
+    {
+      "name": "Walnuts",
+      "category": "Nut",
+      "compatibilityNotes": "Use small portions for texture and plant-based fats.",
+      "sourceTitle": "The Longevity Diet",
+      "sourceChapter": "",
+      "sourcePage": "",
+      "sourceReference": "TODO: team must verify exact source location.",
+      "reviewStatus": "NeedsReview",
+      "reviewedBy": "",
+      "isActive": true
+    },
+    {
+      "name": "Almonds",
+      "category": "Nut",
+      "compatibilityNotes": "Use as a small topping or snack option.",
+      "sourceTitle": "The Longevity Diet",
+      "sourceChapter": "",
+      "sourcePage": "",
+      "sourceReference": "TODO: team must verify exact source location.",
+      "reviewStatus": "NeedsReview",
+      "reviewedBy": "",
+      "isActive": true
+    },
+    {
+      "name": "Extra virgin olive oil",
+      "category": "Healthy fat",
+      "compatibilityNotes": "Primary cooking and dressing fat for demo recipes.",
+      "sourceTitle": "The Longevity Diet",
+      "sourceChapter": "",
+      "sourcePage": "",
+      "sourceReference": "TODO: team must verify exact source location.",
+      "reviewStatus": "NeedsReview",
+      "reviewedBy": "",
+      "isActive": true
+    },
+    {
+      "name": "Herbs and lemon",
+      "category": "Seasoning",
+      "compatibilityNotes": "Flavor meals without turning the content into medical advice.",
+      "sourceTitle": "The Longevity Diet",
+      "sourceChapter": "",
+      "sourcePage": "",
+      "sourceReference": "TODO: team must verify exact source location.",
+      "reviewStatus": "NeedsReview",
+      "reviewedBy": "",
+      "isActive": true
+    }
+  ],
+  "recipes": [
+    {
+      "name": "Chickpea vegetable bowl",
+      "description": "A plant-forward bowl with chickpeas, brown rice, greens, tomatoes, herbs, lemon, and olive oil.",
+      "sourceTitle": "The Longevity Diet",
+      "sourceChapter": "",
+      "sourcePage": "",
+      "sourceReference": "TODO: team must verify exact source location.",
+      "reviewStatus": "NeedsReview",
+      "reviewedBy": "",
+      "isActive": true,
+      "ingredients": [
+        { "foodName": "Chickpeas", "quantityText": "1 cup cooked" },
+        { "foodName": "Brown rice", "quantityText": "3/4 cup cooked" },
+        { "foodName": "Leafy greens", "quantityText": "2 cups" },
+        { "foodName": "Tomatoes", "quantityText": "1/2 cup" },
+        { "foodName": "Extra virgin olive oil", "quantityText": "1 tbsp" },
+        { "foodName": "Herbs and lemon", "quantityText": "to taste" }
+      ]
+    },
+    {
+      "name": "Lentil walnut salad",
+      "description": "A simple salad using lentils, leafy greens, walnuts, tomatoes, herbs, lemon, and olive oil.",
+      "sourceTitle": "The Longevity Diet",
+      "sourceChapter": "",
+      "sourcePage": "",
+      "sourceReference": "TODO: team must verify exact source location.",
+      "reviewStatus": "NeedsReview",
+      "reviewedBy": "",
+      "isActive": true,
+      "ingredients": [
+        { "foodName": "Lentils", "quantityText": "1 cup cooked" },
+        { "foodName": "Leafy greens", "quantityText": "2 cups" },
+        { "foodName": "Walnuts", "quantityText": "2 tbsp" },
+        { "foodName": "Tomatoes", "quantityText": "1/2 cup" },
+        { "foodName": "Extra virgin olive oil", "quantityText": "1 tbsp" },
+        { "foodName": "Herbs and lemon", "quantityText": "to taste" }
+      ]
+    },
+    {
+      "name": "Bean and greens soup",
+      "description": "A warm soup with cannellini beans, greens, tomatoes, broccoli, herbs, and olive oil.",
+      "sourceTitle": "The Longevity Diet",
+      "sourceChapter": "",
+      "sourcePage": "",
+      "sourceReference": "TODO: team must verify exact source location.",
+      "reviewStatus": "NeedsReview",
+      "reviewedBy": "",
+      "isActive": true,
+      "ingredients": [
+        { "foodName": "Cannellini beans", "quantityText": "1 cup cooked" },
+        { "foodName": "Leafy greens", "quantityText": "1 cup" },
+        { "foodName": "Tomatoes", "quantityText": "1 cup" },
+        { "foodName": "Broccoli", "quantityText": "1 cup" },
+        { "foodName": "Extra virgin olive oil", "quantityText": "1 tbsp" },
+        { "foodName": "Herbs and lemon", "quantityText": "to taste" }
+      ]
+    },
+    {
+      "name": "Whole-grain pasta with legumes",
+      "description": "A modest whole-grain pasta dish with chickpeas, tomatoes, greens, herbs, lemon, and olive oil.",
+      "sourceTitle": "The Longevity Diet",
+      "sourceChapter": "",
+      "sourcePage": "",
+      "sourceReference": "TODO: team must verify exact source location.",
+      "reviewStatus": "NeedsReview",
+      "reviewedBy": "",
+      "isActive": true,
+      "ingredients": [
+        { "foodName": "Whole-grain pasta", "quantityText": "1 cup cooked" },
+        { "foodName": "Chickpeas", "quantityText": "3/4 cup cooked" },
+        { "foodName": "Tomatoes", "quantityText": "1 cup" },
+        { "foodName": "Leafy greens", "quantityText": "1 cup" },
+        { "foodName": "Extra virgin olive oil", "quantityText": "1 tbsp" },
+        { "foodName": "Herbs and lemon", "quantityText": "to taste" }
+      ]
+    }
+  ]
+}

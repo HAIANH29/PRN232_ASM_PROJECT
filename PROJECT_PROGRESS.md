@@ -4,10 +4,10 @@ This file is the shared progress tracker for the project. Every human or AI agen
 
 ## Current Status
 
-- Phase: Milestone 2 Diet Knowledge Service complete; continuing toward feature-complete microservices.
+- Phase: Milestone 2.5 Book Knowledge technical integration complete; manual source review/approval remains.
 - Branch: `HA/phase-1-microservices-scaffold`.
-- Last baseline: Milestone 1 Identity Service after commit `58203c9`.
-- Verification baseline: `dotnet restore LongevityDietPlatform.sln`, `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `docker compose config`, and Identity/Diet Knowledge Docker smoke tests passed on 2026-10-08.
+- Last pushed baseline before this update: Milestone 2 Diet Knowledge Service after commit `876d139`.
+- Verification baseline: `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `docker compose config`, and Identity/Diet Knowledge Docker smoke tests passed on 2026-10-09.
 - Completion roadmap: `PROJECT_SCHEDULE.md`.
 
 ## Done
@@ -32,11 +32,15 @@ This file is the shared progress tracker for the project. Every human or AI agen
 - Updated C4, ERD, physical database docs, README, `.env.example`, and instruction files to match the updated architecture.
 - Added `PROJECT_PROGRESS.md` and `PROJECT_SCHEDULE.md` to track current status and the path to a submission-ready product.
 - Implemented Identity Service register/login/profile/admin-check APIs with DTO validation, password hashing, JWT issuing, role seed data, demo admin seed, authorization policy, repository persistence, and the initial Identity EF Core migration.
-- Implemented Diet Knowledge Service admin CRUD, activation/deactivation, public read endpoints, search/filter/sort/pagination, approved seed content, and the initial Diet Knowledge EF Core migration.
+- Implemented Diet Knowledge Service admin CRUD, activation/deactivation, public read endpoints, search/filter/sort/pagination, managed seed content, and the initial Diet Knowledge EF Core migration.
+- Added Diet Knowledge source/provenance and review metadata for book-derived guidelines, foods, and recipes.
+- Moved Diet Knowledge seed data to a version-controlled JSON file with seed entries marked `NeedsReview` until team source verification.
+- Restricted public Diet Knowledge reads and recipe ingredient validation to active `Approved` content.
 
 ## Incomplete / Remaining Work
 
 - Add business DTOs, endpoint-specific validation rules, and correct HTTP status handling to Meal Planning and Tracking public APIs.
+- Verify each seeded book-knowledge item against a legally obtained source copy and approve only reviewed items.
 - Implement Meal Planning create/update/delete workflows, scheduling rules, ownership checks, and real reminder publishing behavior.
 - Implement Meal Planning consumption of `RecommendationResult` and the user accept/edit flow for AI recommendations.
 - Implement Recommendation Service prompt/context creation from approved knowledge and optional real Google Gemini calls.
@@ -64,6 +68,19 @@ Each update should include:
 Do not mark a feature as complete if it only has placeholders or configuration. Call it a scaffold until the real behavior exists and has been verified.
 
 ## Change Log
+
+### 2026-10-09 — Add Book Knowledge integration foundation
+
+- Added source metadata and review status fields to `DietGuideline`, `Food`, and `Recipe`.
+- Added `NeedsReview`, `Approved`, and `Rejected` review workflow rules in the Diet Knowledge application layer.
+- Added admin DTO support for source metadata and review status, including validation that `Approved` content has source chapter, source page/reference, and reviewer.
+- Updated public Diet Knowledge reads to return only active `Approved` content.
+- Updated recipe ingredient validation so recipes can only reference active approved foods.
+- Replaced hard-coded Diet Knowledge seed content with `book-knowledge-seed.json`; seed entries remain `NeedsReview` until the team verifies source locations.
+- Added Diet Knowledge EF Core migration `AddBookKnowledgeReviewMetadata`.
+- Added book-knowledge documentation and updated README, seed strategy, ERD, physical database docs, and `PROJECT_SCHEDULE.md`.
+- Verification: `dotnet restore LongevityDietPlatform.sln`, `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `dotnet test LongevityDietPlatform.sln --no-restore -m:1 --verbosity minimal`, `docker compose config`, `git diff --check`, `docker compose up -d --build identity-service diet-knowledge-service`, Identity/Diet Knowledge health checks, admin login, rejected invalid approved content with `400`, created approved guideline/food/recipe through admin APIs, confirmed public reads returned the approved smoke items, confirmed admin `reviewStatus=NeedsReview` saw seeded foods, and confirmed invalid `reviewStatus` filter returned `400`.
+- Remaining TODO: the team must verify the legal source copy, fill exact source chapter/page/reference metadata for seed items, and mark verified items `Approved` before using them as demo/public knowledge.
 
 ### 2026-10-08 — Complete Milestone 2 Diet Knowledge Service
 

@@ -5,6 +5,13 @@ public sealed record RecipeModel(
     string Name,
     string Description,
     bool IsActive,
+    string SourceTitle,
+    string SourceChapter,
+    string SourcePage,
+    string SourceReference,
+    string ReviewStatus,
+    string ReviewedBy,
+    DateTimeOffset? ReviewedAtUtc,
     IReadOnlyCollection<RecipeIngredientModel> Ingredients,
     DateTimeOffset CreatedAtUtc,
     DateTimeOffset? UpdatedAtUtc);
@@ -23,9 +30,21 @@ public sealed record RecipeIngredientCommand(
 public sealed record CreateRecipeCommand(
     string Name,
     string Description,
+    string SourceTitle,
+    string SourceChapter,
+    string SourcePage,
+    string SourceReference,
+    string ReviewStatus,
+    string ReviewedBy,
     IReadOnlyCollection<RecipeIngredientCommand> Ingredients);
 
 public sealed record UpdateRecipeCommand(
     string Name,
     string Description,
+    string SourceTitle,
+    string SourceChapter,
+    string SourcePage,
+    string SourceReference,
+    string ReviewStatus,
+    string ReviewedBy,
     IReadOnlyCollection<RecipeIngredientCommand> Ingredients);

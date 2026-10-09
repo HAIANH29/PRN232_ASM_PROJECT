@@ -1,4 +1,5 @@
 using LongevityDiet.DietKnowledge.Application.Abstractions;
+using LongevityDiet.DietKnowledge.Application.Common;
 using LongevityDiet.DietKnowledge.Application.Models;
 using LongevityDiet.DietKnowledge.Domain.Entities;
 using LongevityDiet.DietKnowledge.Infrastructure.Persistence;
@@ -19,6 +20,8 @@ public sealed class DietKnowledgeRepository(DietKnowledgeDbContext dbContext) : 
             source = source.Where(guideline => guideline.IsActive);
         }
 
+        source = ApplyReviewFilter(source, query.ApprovedOnly, query.ReviewStatus);
+
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
             var search = query.Search.ToLower();
@@ -35,6 +38,7 @@ public sealed class DietKnowledgeRepository(DietKnowledgeDbContext dbContext) : 
     public Task<DietGuideline?> GetGuidelineByIdAsync(
         Guid id,
         bool includeInactive,
+        bool approvedOnly,
         CancellationToken cancellationToken = default)
     {
         var query = dbContext.DietGuidelines.AsQueryable();
@@ -42,6 +46,12 @@ public sealed class DietKnowledgeRepository(DietKnowledgeDbContext dbContext) : 
         if (!includeInactive)
         {
             query = query.Where(guideline => guideline.IsActive);
+        }
+
+        if (approvedOnly)
+        {
+            query = query.Where(guideline =>
+                guideline.ReviewStatus == KnowledgeReviewStatuses.Approved);
         }
 
         return query.FirstOrDefaultAsync(guideline => guideline.Id == id, cancellationToken);
@@ -77,6 +87,8 @@ public sealed class DietKnowledgeRepository(DietKnowledgeDbContext dbContext) : 
             source = source.Where(food => food.IsActive);
         }
 
+        source = ApplyReviewFilter(source, query.ApprovedOnly, query.ReviewStatus);
+
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
             var search = query.Search.ToLower();
@@ -99,6 +111,7 @@ public sealed class DietKnowledgeRepository(DietKnowledgeDbContext dbContext) : 
     public Task<Food?> GetFoodByIdAsync(
         Guid id,
         bool includeInactive,
+        bool approvedOnly,
         CancellationToken cancellationToken = default)
     {
         var query = dbContext.Foods.AsQueryable();
@@ -106,6 +119,11 @@ public sealed class DietKnowledgeRepository(DietKnowledgeDbContext dbContext) : 
         if (!includeInactive)
         {
             query = query.Where(food => food.IsActive);
+        }
+
+        if (approvedOnly)
+        {
+            query = query.Where(food => food.ReviewStatus == KnowledgeReviewStatuses.Approved);
         }
 
         return query.FirstOrDefaultAsync(food => food.Id == id, cancellationToken);
@@ -117,7 +135,10 @@ public sealed class DietKnowledgeRepository(DietKnowledgeDbContext dbContext) : 
     {
         return await dbContext.Foods
             .AsNoTracking()
-            .Where(food => food.IsActive && foodIds.Contains(food.Id))
+            .Where(food =>
+                food.IsActive &&
+                food.ReviewStatus == KnowledgeReviewStatuses.Approved &&
+                foodIds.Contains(food.Id))
             .Select(food => food.Id)
             .ToArrayAsync(cancellationToken);
     }
@@ -152,6 +173,8 @@ public sealed class DietKnowledgeRepository(DietKnowledgeDbContext dbContext) : 
             source = source.Where(recipe => recipe.IsActive);
         }
 
+        source = ApplyReviewFilter(source, query.ApprovedOnly, query.ReviewStatus);
+
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
             var search = query.Search.ToLower();
@@ -174,6 +197,7 @@ public sealed class DietKnowledgeRepository(DietKnowledgeDbContext dbContext) : 
     public Task<Recipe?> GetRecipeByIdAsync(
         Guid id,
         bool includeInactive,
+        bool approvedOnly,
         CancellationToken cancellationToken = default)
     {
         var query = RecipesWithDetails();
@@ -181,6 +205,11 @@ public sealed class DietKnowledgeRepository(DietKnowledgeDbContext dbContext) : 
         if (!includeInactive)
         {
             query = query.Where(recipe => recipe.IsActive);
+        }
+
+        if (approvedOnly)
+        {
+            query = query.Where(recipe => recipe.ReviewStatus == KnowledgeReviewStatuses.Approved);
         }
 
         return query.FirstOrDefaultAsync(recipe => recipe.Id == id, cancellationToken);
@@ -266,6 +295,64 @@ public sealed class DietKnowledgeRepository(DietKnowledgeDbContext dbContext) : 
                 ? source.OrderByDescending(guideline => guideline.Title)
                 : source.OrderBy(guideline => guideline.Title)
         };
+    }
+
+    private static IQueryable<DietGuideline> ApplyReviewFilter(
+        IQueryable<DietGuideline> source,
+        bool approvedOnly,
+        string? reviewStatus)
+    {
+        if (approvedOnly)
+        {
+            return source.Where(guideline =>
+                guideline.ReviewStatus == KnowledgeReviewStatuses.Approved);
+        }
+
+        if (string.IsNullOrWhiteSpace(reviewStatus))
+        {
+            return source;
+        }
+
+        var normalizedStatus = KnowledgeReviewStatuses.Normalize(reviewStatus);
+        return source.Where(guideline => guideline.ReviewStatus == normalizedStatus);
+    }
+
+    private static IQueryable<Food> ApplyReviewFilter(
+        IQueryable<Food> source,
+        bool approvedOnly,
+        string? reviewStatus)
+    {
+        if (approvedOnly)
+        {
+            return source.Where(food => food.ReviewStatus == KnowledgeReviewStatuses.Approved);
+        }
+
+        if (string.IsNullOrWhiteSpace(reviewStatus))
+        {
+            return source;
+        }
+
+        var normalizedStatus = KnowledgeReviewStatuses.Normalize(reviewStatus);
+        return source.Where(food => food.ReviewStatus == normalizedStatus);
+    }
+
+    private static IQueryable<Recipe> ApplyReviewFilter(
+        IQueryable<Recipe> source,
+        bool approvedOnly,
+        string? reviewStatus)
+    {
+        if (approvedOnly)
+        {
+            return source.Where(recipe => recipe.ReviewStatus == KnowledgeReviewStatuses.Approved);
+        }
+
+        if (string.IsNullOrWhiteSpace(reviewStatus))
+        {
+            return source;
+        }
+
+        var normalizedStatus = KnowledgeReviewStatuses.Normalize(reviewStatus);
+        return source.Where(recipe => recipe.ReviewStatus == normalizedStatus);
     }
 
     private static IQueryable<Food> ApplyFoodSort(
