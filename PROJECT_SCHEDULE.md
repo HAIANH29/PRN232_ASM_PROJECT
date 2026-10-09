@@ -8,9 +8,9 @@ Read together with:
 
 ## Current Snapshot
 
-Current phase: Milestone 6 Recommendation Service and Gemini Placeholder/Integration is complete, including Docker runtime smoke; Book Knowledge manual source review remains pending.
+Current phase: Milestone 7 API Gateway Integration is complete, including Docker runtime smoke; Book Knowledge manual source review remains pending.
 
-Estimated product completion: about 74-78%.
+Estimated product completion: about 78-82%.
 
 What is already in code:
 - .NET solution and project structure exist.
@@ -23,7 +23,7 @@ What is already in code:
   - `MealPlanningDb`
   - `TrackingDb`
 - Dockerfiles and Docker Compose skeleton exist.
-- YARP API Gateway skeleton exists.
+- YARP API Gateway has finalized routes for public REST services.
 - RabbitMQ message contract/configuration skeletons exist.
 - Recommendation Service consumes RabbitMQ recommendation requests, builds context from active `Approved` Diet Knowledge data, applies safety guardrails, uses safe fallback recommendations when Gemini is disabled, and publishes recommendation results.
 - Notification Service exists as a gRPC service skeleton.
@@ -286,15 +286,20 @@ Done when:
 
 Target: T+10.5 to T+11 days.
 
+Status: Completed on 2026-10-09.
+
 Code/work to do:
-- Finalize YARP routes for all public REST services.
-- Ensure internal services are not exposed through gateway unless required.
-- Verify JWT forwarding works through gateway.
-- Add gateway route docs to README.
+- [x] Finalize YARP routes for all public REST services.
+- [x] Ensure internal services are not exposed through gateway unless required.
+- [x] Verify JWT forwarding works through gateway.
+- [x] Add gateway route docs to README.
 
 Verification:
-- Web/API clients can call Identity, Diet Knowledge, Meal Planning, and Tracking through the gateway.
-- Recommendation Service and Notification Service remain internal.
+- [x] Web/API clients can call Identity, Diet Knowledge, Meal Planning, and Tracking through the gateway.
+- [x] Recommendation Service and Notification Service remain internal.
+- [x] `dotnet build LongevityDietPlatform.sln`
+- [x] `dotnet test LongevityDietPlatform.sln`
+- [x] `docker compose config`
 
 Done when:
 - The Web Application can use one backend entry point.
@@ -438,7 +443,7 @@ This minimum path is enough to demonstrate the required PRN232 architecture and 
 | RabbitMQ async messaging | Meal Planning publishes reminders/recommendation requests and consumes recommendation results; Recommendation Service consumes requests and publishes results; Notification Service publishes notification messages; Notification Worker consumes reminder/notification messages | Add tests and final demo script |
 | .NET Worker Service | Notification Worker implemented and Docker-smoke-tested for reminder/notification delivery | Add tests |
 | PostgreSQL database-per-service | Identity, Diet Knowledge, Meal Planning, and Tracking migrations exist | Keep service ownership boundaries intact |
-| Docker Compose | Skeleton valid; Identity and Diet Knowledge startup smoke tested | Full startup verification with all services and dependencies |
+| Docker Compose | Gateway and core backend services Docker-smoke-tested through current milestone | Full Web demo startup verification |
 | C4 docs | Existing | Keep synchronized with implementation |
 | Web Application | MVC shell exists | Build real User/Admin screens |
 | External providers | Resend sender abstraction with log fallback exists; Gemini client abstraction with disabled-mode fallback exists | Configure real Resend/Gemini keys only for demo/production if needed |
@@ -530,10 +535,10 @@ Note: schedule support is represented on `MealPlanItem` rather than a separate t
 
 ### API Gateway
 
-- [ ] Public service routes finalized.
-- [ ] JWT forwarding verified.
-- [ ] Internal services kept private.
-- [ ] Gateway smoke test.
+- [x] Public service routes finalized.
+- [x] JWT forwarding verified.
+- [x] Internal services kept private.
+- [x] Gateway smoke test.
 
 ### Web Application
 
