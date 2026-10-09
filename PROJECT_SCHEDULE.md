@@ -8,9 +8,9 @@ Read together with:
 
 ## Current Snapshot
 
-Current phase: Milestone 2 Diet Knowledge Service is complete; Book Knowledge technical integration is complete with manual source review pending.
+Current phase: Milestone 3 Meal Planning Service is complete; Book Knowledge manual source review remains pending.
 
-Estimated product completion: about 40-44%.
+Estimated product completion: about 52-56%.
 
 What is already in code:
 - .NET solution and project structure exist.
@@ -31,14 +31,15 @@ What is already in code:
 - Architecture docs exist and match the updated microservice diagram.
 - Identity Service now supports register/login/profile/admin-check, password hashing, JWT generation, role seeding, demo admin seeding, and the initial Identity EF Core migration.
 - Diet Knowledge Service now supports book-knowledge review metadata, JSON seed data, public browsing/search/filter/sort/pagination for active approved content, admin CRUD, activation/deactivation, and Diet Knowledge EF Core migrations.
+- Meal Planning Service now supports authenticated meal plan CRUD, meal plan item scheduling, ownership checks, Diet Knowledge validation through REST, RabbitMQ reminder publishing, recommendation request publishing, recommendation result consumption/storage, recommendation accept flow, and the initial Meal Planning EF Core migration.
 
 What is not yet product-ready:
-- CRUD APIs are not implemented yet for Meal Planning and Tracking.
+- CRUD APIs are not implemented yet for Tracking.
 - The team still needs to verify book-derived seed items against a legally obtained source copy before marking them `Approved`.
-- Search/filter/sort/pagination are implemented for Diet Knowledge; other services still need list behavior where useful.
-- JWT ownership checks still need to be applied to Meal Planning and Tracking.
-- EF Core migrations are still needed for Meal Planning and Tracking.
-- RabbitMQ publish/consume behavior is mostly placeholder-level.
+- Search/filter/sort/pagination are implemented for Diet Knowledge and Meal Planning; Tracking still needs list/history behavior where useful.
+- JWT ownership checks still need to be applied to Tracking.
+- EF Core migration is still needed for Tracking.
+- RabbitMQ publish/consume behavior exists for the Meal Planning side of reminders and recommendations; Recommendation Service, Notification Service, and Notification Worker still need their full business consumers/publishers.
 - gRPC flow exists as a skeleton but is not connected to real tracking workflows.
 - Gemini and Resend integrations are placeholders.
 - Web Application is still mostly the default MVC shell.
@@ -173,27 +174,33 @@ Done when:
 
 ### Milestone 3 — Meal Planning Service
 
+Status: Completed on 2026-10-09.
+
 Target: T+4 to T+6 days.
 
 Code/work to do:
-- Implement MealPlan and MealPlanItem DTOs.
-- Add MealSchedule if required by final workflow.
-- Implement create/update/delete meal plan endpoints.
-- Implement add/update/remove meal plan items.
-- Implement ownership checks using user id from JWT.
-- Implement validation for planned dates and meal slots.
-- Add explicit HTTP client/API call to Diet Knowledge Service when validating food/recipe ids.
-- Publish reminder messages to RabbitMQ when meals are scheduled.
-- Publish `RecommendationRequest` messages.
-- Consume/store `RecommendationResult` data in a way that supports user review.
-- Add accept/edit recommendation flow that saves final accepted plan.
-- Add Meal Planning EF Core migration.
+- [x] Implement MealPlan and MealPlanItem DTOs.
+- [x] Add MealSchedule if required by final workflow.
+- [x] Implement create/update/delete meal plan endpoints.
+- [x] Implement add/update/remove meal plan items.
+- [x] Implement ownership checks using user id from JWT.
+- [x] Implement validation for planned dates and meal slots.
+- [x] Add explicit HTTP client/API call to Diet Knowledge Service when validating food/recipe ids.
+- [x] Publish reminder messages to RabbitMQ when meals are scheduled.
+- [x] Publish `RecommendationRequest` messages.
+- [x] Consume/store `RecommendationResult` data in a way that supports user review.
+- [x] Add accept/edit recommendation flow that saves final accepted plan.
+- [x] Add Meal Planning EF Core migration.
+
+Implementation note: a separate `MealSchedule` table was not needed for this workflow. Schedule information is stored on `MealPlanItem` with `PlannedDate`, `MealSlot`, and `ReminderAtUtc`.
 
 Verification:
-- User can manage only their own meal plans.
-- Meal plan creation rejects invalid food/recipe references.
-- Reminder message is published for scheduled meals.
-- Recommendation request message is published.
+- [x] User can manage only their own meal plans.
+- [x] Meal plan creation rejects invalid food/recipe references.
+- [x] Reminder message is published for scheduled meals.
+- [x] Recommendation request message is published.
+- [x] Recommendation result message is consumed and stored as `Completed`.
+- [x] Accepted recommendation saves the final meal plan.
 
 Done when:
 - Main meal planning workflow works without direct database access to other services.
@@ -411,14 +418,14 @@ This minimum path is enough to demonstrate the required PRN232 architecture and 
 | Requirement | Current status | Remaining work |
 | --- | --- | --- |
 | Microservices architecture | Scaffolded | Implement real business APIs and flows |
-| ASP.NET Core REST APIs | Identity and Diet Knowledge implemented; remaining APIs scaffolded | Add Meal Planning and Tracking business DTOs, controllers, validation rules, status codes |
+| ASP.NET Core REST APIs | Identity, Diet Knowledge, and Meal Planning implemented; Tracking API scaffolded | Add Tracking business DTOs, controllers, validation rules, status codes |
 | Layered architecture | Project structure exists | Keep controllers out of DbContext and business logic |
-| JWT auth/authorization | Identity implemented; Diet Knowledge admin mutations protected | Add ownership checks to Meal Planning and Tracking |
-| Search/filter/sort/pagination | Implemented for Diet Knowledge | Add list behavior to other services where useful |
+| JWT auth/authorization | Identity implemented; Diet Knowledge admin mutations protected; Meal Planning ownership checks implemented | Add ownership checks to Tracking |
+| Search/filter/sort/pagination | Implemented for Diet Knowledge and Meal Planning | Add history/list behavior to Tracking where useful |
 | gRPC internal flow | Skeleton exists | Connect Tracking workflow to Notification Service |
-| RabbitMQ async messaging | Contracts/config exist | Implement durable publish/consume flows |
+| RabbitMQ async messaging | Contracts/config exist; Meal Planning publishes reminders and recommendation requests and consumes recommendation results | Implement full Recommendation, Notification, and Worker flows |
 | .NET Worker Service | Skeleton exists | Implement notification/reminder processing |
-| PostgreSQL database-per-service | Identity and Diet Knowledge migrations exist; other DbContext shells exist | Migrations, data model completion, seed data for remaining stateful services |
+| PostgreSQL database-per-service | Identity, Diet Knowledge, and Meal Planning migrations exist; Tracking DbContext shell exists | Tracking migration and data model completion |
 | Docker Compose | Skeleton valid; Identity and Diet Knowledge startup smoke tested | Full startup verification with all services and dependencies |
 | C4 docs | Existing | Keep synchronized with implementation |
 | Web Application | MVC shell exists | Build real User/Admin screens |
@@ -456,17 +463,19 @@ This minimum path is enough to demonstrate the required PRN232 architecture and 
 
 ### Meal Planning Service
 
-- [ ] MealPlan CRUD.
-- [ ] MealPlanItem CRUD.
-- [ ] MealSchedule support if final workflow needs it.
-- [ ] Ownership checks.
-- [ ] Validate food/recipe IDs through service API, not database access.
-- [ ] Reminder publish.
-- [ ] Recommendation request publish.
-- [ ] Recommendation result consume.
-- [ ] Accept/edit recommendation.
-- [ ] Migration.
+- [x] MealPlan CRUD.
+- [x] MealPlanItem CRUD.
+- [x] MealSchedule support if final workflow needs it.
+- [x] Ownership checks.
+- [x] Validate food/recipe IDs through service API, not database access.
+- [x] Reminder publish.
+- [x] Recommendation request publish.
+- [x] Recommendation result consume.
+- [x] Accept/edit recommendation.
+- [x] Migration.
 - [ ] Tests.
+
+Note: schedule support is represented on `MealPlanItem` rather than a separate table.
 
 ### Tracking Service
 

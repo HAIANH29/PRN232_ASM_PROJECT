@@ -2,7 +2,7 @@
 
 PRN232 microservices scaffold for an educational diet planning and tracking platform based on approved knowledge from *The Longevity Diet*.
 
-This repository has the Phase 1 microservice scaffold plus the Milestone 1 Identity implementation and Milestone 2 Diet Knowledge implementation. The remaining business services are still being implemented incrementally.
+This repository has the Phase 1 microservice scaffold plus the Milestone 1 Identity, Milestone 2 Diet Knowledge, and Milestone 3 Meal Planning implementations. The remaining business services are still being implemented incrementally.
 
 Project status and remaining work are tracked in `PROJECT_PROGRESS.md`. The completion roadmap is tracked in `PROJECT_SCHEDULE.md`. Update the progress file after each completed project change.
 
@@ -79,12 +79,33 @@ Diet Knowledge endpoints:
 - Admin list endpoints can filter by `reviewStatus=NeedsReview|Approved|Rejected`.
 - Seeded book-knowledge items are `NeedsReview` until the team fills source metadata and approves them.
 
+Meal Planning endpoints:
+
+- All Meal Planning endpoints require a JWT Bearer token.
+- Meal plan workflow:
+  - `GET /api/meal-plans`
+  - `GET /api/meal-plans/{id}`
+  - `POST /api/meal-plans`
+  - `PUT /api/meal-plans/{id}`
+  - `DELETE /api/meal-plans/{id}`
+  - `POST /api/meal-plans/{mealPlanId}/items`
+  - `PUT /api/meal-plans/{mealPlanId}/items/{itemId}`
+  - `DELETE /api/meal-plans/{mealPlanId}/items/{itemId}`
+- Recommendation review workflow:
+  - `POST /api/meal-recommendations`
+  - `GET /api/meal-recommendations`
+  - `GET /api/meal-recommendations/{id}`
+  - `POST /api/meal-recommendations/{id}/accept`
+- Meal Planning validates `FoodId`/`RecipeId` through Diet Knowledge public APIs, so only active `Approved` content can be scheduled.
+- Scheduled meal items publish reminder messages to RabbitMQ.
+- Recommendation requests are published to RabbitMQ; completed recommendation results are consumed and stored for user review.
+- A separate `MealSchedule` table is not used in this milestone; schedule data is represented by `MealPlanItem.PlannedDate`, `MealSlot`, and `ReminderAtUtc`.
+
 ## Remaining TODO
 
-- Add EF Core migrations for Meal Planning and Tracking.
-- Implement meal plan workflows and real RabbitMQ publish/consume logic.
 - Implement Recommendation Service RabbitMQ consumption and Google Gemini integration.
 - Implement Tracking -> Notification gRPC use cases.
 - Implement Notification Worker consumption and Resend integration.
 - Implement tracking workflows and progress summaries.
+- Add EF Core migration for Tracking.
 - Add tests around each implemented slice.

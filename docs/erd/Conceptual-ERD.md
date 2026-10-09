@@ -67,6 +67,8 @@ erDiagram
         string Name
         date StartDate
         date EndDate
+        datetime CreatedAtUtc
+        datetime UpdatedAtUtc
     }
 
     MEAL_PLAN_ITEM {
@@ -76,6 +78,21 @@ erDiagram
         guid FoodId
         date PlannedDate
         string MealSlot
+        string Notes
+        datetime ReminderAtUtc
+    }
+
+    MEAL_RECOMMENDATION_REQUEST {
+        guid Id
+        guid UserId
+        string PreferenceTagsJson
+        int Days
+        string Status
+        string SuggestedMealTitlesJson
+        string Disclaimer
+        guid AcceptedMealPlanId
+        datetime RequestedAtUtc
+        datetime CompletedAtUtc
     }
 
     DAILY_TRACKING {
@@ -108,3 +125,5 @@ erDiagram
 ```
 
 Cross-service relationships such as `MealPlan.UserId`, `MealPlanItem.RecipeId`, `MealPlanItem.FoodId`, and `MealTracking.MealPlanItemId` are ID references only, not cross-database foreign keys.
+
+Meal scheduling is represented by `MealPlanItem.PlannedDate`, `MealSlot`, and `ReminderAtUtc` rather than a separate `MealSchedule` table in the current workflow.

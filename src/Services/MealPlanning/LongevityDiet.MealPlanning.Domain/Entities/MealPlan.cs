@@ -14,5 +14,7 @@ public sealed class MealPlan
 
     public DateTimeOffset CreatedAtUtc { get; set; } = DateTimeOffset.UtcNow;
 
+    public DateTimeOffset? UpdatedAtUtc { get; set; }
+
     public ICollection<MealPlanItem> Items { get; } = new List<MealPlanItem>();
 }

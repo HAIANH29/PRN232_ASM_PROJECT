@@ -17,4 +17,10 @@ public sealed class MealPlanItem
     public Guid? FoodId { get; set; }
 
     public string Notes { get; set; } = string.Empty;
+
+    public DateTimeOffset ReminderAtUtc { get; set; }
+
+    public DateTimeOffset CreatedAtUtc { get; set; } = DateTimeOffset.UtcNow;
+
+    public DateTimeOffset? UpdatedAtUtc { get; set; }
 }
