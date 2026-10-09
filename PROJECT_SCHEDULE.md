@@ -8,7 +8,7 @@ Read together with:
 
 ## Current Snapshot
 
-Current phase: Milestone 5 RabbitMQ and Notification Delivery is complete in code; Book Knowledge manual source review remains pending.
+Current phase: Milestone 5 RabbitMQ and Notification Delivery is complete, including Docker runtime smoke; Book Knowledge manual source review remains pending.
 
 Estimated product completion: about 68-72%.
 
@@ -232,7 +232,7 @@ Done when:
 
 Target: T+7.5 to T+9 days.
 
-Status: Completed in code on 2026-10-09; Docker runtime smoke is blocked by local Docker/C drive storage.
+Status: Completed on 2026-10-09.
 
 Code/work to do:
 - [x] Implement durable RabbitMQ exchange/queue declarations.
@@ -244,10 +244,10 @@ Code/work to do:
 - [x] Keep a development fallback that logs email payloads when Resend is not configured.
 
 Verification:
-- [ ] Scheduling a meal eventually reaches Notification Worker. Local Docker smoke blocked by Docker Desktop/C drive storage.
-- [ ] Tracking progress notification eventually reaches Notification Worker. Local Docker smoke blocked by Docker Desktop/C drive storage.
+- [x] Scheduling a meal eventually reaches Notification Worker.
+- [x] Tracking progress notification eventually reaches Notification Worker.
 - [x] Worker builds and contains logged fallback delivery when Resend is not configured.
-- [ ] RabbitMQ Management UI shows expected queues/exchanges. Local Docker smoke blocked by Docker Desktop/C drive storage.
+- [x] RabbitMQ Management UI shows expected queues/exchanges.
 - [x] `dotnet build LongevityDietPlatform.sln`
 - [x] `dotnet test LongevityDietPlatform.sln`
 - [x] `docker compose config`
@@ -430,8 +430,8 @@ This minimum path is enough to demonstrate the required PRN232 architecture and 
 | JWT auth/authorization | Identity implemented; Diet Knowledge admin mutations protected; Meal Planning and Tracking ownership checks implemented | Extend to Web flows and future APIs |
 | Search/filter/sort/pagination | Implemented for Diet Knowledge, Meal Planning, and Tracking history | Add more list behavior only where useful |
 | gRPC internal flow | Tracking -> Notification implemented in a real progress use case | Add tests/smoke documentation |
-| RabbitMQ async messaging | Contracts/config exist; Meal Planning publishes reminders and recommendation requests and consumes recommendation results; Notification Service publishes notification messages; Notification Worker consumes reminder/notification messages | Implement full Recommendation flow and complete Docker runtime smoke |
-| .NET Worker Service | Notification Worker implemented for reminder/notification delivery | Add runtime smoke and tests |
+| RabbitMQ async messaging | Contracts/config exist; Meal Planning publishes reminders and recommendation requests and consumes recommendation results; Notification Service publishes notification messages; Notification Worker consumes reminder/notification messages | Implement full Recommendation flow |
+| .NET Worker Service | Notification Worker implemented and Docker-smoke-tested for reminder/notification delivery | Add tests |
 | PostgreSQL database-per-service | Identity, Diet Knowledge, Meal Planning, and Tracking migrations exist | Keep service ownership boundaries intact |
 | Docker Compose | Skeleton valid; Identity and Diet Knowledge startup smoke tested | Full startup verification with all services and dependencies |
 | C4 docs | Existing | Keep synchronized with implementation |
@@ -520,7 +520,8 @@ Note: schedule support is represented on `MealPlanItem` rather than a separate t
 - [x] Development logging fallback.
 - [x] Retry/error handling.
 - [x] Dead-letter queues.
-- [ ] Tests or smoke checks.
+- [x] Docker smoke checks.
+- [ ] Automated tests.
 
 ### API Gateway
 

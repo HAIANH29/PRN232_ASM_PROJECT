@@ -4,10 +4,10 @@ This file is the shared progress tracker for the project. Every human or AI agen
 
 ## Current Status
 
-- Phase: Milestone 5 RabbitMQ and Notification Delivery complete in code; manual book source review/approval remains.
+- Phase: Milestone 5 RabbitMQ and Notification Delivery complete, including Docker runtime smoke; manual book source review/approval remains.
 - Branch: `HA/phase-1-microservices-scaffold`.
 - Last pushed baseline before this update: Milestone 4 Tracking Service and gRPC Notification after commit `f045546`.
-- Verification baseline: `dotnet restore LongevityDietPlatform.sln`, `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `dotnet test LongevityDietPlatform.sln --no-restore -m:1 --verbosity minimal`, and `docker compose config` passed on 2026-10-09. Docker runtime smoke for this update is blocked by local C drive/Docker Desktop storage errors.
+- Verification baseline: `dotnet restore LongevityDietPlatform.sln`, `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `dotnet test LongevityDietPlatform.sln --no-restore -m:1 --verbosity minimal`, `docker compose config`, and Milestone 5 Docker runtime smoke passed on 2026-10-09.
 - Completion roadmap: `PROJECT_SCHEDULE.md`.
 
 ## Done
@@ -46,7 +46,6 @@ This file is the shared progress tracker for the project. Every human or AI agen
 
 - Verify each seeded book-knowledge item against a legally obtained source copy and approve only reviewed items.
 - Implement Recommendation Service prompt/context creation from approved knowledge and optional real Google Gemini calls.
-- Add runtime Docker smoke verification for Notification Worker once local Docker/C drive storage is healthy.
 - Add automated tests for implemented slices.
 - Build the real Web Application screens and API Gateway integration.
 - Run a full end-to-end Docker Compose smoke test once Notification Worker, Recommendation Service, Gateway, and Web flows exist.
@@ -77,9 +76,9 @@ Do not mark a feature as complete if it only has placeholders or configuration. 
 - Added Resend configuration for base URL, endpoint, API key, sender email, and sender name.
 - Added development fallback behavior: when `RESEND_API_KEY` is empty or `development-only`, the worker logs the email payload instead of calling Resend.
 - Updated Docker Compose, `.env.example`, README, and `PROJECT_SCHEDULE.md`.
-- Verification: `dotnet build src/Workers/LongevityDiet.NotificationWorker/LongevityDiet.NotificationWorker.csproj --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal` with `TEMP/TMP` pointed at the repository `.tmp` folder on drive D, `dotnet test LongevityDietPlatform.sln --no-restore -m:1 --verbosity minimal`, `docker compose config --quiet`, and `git diff --check`.
-- Blocker: Docker runtime smoke could not be completed because local drive C had 0 bytes free and Docker Desktop/BuildKit reported read-only filesystem errors. The code build passed; rerun Docker smoke after freeing C drive/Docker storage.
-- Remaining TODO: add automated tests, rerun Docker runtime smoke for reminder and progress-notification delivery, implement Recommendation Service processing/Gemini-safe context, finalize API Gateway routes, and build Web Application screens.
+- Verification: `dotnet build src/Workers/LongevityDiet.NotificationWorker/LongevityDiet.NotificationWorker.csproj --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal` with `TEMP/TMP` pointed at the repository `.tmp` folder on drive D, `dotnet test LongevityDietPlatform.sln --no-restore -m:1 --verbosity minimal`, `docker compose config --quiet`, `git diff --check`, `docker compose up -d --build identity-service diet-knowledge-service meal-planning-service notification-service tracking-service notification-worker`, health checks for Identity/Diet Knowledge/Meal Planning/Tracking/Notification, created approved Diet Knowledge food, created Meal Planning plan with reminder, confirmed Notification Worker logged the reminder email payload, marked Tracking progress complete, confirmed Tracking -> Notification gRPC -> RabbitMQ -> Notification Worker logged the progress notification email payload, and confirmed RabbitMQ Management showed durable `longevity.reminders`, `longevity.notifications`, and matching dead-letter exchanges/queues with active consumers on `reminder.requests` and `notification.messages`.
+- Smoke run: `1791553445`; progress summary reached `1/1`; Notification Worker saw both reminder and notification logs.
+- Remaining TODO: add automated tests, implement Recommendation Service processing/Gemini-safe context, finalize API Gateway routes, and build Web Application screens.
 
 ### 2026-10-09 — Complete Milestone 4 Tracking Service and gRPC Notification
 
