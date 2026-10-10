@@ -1,8 +1,8 @@
 # Longevity Diet Platform
 
-PRN232 microservices scaffold for an educational diet planning and tracking platform based on approved knowledge from *The Longevity Diet*.
+PRN232 microservices application for an educational diet planning and tracking platform based on approved knowledge from *The Longevity Diet*.
 
-This repository has the Phase 1 microservice scaffold plus the Milestone 1 Identity, Milestone 2 Diet Knowledge, Milestone 3 Meal Planning, Milestone 4 Tracking/gRPC Notification, Milestone 5 RabbitMQ notification delivery, Milestone 6 Recommendation Service, Milestone 7 API Gateway, and Milestone 8 Web Application implementations. Tests and the final demo package are still being implemented incrementally.
+This repository contains the implemented PRN232 microservice project through Milestone 11: core services, Web Application, Docker/database setup, Admin book-source ingestion, automated tests, and the submission documentation package.
 
 Project status and remaining work are tracked in `PROJECT_PROGRESS.md`. The completion roadmap is tracked in `PROJECT_SCHEDULE.md`. Update the progress file after each completed project change.
 
@@ -13,6 +13,8 @@ Development conventions:
 - Clean database/Docker/demo setup: `docs/development/Database-Docker-Demo-Setup.md`
 - Seed data strategy: `docs/development/Seed-Data-Strategy.md`
 - Book knowledge workflow: `docs/book-knowledge/Book-Knowledge-Integration.md`
+- Demo script: `docs/submission/Demo-Script.md`
+- Final submission checklist: `docs/submission/Submission-Checklist.md`
 
 ## Containers
 
@@ -48,6 +50,12 @@ Run all containers:
 ```powershell
 copy .env.example .env
 docker compose up --build
+```
+
+For detached local demo startup:
+
+```powershell
+docker compose up -d --build
 ```
 
 Useful URLs:
@@ -86,6 +94,27 @@ Database initialization and demo data:
 - Diet Knowledge also loads approved local demo knowledge from `demo-approved-knowledge-seed.json` when `DIET_KNOWLEDGE_SEED_INCLUDE_DEMO_APPROVED_CONTENT=true`, which is the default for local teacher demos.
 - Admin PDF uploads are stored in the Docker volume `diet-knowledge-book-sources` at `/app/storage/book-sources`.
 - Full setup details and environment variables are documented in `docs/development/Database-Docker-Demo-Setup.md`.
+
+## Tests
+
+Automated core tests are in `tests/LongevityDiet.Core.Tests`.
+
+Run the full test suite:
+
+```powershell
+dotnet test LongevityDietPlatform.sln
+```
+
+The current suite covers:
+
+- Identity register/login behavior.
+- Diet Knowledge validation and search/filter/pagination behavior.
+- Admin book-source ingestion candidate generation and approval.
+- Meal Planning validation, reminder publishing, and recommendation request publishing.
+- Tracking progress summary calculation and notification trigger behavior.
+- Recommendation safety filtering and approved-knowledge context behavior.
+- Notification Worker Resend/log fallback behavior.
+- API authorization boundaries for public, authenticated, and Admin-only endpoints.
 
 Diet Knowledge endpoints:
 
@@ -175,8 +204,22 @@ Admin Book Sources:
 - If Gemini is disabled, safe placeholder candidates are created so the workflow can still be demonstrated.
 - Approving a candidate creates managed Diet Knowledge content; raw chunks are never user-facing content.
 
+## Demo Path
+
+Use the full step-by-step script in `docs/submission/Demo-Script.md`.
+
+Minimum browser demo:
+
+1. Start Docker Compose.
+2. Open `http://localhost:5000`.
+3. Login as Admin with `admin@longevity.local` / `Admin@123456`.
+4. Show Admin knowledge management and `Book Sources`.
+5. Logout or open another session and login as User with `user@longevity.local` / `User@123456`.
+6. Browse diet knowledge, create a meal plan, request a recommendation, accept it, mark tracking complete, and review progress.
+7. Show RabbitMQ Management at `http://localhost:15672` for queues/exchanges.
+8. Run `dotnet test LongevityDietPlatform.sln` to show automated coverage.
+
 ## Remaining TODO
 
-- Add tests around each implemented slice.
-- Add the final demo script/submission checklist.
-- Complete team source verification and approval for book-derived seed data.
+- Complete team source verification and approval for real book-derived seed/candidate data.
+- Run final QA before submission using `docs/submission/Submission-Checklist.md`.

@@ -51,3 +51,5 @@ flowchart LR
 ```
 
 Recommendation Service and Notification Service are stateless in the current scope and do not own databases. Diet Knowledge Service may call Gemini only for Admin book-source candidate extraction; public user and recommendation flows still rely on approved Diet Knowledge content.
+
+Local Docker demo ports use HTTP on localhost, but the intended external client-to-platform boundary remains HTTPS in the architecture.

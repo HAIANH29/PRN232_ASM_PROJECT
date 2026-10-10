@@ -4,10 +4,10 @@ This file is the shared progress tracker for the project. Every human or AI agen
 
 ## Current Status
 
-- Phase: Milestone 10 automated tests complete; manual real book source review/approval and final submission package remain.
+- Phase: Milestone 11 documentation and submission package complete; manual real book source review/approval and final QA remain.
 - Branch: `HA/phase-1-microservices-scaffold`.
 - Last pushed baseline before this update: Milestone 9 after commit `f0ec65a`.
-- Verification baseline: `dotnet restore LongevityDietPlatform.sln`, `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `dotnet test LongevityDietPlatform.sln --no-restore -m:1 --verbosity minimal`, `docker compose config --quiet`, `docker compose up -d --build`, Admin PDF ingestion API smoke, and 29 automated core tests passed on 2026-10-10.
+- Verification baseline: `dotnet restore LongevityDietPlatform.sln`, `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `dotnet test LongevityDietPlatform.sln --no-restore -m:1 --verbosity minimal`, `docker compose config --quiet`, `docker compose up -d --build`, Admin PDF ingestion API smoke, 29 automated core tests, and documentation validation passed on 2026-10-10.
 - Completion roadmap: `PROJECT_SCHEDULE.md`.
 
 ## Done
@@ -49,11 +49,12 @@ This file is the shared progress tracker for the project. Every human or AI agen
 - Added clean Docker/database setup documentation, Docker health checks, demo admin/user seed accounts, and approved local demo Diet Knowledge seed data for browser demos.
 - Added Admin-only book PDF ingestion in Diet Knowledge Service: upload, PDF text extraction, chunk storage, Gemini-assisted candidate generation with local fallback, candidate approve/reject, EF Core migration, and Web Admin Book Sources screens.
 - Added automated core test coverage for Identity, Diet Knowledge, Admin book ingestion, Meal Planning, Tracking progress, Recommendation safety/context, Notification Worker email delivery, and API authorization boundaries.
+- Added Milestone 11 submission documentation: updated README, C4 notes, ERD, physical database docs, demo setup docs, book workflow docs, demo script, and final submission checklist.
 
 ## Incomplete / Remaining Work
 
 - Verify each real book-derived seed/candidate item against a legally obtained source copy and approve only reviewed items.
-- Add final demo script/submission checklist and any final documentation polish required by the teacher.
+- Run final QA before submission.
 
 ## Update Rules
 
@@ -70,6 +71,16 @@ Each update should include:
 Do not mark a feature as complete if it only has placeholders or configuration. Call it a scaffold until the real behavior exists and has been verified.
 
 ## Change Log
+
+### 2026-10-10 — Complete Milestone 11 Documentation And Submission Package
+
+- Updated README with current project status, test instructions, demo links, and a minimum browser demo path.
+- Updated C0/C1 notes, conceptual ERD, physical database docs, database/demo setup docs, and book-knowledge workflow docs to match the implemented architecture through Admin PDF ingestion and automated tests.
+- Added `docs/submission/Demo-Script.md` with exact presentation steps for architecture, Admin flow, User flow, Recommendation flow, Tracking/Notification flow, RabbitMQ evidence, and tests.
+- Added `docs/submission/Submission-Checklist.md` with final verification, functional demo, architecture, documentation, book/AI safety, and git checks.
+- Updated `PROJECT_SCHEDULE.md` to mark Milestone 11 complete.
+- Verification: documentation review, `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `dotnet test LongevityDietPlatform.sln --no-restore -m:1 --verbosity minimal`, `docker compose config --quiet`, and `git diff --check` passed.
+- Remaining TODO: manually verify/approve real book-derived knowledge from a legally obtained copy and run final QA before submission.
 
 ### 2026-10-10 — Complete Milestone 10 Automated Tests
 

@@ -59,3 +59,4 @@ Admin PDF extraction may use Gemini to summarize chunks, but Recommendation Serv
 - Fill `SourceChapter`, `SourcePage` or `SourceReference`, and `ReviewedBy` for each seed item.
 - Change verified items to `Approved`.
 - Keep summaries concise and in the team's own words.
+- During the teacher demo, explain or demonstrate PDF ingestion only with a legally obtained sample source. Do not distribute the source PDF.
