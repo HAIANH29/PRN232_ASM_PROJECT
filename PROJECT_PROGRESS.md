@@ -69,6 +69,12 @@ Do not mark a feature as complete if it only has placeholders or configuration. 
 
 ## Change Log
 
+### 2026-10-10 — Fix Web Footer Layout
+
+- Removed the MVC template footer absolute positioning that caused the footer to float over page content on longer Web screens.
+- Changed the Web shell to a flex column layout so the footer sits at the bottom of short pages and after the content on long pages.
+- Verification: `dotnet build src/Web/LongevityDiet.Web/LongevityDiet.Web.csproj --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `docker compose up -d --build web`, Web home returned `200`, served `LongevityDiet.Web.styles.css` no longer contains `position: absolute` for footer and includes `flex-shrink: 0`, and `git diff --check` passed.
+
 ### 2026-10-10 — Complete Milestone 8 Web Application
 
 - Added MVC Web Application infrastructure for calling the API Gateway with `ApiGatewayClient`, storing the JWT in an HttpOnly cookie, and rendering signed-in/admin navigation from `UserSession`.
