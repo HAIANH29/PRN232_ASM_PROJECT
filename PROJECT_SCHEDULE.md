@@ -8,9 +8,9 @@ Read together with:
 
 ## Current Snapshot
 
-Current phase: Milestone 9.5 Admin book PDF ingestion and AI chunking is complete; manual source review and approval remain a team responsibility.
+Current phase: Milestone 10 automated tests is complete; manual source review/approval and the final submission package remain.
 
-Estimated product completion: about 95-96%.
+Estimated product completion: about 97-98%.
 
 What is already in code:
 - .NET solution and project structure exist.
@@ -45,7 +45,7 @@ What is not yet product-ready:
 - Search/filter/sort/pagination are implemented for Diet Knowledge and Meal Planning; Tracking supports date-filtered paged history.
 - RabbitMQ publish/consume behavior exists for Meal Planning reminders/recommendations, Recommendation Service processing/results, Notification Service notifications, and Notification Worker delivery.
 - Gemini integration has a configurable HTTP client abstraction with safe disabled-mode fallback; real Gemini and Resend delivery need configured API keys for production/demo external calls.
-- Automated tests and the final submission/demo package are not complete.
+- Automated core tests are now present; the final submission/demo package is not complete.
 
 ## Definition Of 100% Complete
 
@@ -395,17 +395,19 @@ Done when:
 
 Target: T+15 to T+16.5 days.
 
+Status: Completed on 2026-10-10.
+
 Code/work to do:
-- Add unit tests for application services.
-- Add repository/integration tests where practical.
-- Add API tests for important endpoints.
-- Add tests for authorization boundaries.
-- Add tests for search/filter/pagination behavior.
-- Add tests for progress summary calculation.
-- Add tests or smoke checks for messaging publishers.
+- [x] Add unit tests for application services.
+- [x] Add repository/integration tests where practical.
+- [x] Add API tests for important endpoints.
+- [x] Add tests for authorization boundaries.
+- [x] Add tests for search/filter/pagination behavior.
+- [x] Add tests for progress summary calculation.
+- [x] Add tests or smoke checks for messaging publishers.
 
 Verification:
-- `dotnet test` passes.
+- [x] `dotnet test` passes.
 
 Done when:
 - Core behaviors have enough coverage to defend the implementation.
@@ -487,7 +489,7 @@ This minimum path is enough to demonstrate the required PRN232 architecture and 
 | Web Application | Main User/Admin browser flows implemented through the API Gateway | Add final demo script and automated UI/API smoke tests if time allows |
 | External providers | Resend sender abstraction with log fallback exists; Gemini client abstraction with disabled-mode fallback exists | Configure real Resend/Gemini keys only for demo/production if needed |
 | Admin PDF ingestion | Implemented and smoke-tested in Diet Knowledge/Web as an Admin-only flow | Team must verify real book candidates before approval; add final demo script |
-| Tests | Not present | Add unit/integration/API tests |
+| Tests | Core automated tests added for Identity, Diet Knowledge, book ingestion, Meal Planning, Tracking, Recommendation, Notification Worker, and API authorization boundaries | Keep extending coverage if new behavior is added |
 
 ## Per-Service Checklist
 
@@ -501,7 +503,7 @@ This minimum path is enough to demonstrate the required PRN232 architecture and 
 - [x] Role seed.
 - [x] Admin/User authorization policy.
 - [x] Migration and admin/user seed data.
-- [ ] Tests.
+- [x] Tests.
 
 ### Diet Knowledge Service
 
@@ -519,7 +521,7 @@ This minimum path is enough to demonstrate the required PRN232 architecture and 
 - [x] Admin PDF upload/chunk/candidate extraction workflow.
 - [x] Candidate approval into managed guideline/food knowledge.
 - [ ] Team source verification and approval of seed content.
-- [ ] Tests.
+- [x] Tests.
 
 ### Meal Planning Service
 
@@ -533,7 +535,7 @@ This minimum path is enough to demonstrate the required PRN232 architecture and 
 - [x] Recommendation result consume.
 - [x] Accept/edit recommendation.
 - [x] Migration.
-- [ ] Tests.
+- [x] Tests.
 
 Note: schedule support is represented on `MealPlanItem` rather than a separate table.
 
@@ -545,7 +547,7 @@ Note: schedule support is represented on `MealPlanItem` rather than a separate t
 - [x] Ownership checks.
 - [x] gRPC call to Notification Service.
 - [x] Migration.
-- [ ] Tests.
+- [x] Tests.
 
 ### Recommendation Service
 
@@ -563,7 +565,7 @@ Note: schedule support is represented on `MealPlanItem` rather than a separate t
 - [x] Notification message preparation.
 - [x] RabbitMQ publisher.
 - [ ] Error handling/logging.
-- [ ] Tests or smoke checks.
+- [x] Tests or smoke checks.
 
 ### Notification Worker
 
@@ -574,7 +576,7 @@ Note: schedule support is represented on `MealPlanItem` rather than a separate t
 - [x] Retry/error handling.
 - [x] Dead-letter queues.
 - [x] Docker smoke checks.
-- [ ] Automated tests.
+- [x] Automated tests.
 
 ### API Gateway
 

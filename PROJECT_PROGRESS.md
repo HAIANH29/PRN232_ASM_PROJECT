@@ -4,10 +4,10 @@ This file is the shared progress tracker for the project. Every human or AI agen
 
 ## Current Status
 
-- Phase: Milestone 9.5 Admin book PDF ingestion and AI chunking complete; manual real book source review/approval remains.
+- Phase: Milestone 10 automated tests complete; manual real book source review/approval and final submission package remain.
 - Branch: `HA/phase-1-microservices-scaffold`.
 - Last pushed baseline before this update: Milestone 9 after commit `f0ec65a`.
-- Verification baseline: `dotnet restore LongevityDietPlatform.sln`, `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `dotnet test LongevityDietPlatform.sln --no-restore -m:1 --verbosity minimal`, `docker compose config --quiet`, `docker compose up -d --build`, and Admin PDF ingestion API smoke passed on 2026-10-10.
+- Verification baseline: `dotnet restore LongevityDietPlatform.sln`, `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `dotnet test LongevityDietPlatform.sln --no-restore -m:1 --verbosity minimal`, `docker compose config --quiet`, `docker compose up -d --build`, Admin PDF ingestion API smoke, and 29 automated core tests passed on 2026-10-10.
 - Completion roadmap: `PROJECT_SCHEDULE.md`.
 
 ## Done
@@ -48,11 +48,11 @@ This file is the shared progress tracker for the project. Every human or AI agen
 - Fixed Meal Planning item insertion for existing meal plans so Web meal-plan item creation stores a new `MealPlanItem` instead of attempting to update a missing row.
 - Added clean Docker/database setup documentation, Docker health checks, demo admin/user seed accounts, and approved local demo Diet Knowledge seed data for browser demos.
 - Added Admin-only book PDF ingestion in Diet Knowledge Service: upload, PDF text extraction, chunk storage, Gemini-assisted candidate generation with local fallback, candidate approve/reject, EF Core migration, and Web Admin Book Sources screens.
+- Added automated core test coverage for Identity, Diet Knowledge, Admin book ingestion, Meal Planning, Tracking progress, Recommendation safety/context, Notification Worker email delivery, and API authorization boundaries.
 
 ## Incomplete / Remaining Work
 
 - Verify each real book-derived seed/candidate item against a legally obtained source copy and approve only reviewed items.
-- Add automated tests for implemented slices.
 - Add final demo script/submission checklist and any final documentation polish required by the teacher.
 
 ## Update Rules
@@ -70,6 +70,16 @@ Each update should include:
 Do not mark a feature as complete if it only has placeholders or configuration. Call it a scaffold until the real behavior exists and has been verified.
 
 ## Change Log
+
+### 2026-10-10 — Complete Milestone 10 Automated Tests
+
+- Added `tests/LongevityDiet.Core.Tests` to the solution.
+- Added centralized test package versions for xUnit, the .NET test SDK, and EF Core InMemory.
+- Added unit tests for Identity registration/login behavior, Diet Knowledge validation, Admin book PDF ingestion candidate generation/approval, Meal Planning validation/reminder/recommendation publishing, Tracking progress summary notification behavior, Recommendation safety/context behavior, and Notification Worker Resend/log-fallback behavior.
+- Added lightweight repository/integration tests for Diet Knowledge search/filter/pagination and Tracking progress calculation using EF Core InMemory.
+- Added API authorization boundary tests for Admin-only Diet Knowledge endpoints, authenticated Meal Planning/Tracking endpoints, anonymous public browse endpoints, and Identity profile/admin-check endpoints.
+- Verification: `dotnet restore LongevityDietPlatform.sln`, `dotnet test tests\LongevityDiet.Core.Tests\LongevityDiet.Core.Tests.csproj --no-restore -m:1 --verbosity minimal`, and `dotnet test LongevityDietPlatform.sln --no-restore -m:1 --verbosity minimal` passed with 29 tests.
+- Remaining TODO: manually verify/approve real book-derived knowledge from a legally obtained copy, add final demo script/submission checklist, and run final QA before submission.
 
 ### 2026-10-10 — Complete Milestone 9.5 Admin Book PDF Ingestion And AI Chunking
 
