@@ -1,0 +1,95 @@
+@model KnowledgeIndexViewModel
+@{
+    ViewData["Title"] = "Knowledge";
+}
+
+<section class="page-head">
+    <div>
+        <p class="eyebrow">Approved content</p>
+        <h1>Diet knowledge</h1>
+        <p class="text-muted mb-0">Search book-derived guidelines, foods, and recipes used by planning and recommendation flows.</p>
+    </div>
+</section>
+
+<form method="get" class="filter-bar">
+    <div>
+        <label asp-for="Search" class="form-label">Search</label>
+        <input asp-for="Search" class="form-control" placeholder="guideline, food, recipe" />
+    </div>
+    <div>
+        <label asp-for="Category" class="form-label">Food category</label>
+        <input asp-for="Category" class="form-control" placeholder="legume, grain, vegetable" />
+    </div>
+    <div class="filter-actions">
+        <button class="btn btn-dark" type="submit">Apply</button>
+        <a class="btn btn-outline-secondary" asp-action="Index">Reset</a>
+    </div>
+</form>
+
+<section class="content-grid three-columns">
+    <div class="section-card">
+        <div class="card-heading">
+            <h2>Guidelines</h2>
+            <span class="count-pill">@Model.Guidelines.TotalCount</span>
+        </div>
+        <div class="item-stack">
+            @foreach (var guideline in Model.Guidelines.Items)
+            {
+                <article class="content-item">
+                    <div class="item-title">@guideline.Title</div>
+                    <p>@guideline.Summary</p>
+                    <small>@guideline.SourceChapter @guideline.SourcePage</small>
+                </article>
+            }
+            @if (!Model.Guidelines.Items.Any())
+            {
+                <p class="empty-state">No guidelines found.</p>
+            }
+        </div>
+    </div>
+
+    <div class="section-card">
+        <div class="card-heading">
+            <h2>Foods</h2>
+            <span class="count-pill">@Model.Foods.TotalCount</span>
+        </div>
+        <div class="item-stack">
+            @foreach (var food in Model.Foods.Items)
+            {
+                <article class="content-item">
+                    <div class="item-title">@food.Name</div>
+                    <span class="badge text-bg-light border">@food.Category</span>
+                    <p>@food.CompatibilityNotes</p>
+                </article>
+            }
+            @if (!Model.Foods.Items.Any())
+            {
+                <p class="empty-state">No foods found.</p>
+            }
+        </div>
+    </div>
+
+    <div class="section-card">
+        <div class="card-heading">
+            <h2>Recipes</h2>
+            <span class="count-pill">@Model.Recipes.TotalCount</span>
+        </div>
+        <div class="item-stack">
+            @foreach (var recipe in Model.Recipes.Items)
+            {
+                <article class="content-item">
+                    <div class="item-title">@recipe.Name</div>
+                    <p>@recipe.Description</p>
+                    @if (recipe.Ingredients.Any())
+                    {
+                        <small>@string.Join(", ", recipe.Ingredients.Select(i => $"{i.QuantityText} {i.FoodName}"))</small>
+                    }
+                </article>
+            }
+            @if (!Model.Recipes.Items.Any())
+            {
+                <p class="empty-state">No recipes found.</p>
+            }
+        </div>
+    </div>
+</section>

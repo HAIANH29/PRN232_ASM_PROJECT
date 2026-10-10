@@ -58,6 +58,13 @@ public sealed class MealPlanRepository(MealPlanningDbContext dbContext) : IMealP
         await dbContext.MealPlans.AddAsync(mealPlan, cancellationToken);
     }
 
+    public async Task AddMealPlanItemAsync(
+        MealPlanItem mealPlanItem,
+        CancellationToken cancellationToken = default)
+    {
+        await dbContext.MealPlanItems.AddAsync(mealPlanItem, cancellationToken);
+    }
+
     public void RemoveMealPlan(MealPlan mealPlan)
     {
         dbContext.MealPlans.Remove(mealPlan);

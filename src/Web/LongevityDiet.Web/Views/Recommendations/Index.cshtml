@@ -1,0 +1,62 @@
+@model RecommendationsIndexViewModel
+@{
+    ViewData["Title"] = "Recommendations";
+}
+
+<section class="page-head">
+    <div>
+        <p class="eyebrow">AI-assisted flow</p>
+        <h1>Recommendations</h1>
+        <p class="text-muted mb-0">Request a safe suggestion based on approved knowledge and your preferences, then review before accepting.</p>
+    </div>
+</section>
+
+<section class="two-pane">
+    <form asp-action="Create" method="post" class="section-card form-stack">
+        <div class="card-heading">
+            <h2>New request</h2>
+        </div>
+        <div asp-validation-summary="All" class="text-danger small"></div>
+        <div>
+            <label asp-for="Form.Days" class="form-label"></label>
+            <input asp-for="Form.Days" type="number" min="1" max="14" class="form-control" />
+            <span asp-validation-for="Form.Days" class="text-danger small"></span>
+        </div>
+        <div>
+            <label asp-for="Form.PreferenceTagsText" class="form-label"></label>
+            <input asp-for="Form.PreferenceTagsText" class="form-control" placeholder="plant focused, simple, breakfast" />
+            <span asp-validation-for="Form.PreferenceTagsText" class="text-danger small"></span>
+        </div>
+        <button class="btn btn-dark" type="submit">Request recommendation</button>
+    </form>
+
+    <div class="section-card">
+        <div class="card-heading">
+            <h2>Request history</h2>
+            <span class="count-pill">@Model.Requests.TotalCount</span>
+        </div>
+        <div class="item-stack">
+            @foreach (var request in Model.Requests.Items)
+            {
+                <article class="plan-row">
+                    <div>
+                        <div class="item-title">@request.Days day(s) · @string.Join(", ", request.PreferenceTags)</div>
+                        <small>@request.RequestedAtUtc.LocalDateTime.ToString("yyyy-MM-dd HH:mm")</small>
+                    </div>
+                    <div class="row-actions">
+                        <span class="badge text-bg-light border">@request.Status</span>
+                        <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@request.Id">Review</a>
+                    </div>
+                </article>
+            }
+            @if (!Model.Requests.Items.Any())
+            {
+                <p class="empty-state">No recommendation requests yet.</p>
+            }
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

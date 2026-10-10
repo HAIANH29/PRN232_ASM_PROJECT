@@ -17,6 +17,8 @@ public interface IMealPlanRepository
 
     Task AddMealPlanAsync(MealPlan mealPlan, CancellationToken cancellationToken = default);
 
+    Task AddMealPlanItemAsync(MealPlanItem mealPlanItem, CancellationToken cancellationToken = default);
+
     void RemoveMealPlan(MealPlan mealPlan);
 
     void RemoveMealPlanItem(MealPlanItem mealPlanItem);

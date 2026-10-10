@@ -1,0 +1,141 @@
+@model MealPlanDetailsViewModel
+@{
+    ViewData["Title"] = "Meal Plan";
+    var foodsById = Model.Foods.ToDictionary(food => food.Id);
+    var recipesById = Model.Recipes.ToDictionary(recipe => recipe.Id);
+}
+
+<section class="page-head">
+    <div>
+        <p class="eyebrow">Planning</p>
+        <h1>@Model.MealPlan.Name</h1>
+        <p class="text-muted mb-0">@Model.MealPlan.StartDate.ToString("yyyy-MM-dd") to @Model.MealPlan.EndDate.ToString("yyyy-MM-dd")</p>
+    </div>
+    <a class="btn btn-outline-secondary" asp-action="Index">Back to plans</a>
+</section>
+
+<section class="two-pane">
+    <form asp-action="Update" asp-route-id="@Model.MealPlan.Id" method="post" class="section-card form-stack">
+        <div class="card-heading">
+            <h2>Edit plan</h2>
+        </div>
+        <div asp-validation-summary="All" class="text-danger small"></div>
+        <div>
+            <label asp-for="EditForm.Name" class="form-label"></label>
+            <input asp-for="EditForm.Name" class="form-control" />
+            <span asp-validation-for="EditForm.Name" class="text-danger small"></span>
+        </div>
+        <div>
+            <label asp-for="EditForm.StartDate" class="form-label"></label>
+            <input asp-for="EditForm.StartDate" type="date" class="form-control" />
+        </div>
+        <div>
+            <label asp-for="EditForm.EndDate" class="form-label"></label>
+            <input asp-for="EditForm.EndDate" type="date" class="form-control" />
+        </div>
+        <button class="btn btn-dark" type="submit">Save plan</button>
+    </form>
+
+    <form asp-action="AddItem" asp-route-id="@Model.MealPlan.Id" method="post" class="section-card form-stack">
+        <div class="card-heading">
+            <h2>Add item</h2>
+        </div>
+        <div asp-validation-summary="All" class="text-danger small"></div>
+        <div class="form-row">
+            <div>
+                <label asp-for="ItemForm.PlannedDate" class="form-label"></label>
+                <input asp-for="ItemForm.PlannedDate" type="date" class="form-control" />
+            </div>
+            <div>
+                <label asp-for="ItemForm.MealSlot" class="form-label"></label>
+                <select asp-for="ItemForm.MealSlot" class="form-select">
+                    <option>Breakfast</option>
+                    <option>Lunch</option>
+                    <option>Dinner</option>
+                    <option>Snack</option>
+                </select>
+            </div>
+        </div>
+        <div>
+            <label asp-for="ItemForm.FoodId" class="form-label">Food</label>
+            <select asp-for="ItemForm.FoodId" class="form-select">
+                <option value="">No food selected</option>
+                @foreach (var food in Model.Foods)
+                {
+                    <option value="@food.Id">@food.Name (@food.Category)</option>
+                }
+            </select>
+        </div>
+        <div>
+            <label asp-for="ItemForm.RecipeId" class="form-label">Recipe</label>
+            <select asp-for="ItemForm.RecipeId" class="form-select">
+                <option value="">No recipe selected</option>
+                @foreach (var recipe in Model.Recipes)
+                {
+                    <option value="@recipe.Id">@recipe.Name</option>
+                }
+            </select>
+            <span asp-validation-for="ItemForm.FoodId" class="text-danger small"></span>
+        </div>
+        <div>
+            <label asp-for="ItemForm.ReminderAtUtc" class="form-label">Reminder time</label>
+            <input asp-for="ItemForm.ReminderAtUtc" type="datetime-local" class="form-control" />
+        </div>
+        <div>
+            <label asp-for="ItemForm.Notes" class="form-label"></label>
+            <textarea asp-for="ItemForm.Notes" class="form-control" rows="3"></textarea>
+        </div>
+        <button class="btn btn-dark" type="submit">Add item</button>
+    </form>
+</section>
+
+<section class="section-card">
+    <div class="card-heading">
+        <h2>Scheduled items</h2>
+        <span class="count-pill">@Model.MealPlan.Items.Count</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Slot</th>
+                    <th>Food or recipe</th>
+                    <th>Reminder</th>
+                    <th>Notes</th>
+                    <th class="table-actions">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.MealPlan.Items.OrderBy(item => item.PlannedDate).ThenBy(item => item.MealSlot))
+                {
+                    var catalogName = item.FoodId.HasValue && foodsById.TryGetValue(item.FoodId.Value, out var food)
+                        ? food.Name
+                        : item.RecipeId.HasValue && recipesById.TryGetValue(item.RecipeId.Value, out var recipe)
+                            ? recipe.Name
+                            : "Catalog item";
+                    <tr>
+                        <td>@item.PlannedDate.ToString("yyyy-MM-dd")</td>
+                        <td>@item.MealSlot</td>
+                        <td>@catalogName</td>
+                        <td>@item.ReminderAtUtc.LocalDateTime.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>@item.Notes</td>
+                        <td class="table-actions">
+                            <form asp-action="DeleteItem" asp-route-id="@Model.MealPlan.Id" asp-route-itemId="@item.Id" method="post">
+                                <button class="btn btn-sm btn-outline-danger" type="submit">Remove</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (!Model.MealPlan.Items.Any())
+    {
+        <p class="empty-state">Add the first approved food or recipe to this plan.</p>
+    }
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

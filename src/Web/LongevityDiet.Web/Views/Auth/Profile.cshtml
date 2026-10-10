@@ -1,0 +1,32 @@
+@model UserProfileResponse
+@{
+    ViewData["Title"] = "Profile";
+}
+
+<section class="page-head">
+    <div>
+        <p class="eyebrow">Signed-in user</p>
+        <h1>Profile</h1>
+        <p class="text-muted mb-0">Identity data comes from the Identity Service through the API Gateway.</p>
+    </div>
+    <a class="btn btn-outline-secondary" asp-controller="Home" asp-action="Index">Back to dashboard</a>
+</section>
+
+<section class="section-card narrow-card">
+    <dl class="detail-list">
+        <dt>Name</dt>
+        <dd>@Model.DisplayName</dd>
+        <dt>Email</dt>
+        <dd>@Model.Email</dd>
+        <dt>Status</dt>
+        <dd>
+            <span class="badge @(Model.IsActive ? "text-bg-success" : "text-bg-secondary")">
+                @(Model.IsActive ? "Active" : "Inactive")
+            </span>
+        </dd>
+        <dt>Roles</dt>
+        <dd>@string.Join(", ", Model.Roles)</dd>
+        <dt>Created</dt>
+        <dd>@Model.CreatedAtUtc.LocalDateTime.ToString("yyyy-MM-dd HH:mm")</dd>
+    </dl>
+</section>

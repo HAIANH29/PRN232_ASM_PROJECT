@@ -145,7 +145,8 @@ public sealed class MealPlanningService(
             mealPlan.EndDate,
             cancellationToken);
 
-        mealPlan.Items.Add(item);
+        item.MealPlanId = mealPlan.Id;
+        await repository.AddMealPlanItemAsync(item, cancellationToken);
         mealPlan.UpdatedAtUtc = DateTimeOffset.UtcNow;
 
         await repository.SaveChangesAsync(cancellationToken);

@@ -1,0 +1,274 @@
+@model AdminKnowledgeViewModel
+@{
+    ViewData["Title"] = "Admin Knowledge";
+}
+
+<section class="page-head">
+    <div>
+        <p class="eyebrow">Admin workspace</p>
+        <h1>Manage knowledge content</h1>
+        <p class="text-muted mb-0">Create, review, activate, and deactivate the approved data used by user-facing services.</p>
+    </div>
+</section>
+
+<section class="content-grid three-columns">
+    <form asp-action="CreateGuideline" method="post" class="section-card form-stack">
+        <div class="card-heading">
+            <h2>New guideline</h2>
+        </div>
+        <div asp-validation-summary="ModelOnly" class="text-danger small"></div>
+        <div>
+            <label asp-for="Guideline.Title" class="form-label"></label>
+            <input asp-for="Guideline.Title" class="form-control" />
+            <span asp-validation-for="Guideline.Title" class="text-danger small"></span>
+        </div>
+        <div>
+            <label asp-for="Guideline.Summary" class="form-label"></label>
+            <textarea asp-for="Guideline.Summary" class="form-control" rows="4"></textarea>
+            <span asp-validation-for="Guideline.Summary" class="text-danger small"></span>
+        </div>
+        <div>
+            <label asp-for="Guideline.SourceChapter" class="form-label"></label>
+            <input asp-for="Guideline.SourceChapter" class="form-control" />
+        </div>
+        <div>
+            <label asp-for="Guideline.SourcePage" class="form-label"></label>
+            <input asp-for="Guideline.SourcePage" class="form-control" />
+        </div>
+        <div>
+            <label asp-for="Guideline.SourceReference" class="form-label"></label>
+            <input asp-for="Guideline.SourceReference" class="form-control" />
+        </div>
+        <div>
+            <label asp-for="Guideline.ReviewStatus" class="form-label"></label>
+            <select asp-for="Guideline.ReviewStatus" class="form-select">
+                <option>NeedsReview</option>
+                <option>Approved</option>
+            </select>
+        </div>
+        <div>
+            <label asp-for="Guideline.ReviewedBy" class="form-label"></label>
+            <input asp-for="Guideline.ReviewedBy" class="form-control" />
+        </div>
+        <button class="btn btn-dark" type="submit">Save guideline</button>
+    </form>
+
+    <form asp-action="CreateFood" method="post" class="section-card form-stack">
+        <div class="card-heading">
+            <h2>New food</h2>
+        </div>
+        <div asp-validation-summary="ModelOnly" class="text-danger small"></div>
+        <div>
+            <label asp-for="Food.Name" class="form-label"></label>
+            <input asp-for="Food.Name" class="form-control" />
+            <span asp-validation-for="Food.Name" class="text-danger small"></span>
+        </div>
+        <div>
+            <label asp-for="Food.Category" class="form-label"></label>
+            <input asp-for="Food.Category" class="form-control" />
+            <span asp-validation-for="Food.Category" class="text-danger small"></span>
+        </div>
+        <div>
+            <label asp-for="Food.CompatibilityNotes" class="form-label"></label>
+            <textarea asp-for="Food.CompatibilityNotes" class="form-control" rows="4"></textarea>
+        </div>
+        <div>
+            <label asp-for="Food.SourceChapter" class="form-label"></label>
+            <input asp-for="Food.SourceChapter" class="form-control" />
+        </div>
+        <div>
+            <label asp-for="Food.SourcePage" class="form-label"></label>
+            <input asp-for="Food.SourcePage" class="form-control" />
+        </div>
+        <div>
+            <label asp-for="Food.ReviewStatus" class="form-label"></label>
+            <select asp-for="Food.ReviewStatus" class="form-select">
+                <option>NeedsReview</option>
+                <option>Approved</option>
+            </select>
+        </div>
+        <div>
+            <label asp-for="Food.ReviewedBy" class="form-label"></label>
+            <input asp-for="Food.ReviewedBy" class="form-control" />
+        </div>
+        <button class="btn btn-dark" type="submit">Save food</button>
+    </form>
+
+    <form asp-action="CreateRecipe" method="post" class="section-card form-stack">
+        <div class="card-heading">
+            <h2>New recipe</h2>
+        </div>
+        <div asp-validation-summary="ModelOnly" class="text-danger small"></div>
+        <div>
+            <label asp-for="Recipe.Name" class="form-label"></label>
+            <input asp-for="Recipe.Name" class="form-control" />
+            <span asp-validation-for="Recipe.Name" class="text-danger small"></span>
+        </div>
+        <div>
+            <label asp-for="Recipe.Description" class="form-label"></label>
+            <textarea asp-for="Recipe.Description" class="form-control" rows="4"></textarea>
+            <span asp-validation-for="Recipe.Description" class="text-danger small"></span>
+        </div>
+        <div>
+            <label asp-for="Recipe.IngredientFoodId" class="form-label">Ingredient</label>
+            <select asp-for="Recipe.IngredientFoodId" class="form-select">
+                <option value="@Guid.Empty">Choose approved food</option>
+                @foreach (var food in Model.Foods.Items)
+                {
+                    <option value="@food.Id">@food.Name (@food.Category)</option>
+                }
+            </select>
+            <span asp-validation-for="Recipe.IngredientFoodId" class="text-danger small"></span>
+        </div>
+        <div>
+            <label asp-for="Recipe.IngredientQuantityText" class="form-label">Quantity</label>
+            <input asp-for="Recipe.IngredientQuantityText" class="form-control" />
+        </div>
+        <div>
+            <label asp-for="Recipe.SourceChapter" class="form-label"></label>
+            <input asp-for="Recipe.SourceChapter" class="form-control" />
+        </div>
+        <div>
+            <label asp-for="Recipe.SourcePage" class="form-label"></label>
+            <input asp-for="Recipe.SourcePage" class="form-control" />
+        </div>
+        <div>
+            <label asp-for="Recipe.SourceReference" class="form-label"></label>
+            <input asp-for="Recipe.SourceReference" class="form-control" />
+        </div>
+        <div>
+            <label asp-for="Recipe.ReviewStatus" class="form-label"></label>
+            <select asp-for="Recipe.ReviewStatus" class="form-select">
+                <option>NeedsReview</option>
+                <option>Approved</option>
+            </select>
+        </div>
+        <div>
+            <label asp-for="Recipe.ReviewedBy" class="form-label"></label>
+            <input asp-for="Recipe.ReviewedBy" class="form-control" />
+        </div>
+        <button class="btn btn-dark" type="submit">Save recipe</button>
+    </form>
+</section>
+
+<section class="section-card">
+    <div class="card-heading">
+        <h2>Guidelines</h2>
+        <span class="count-pill">@Model.Guidelines.TotalCount</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Review</th>
+                    <th>Status</th>
+                    <th class="table-actions">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Guidelines.Items)
+                {
+                    <tr>
+                        <td>@item.Title</td>
+                        <td>@item.ReviewStatus</td>
+                        <td><span class="badge @(item.IsActive ? "text-bg-success" : "text-bg-secondary")">@(item.IsActive ? "Active" : "Inactive")</span></td>
+                        <td class="table-actions">
+                            <a class="btn btn-sm btn-outline-secondary" asp-action="EditGuideline" asp-route-id="@item.Id">Edit</a>
+                            <form asp-action="SetActivation" method="post" class="inline-form">
+                                <input type="hidden" name="type" value="guideline" />
+                                <input type="hidden" name="id" value="@item.Id" />
+                                <input type="hidden" name="isActive" value="@(!item.IsActive)" />
+                                <button class="btn btn-sm btn-outline-secondary" type="submit">@(item.IsActive ? "Deactivate" : "Activate")</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="section-card">
+    <div class="card-heading">
+        <h2>Foods</h2>
+        <span class="count-pill">@Model.Foods.TotalCount</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Review</th>
+                    <th>Status</th>
+                    <th class="table-actions">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Foods.Items)
+                {
+                    <tr>
+                        <td>@item.Name</td>
+                        <td>@item.Category</td>
+                        <td>@item.ReviewStatus</td>
+                        <td><span class="badge @(item.IsActive ? "text-bg-success" : "text-bg-secondary")">@(item.IsActive ? "Active" : "Inactive")</span></td>
+                        <td class="table-actions">
+                            <a class="btn btn-sm btn-outline-secondary" asp-action="EditFood" asp-route-id="@item.Id">Edit</a>
+                            <form asp-action="SetActivation" method="post" class="inline-form">
+                                <input type="hidden" name="type" value="food" />
+                                <input type="hidden" name="id" value="@item.Id" />
+                                <input type="hidden" name="isActive" value="@(!item.IsActive)" />
+                                <button class="btn btn-sm btn-outline-secondary" type="submit">@(item.IsActive ? "Deactivate" : "Activate")</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="section-card">
+    <div class="card-heading">
+        <h2>Recipes</h2>
+        <span class="count-pill">@Model.Recipes.TotalCount</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Ingredients</th>
+                    <th>Review</th>
+                    <th>Status</th>
+                    <th class="table-actions">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Recipes.Items)
+                {
+                    <tr>
+                        <td>@item.Name</td>
+                        <td>@string.Join(", ", item.Ingredients.Select(i => i.FoodName ?? i.FoodId.ToString()))</td>
+                        <td>@item.ReviewStatus</td>
+                        <td><span class="badge @(item.IsActive ? "text-bg-success" : "text-bg-secondary")">@(item.IsActive ? "Active" : "Inactive")</span></td>
+                        <td class="table-actions">
+                            <a class="btn btn-sm btn-outline-secondary" asp-action="EditRecipe" asp-route-id="@item.Id">Edit</a>
+                            <form asp-action="SetActivation" method="post" class="inline-form">
+                                <input type="hidden" name="type" value="recipe" />
+                                <input type="hidden" name="id" value="@item.Id" />
+                                <input type="hidden" name="isActive" value="@(!item.IsActive)" />
+                                <button class="btn btn-sm btn-outline-secondary" type="submit">@(item.IsActive ? "Deactivate" : "Activate")</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

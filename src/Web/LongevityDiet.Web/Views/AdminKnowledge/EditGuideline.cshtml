@@ -1,0 +1,56 @@
+@model GuidelineForm
+@{
+    ViewData["Title"] = "Edit guideline";
+}
+
+<section class="page-head">
+    <div>
+        <p class="eyebrow">Admin edit</p>
+        <h1>Edit guideline</h1>
+    </div>
+    <a class="btn btn-outline-secondary" asp-action="Index">Back to admin</a>
+</section>
+
+<form asp-action="EditGuideline" asp-route-id="@Model.Id" method="post" class="section-card form-grid">
+    <div asp-validation-summary="All" class="text-danger small grid-full"></div>
+    <div>
+        <label asp-for="Title" class="form-label"></label>
+        <input asp-for="Title" class="form-control" />
+        <span asp-validation-for="Title" class="text-danger small"></span>
+    </div>
+    <div>
+        <label asp-for="ReviewStatus" class="form-label"></label>
+        <select asp-for="ReviewStatus" class="form-select">
+            <option>NeedsReview</option>
+            <option>Approved</option>
+        </select>
+    </div>
+    <div class="grid-full">
+        <label asp-for="Summary" class="form-label"></label>
+        <textarea asp-for="Summary" class="form-control" rows="5"></textarea>
+        <span asp-validation-for="Summary" class="text-danger small"></span>
+    </div>
+    <div>
+        <label asp-for="SourceChapter" class="form-label"></label>
+        <input asp-for="SourceChapter" class="form-control" />
+    </div>
+    <div>
+        <label asp-for="SourcePage" class="form-label"></label>
+        <input asp-for="SourcePage" class="form-control" />
+    </div>
+    <div class="grid-full">
+        <label asp-for="SourceReference" class="form-label"></label>
+        <input asp-for="SourceReference" class="form-control" />
+    </div>
+    <div>
+        <label asp-for="ReviewedBy" class="form-label"></label>
+        <input asp-for="ReviewedBy" class="form-control" />
+    </div>
+    <div class="grid-full form-actions">
+        <button class="btn btn-dark" type="submit">Save changes</button>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

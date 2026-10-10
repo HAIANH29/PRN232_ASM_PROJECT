@@ -1,0 +1,69 @@
+@model MealPlansIndexViewModel
+@{
+    ViewData["Title"] = "Meal Plans";
+}
+
+<section class="page-head">
+    <div>
+        <p class="eyebrow">Planning</p>
+        <h1>Meal plans</h1>
+        <p class="text-muted mb-0">Create user-owned plans, then add approved foods or recipes from the knowledge catalog.</p>
+    </div>
+</section>
+
+<section class="two-pane">
+    <form asp-action="Create" method="post" class="section-card form-stack">
+        <div class="card-heading">
+            <h2>Create plan</h2>
+        </div>
+        <div asp-validation-summary="All" class="text-danger small"></div>
+        <div>
+            <label asp-for="Form.Name" class="form-label"></label>
+            <input asp-for="Form.Name" class="form-control" placeholder="Week 1 plan" />
+            <span asp-validation-for="Form.Name" class="text-danger small"></span>
+        </div>
+        <div>
+            <label asp-for="Form.StartDate" class="form-label"></label>
+            <input asp-for="Form.StartDate" type="date" class="form-control" />
+            <span asp-validation-for="Form.StartDate" class="text-danger small"></span>
+        </div>
+        <div>
+            <label asp-for="Form.EndDate" class="form-label"></label>
+            <input asp-for="Form.EndDate" type="date" class="form-control" />
+            <span asp-validation-for="Form.EndDate" class="text-danger small"></span>
+        </div>
+        <button class="btn btn-dark" type="submit">Create meal plan</button>
+    </form>
+
+    <div class="section-card">
+        <div class="card-heading">
+            <h2>Your plans</h2>
+            <span class="count-pill">@Model.MealPlans.TotalCount</span>
+        </div>
+        <div class="item-stack">
+            @foreach (var plan in Model.MealPlans.Items)
+            {
+                <article class="plan-row">
+                    <div>
+                        <div class="item-title">@plan.Name</div>
+                        <small>@plan.StartDate.ToString("yyyy-MM-dd") to @plan.EndDate.ToString("yyyy-MM-dd") · @plan.Items.Count item(s)</small>
+                    </div>
+                    <div class="row-actions">
+                        <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@plan.Id">Open</a>
+                        <form asp-action="Delete" asp-route-id="@plan.Id" method="post">
+                            <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+                        </form>
+                    </div>
+                </article>
+            }
+            @if (!Model.MealPlans.Items.Any())
+            {
+                <p class="empty-state">No meal plans yet.</p>
+            }
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

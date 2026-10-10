@@ -4,10 +4,10 @@ This file is the shared progress tracker for the project. Every human or AI agen
 
 ## Current Status
 
-- Phase: Milestone 7 API Gateway Integration complete, including Docker runtime smoke; manual book source review/approval remains.
+- Phase: Milestone 8 Web Application complete, including Docker browser-flow smoke; manual book source review/approval remains.
 - Branch: `HA/phase-1-microservices-scaffold`.
 - Last pushed baseline before this update: Milestone 4 Tracking Service and gRPC Notification after commit `f045546`.
-- Verification baseline: `dotnet restore LongevityDietPlatform.sln`, `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `dotnet test LongevityDietPlatform.sln --no-restore -m:1 --verbosity minimal`, `docker compose config`, and Milestone 7 Docker runtime smoke passed on 2026-10-09.
+- Verification baseline: `dotnet restore LongevityDietPlatform.sln`, `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `dotnet test LongevityDietPlatform.sln --no-restore -m:1 --verbosity minimal`, `docker compose config`, and Milestone 8 Docker/Web smoke passed on 2026-10-10.
 - Completion roadmap: `PROJECT_SCHEDULE.md`.
 
 ## Done
@@ -43,13 +43,15 @@ This file is the shared progress tracker for the project. Every human or AI agen
 - Implemented Notification Worker reminder and notification consumers, durable RabbitMQ topology declarations, retry handling, dead-letter queues, Resend sender abstraction, and development log fallback delivery.
 - Implemented Recommendation Service RabbitMQ consumer, approved-knowledge REST context loading, safe prompt builder, Gemini client abstraction, disabled-mode fallback recommendations, retry/dead-letter handling, and result publishing back to RabbitMQ.
 - Finalized API Gateway YARP routes for Identity, Diet Knowledge, Meal Planning, and Tracking, with internal Recommendation/Notification services kept unrouted.
+- Implemented Web Application screens for login/register/profile, diet knowledge browsing, admin content management, meal planning, tracking/progress, and recommendation request/review/accept flows.
+- Wired the Web Application to call public backend services only through the API Gateway.
+- Fixed Meal Planning item insertion for existing meal plans so Web meal-plan item creation stores a new `MealPlanItem` instead of attempting to update a missing row.
 
 ## Incomplete / Remaining Work
 
 - Verify each seeded book-knowledge item against a legally obtained source copy and approve only reviewed items.
 - Add automated tests for implemented slices.
-- Build the real Web Application screens.
-- Run a full end-to-end Docker Compose smoke test once Web flows exist.
+- Add final demo script/submission checklist and any final README polish required by the teacher.
 
 ## Update Rules
 
@@ -66,6 +68,17 @@ Each update should include:
 Do not mark a feature as complete if it only has placeholders or configuration. Call it a scaffold until the real behavior exists and has been verified.
 
 ## Change Log
+
+### 2026-10-10 — Complete Milestone 8 Web Application
+
+- Added MVC Web Application infrastructure for calling the API Gateway with `ApiGatewayClient`, storing the JWT in an HttpOnly cookie, and rendering signed-in/admin navigation from `UserSession`.
+- Added browser screens for login, register, profile, diet guideline/food/recipe browsing, admin guideline/food/recipe management, meal plan creation/editing, meal item scheduling, tracking/progress, and recommendation request/review/accept.
+- Added user-friendly TempData alerts, model validation messages, and responsive operational styling for the Web UI.
+- Updated Web configuration so local development calls `http://localhost:5001` and Docker calls `http://api-gateway:8080`.
+- Fixed Meal Planning Service add-item persistence by adding an explicit repository `AddMealPlanItemAsync` method and using it for existing meal plans.
+- Verification: `dotnet build src/Web/LongevityDiet.Web/LongevityDiet.Web.csproj --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `dotnet build src/Services/MealPlanning/LongevityDiet.MealPlanning.Api/LongevityDiet.MealPlanning.Api.csproj --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `docker compose up -d --build web api-gateway identity-service diet-knowledge-service meal-planning-service tracking-service recommendation-service notification-service notification-worker rabbitmq`, Web and gateway health checks, admin login through Web, admin-created approved food/recipe through Web, user registration/profile through Web, public knowledge browse through Web, meal plan creation plus meal item scheduling through Web, tracking completion through Web, recommendation request completion through RabbitMQ, and recommendation accept into a new meal plan through Web.
+- Smoke run: `1791610849`; user `m8.web.1791610849@longevity.local`; Web endpoint `http://localhost:5000`.
+- Remaining TODO: add automated tests, add final demo script/submission checklist, and complete manual book-source verification/approval for seed data.
 
 ### 2026-10-09 — Complete Milestone 7 API Gateway Integration
 

@@ -1,0 +1,41 @@
+@model RegisterForm
+@{
+    ViewData["Title"] = "Register";
+}
+
+<section class="auth-wrap">
+    <div class="auth-panel">
+        <p class="eyebrow">New user</p>
+        <h1>Create account</h1>
+        <p class="text-muted">Register a user account for meal planning, recommendations, and tracking.</p>
+
+        <form asp-action="Register" method="post" class="form-stack">
+            <div asp-validation-summary="All" class="text-danger small"></div>
+            <div>
+                <label asp-for="DisplayName" class="form-label"></label>
+                <input asp-for="DisplayName" class="form-control" autocomplete="name" />
+                <span asp-validation-for="DisplayName" class="text-danger small"></span>
+            </div>
+            <div>
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" autocomplete="email" />
+                <span asp-validation-for="Email" class="text-danger small"></span>
+            </div>
+            <div>
+                <label asp-for="Password" class="form-label"></label>
+                <input asp-for="Password" class="form-control" autocomplete="new-password" />
+                <span asp-validation-for="Password" class="text-danger small"></span>
+            </div>
+            <button class="btn btn-dark w-100" type="submit">Register</button>
+        </form>
+    </div>
+    <aside class="auth-side">
+        <strong>Already have an account?</strong>
+        <p>Sign in to continue the same browser demo path without touching Swagger.</p>
+        <a asp-action="Login" class="btn btn-outline-secondary">Sign in</a>
+    </aside>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

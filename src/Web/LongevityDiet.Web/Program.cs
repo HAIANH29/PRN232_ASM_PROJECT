@@ -1,8 +1,21 @@
+using LongevityDiet.Web.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddHealthChecks();
+builder.Services.AddHttpContextAccessor();
+builder.Services.Configure<ApiGatewayOptions>(
+    builder.Configuration.GetSection(ApiGatewayOptions.SectionName));
+builder.Services.AddHttpClient<ApiGatewayClient>((serviceProvider, client) =>
+{
+    var options = serviceProvider
+        .GetRequiredService<Microsoft.Extensions.Options.IOptions<ApiGatewayOptions>>()
+        .Value;
+    client.BaseAddress = new Uri(EnsureTrailingSlash(options.BaseUrl));
+});
+builder.Services.AddScoped<UserSession>();
 
 var app = builder.Build();
 
@@ -29,3 +42,10 @@ app.MapHealthChecks("/health");
 
 
 app.Run();
+
+static string EnsureTrailingSlash(string value)
+{
+    return value.EndsWith("/", StringComparison.Ordinal)
+        ? value
+        : $"{value}/";
+}
