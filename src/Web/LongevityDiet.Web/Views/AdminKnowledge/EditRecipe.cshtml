@@ -1,0 +1,72 @@
+@model RecipeForm
+@{
+    ViewData["Title"] = "Edit recipe";
+    var foods = ViewBag.Foods as IReadOnlyCollection<FoodResponse> ?? Array.Empty<FoodResponse>();
+}
+
+<section class="page-head">
+    <div>
+        <p class="eyebrow">Admin edit</p>
+        <h1>Edit recipe</h1>
+    </div>
+    <a class="btn btn-outline-secondary" asp-action="Index">Back to admin</a>
+</section>
+
+<form asp-action="EditRecipe" asp-route-id="@Model.Id" method="post" class="section-card form-grid">
+    <div asp-validation-summary="All" class="text-danger small grid-full"></div>
+    <div>
+        <label asp-for="Name" class="form-label"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger small"></span>
+    </div>
+    <div>
+        <label asp-for="ReviewStatus" class="form-label"></label>
+        <select asp-for="ReviewStatus" class="form-select">
+            <option>NeedsReview</option>
+            <option>Approved</option>
+        </select>
+    </div>
+    <div class="grid-full">
+        <label asp-for="Description" class="form-label"></label>
+        <textarea asp-for="Description" class="form-control" rows="5"></textarea>
+        <span asp-validation-for="Description" class="text-danger small"></span>
+    </div>
+    <div>
+        <label asp-for="IngredientFoodId" class="form-label">Ingredient</label>
+        <select asp-for="IngredientFoodId" class="form-select">
+            <option value="@Guid.Empty">Choose approved food</option>
+            @foreach (var food in foods)
+            {
+                <option value="@food.Id">@food.Name (@food.Category)</option>
+            }
+        </select>
+        <span asp-validation-for="IngredientFoodId" class="text-danger small"></span>
+    </div>
+    <div>
+        <label asp-for="IngredientQuantityText" class="form-label">Quantity</label>
+        <input asp-for="IngredientQuantityText" class="form-control" />
+    </div>
+    <div>
+        <label asp-for="SourceChapter" class="form-label"></label>
+        <input asp-for="SourceChapter" class="form-control" />
+    </div>
+    <div>
+        <label asp-for="SourcePage" class="form-label"></label>
+        <input asp-for="SourcePage" class="form-control" />
+    </div>
+    <div class="grid-full">
+        <label asp-for="SourceReference" class="form-label"></label>
+        <input asp-for="SourceReference" class="form-control" />
+    </div>
+    <div>
+        <label asp-for="ReviewedBy" class="form-label"></label>
+        <input asp-for="ReviewedBy" class="form-control" />
+    </div>
+    <div class="grid-full form-actions">
+        <button class="btn btn-dark" type="submit">Save changes</button>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

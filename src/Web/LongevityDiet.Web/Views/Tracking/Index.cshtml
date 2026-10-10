@@ -1,0 +1,147 @@
+@using System.Globalization
+@model TrackingIndexViewModel
+@{
+    ViewData["Title"] = "Tracking";
+    var foodsById = Model.Foods.ToDictionary(food => food.Id);
+    var recipesById = Model.Recipes.ToDictionary(recipe => recipe.Id);
+    var completionRate = Model.ProgressSummary is null
+        ? 0m
+        : Math.Min(100m, Math.Max(0m, Model.ProgressSummary.CompletionRate));
+}
+
+<section class="page-head">
+    <div>
+        <p class="eyebrow">Daily progress</p>
+        <h1>Tracking</h1>
+        <p class="text-muted mb-0">Mark planned meals completed or not completed and review progress for the selected period.</p>
+    </div>
+</section>
+
+<form method="get" class="filter-bar">
+    <div>
+        <label for="trackingDate" class="form-label">Tracking date</label>
+        <input id="trackingDate" name="trackingDate" type="date" class="form-control" value="@Model.Form.TrackingDate.ToString("yyyy-MM-dd")" />
+    </div>
+    <div>
+        <label for="periodStartDate" class="form-label">Period start</label>
+        <input id="periodStartDate" name="periodStartDate" type="date" class="form-control" value="@Model.Form.PeriodStartDate.ToString("yyyy-MM-dd")" />
+    </div>
+    <div>
+        <label for="periodEndDate" class="form-label">Period end</label>
+        <input id="periodEndDate" name="periodEndDate" type="date" class="form-control" value="@Model.Form.PeriodEndDate.ToString("yyyy-MM-dd")" />
+    </div>
+    <div class="filter-actions">
+        <button class="btn btn-dark" type="submit">Load</button>
+    </div>
+</form>
+
+<section class="two-pane">
+    <form asp-action="SaveDaily" method="post" class="section-card form-stack">
+        <div class="card-heading">
+            <h2>Daily note</h2>
+        </div>
+        <input asp-for="Form.TrackingDate" type="hidden" />
+        <input asp-for="Form.PeriodStartDate" type="hidden" />
+        <input asp-for="Form.PeriodEndDate" type="hidden" />
+        <div>
+            <label asp-for="Form.Notes" class="form-label"></label>
+            <textarea asp-for="Form.Notes" class="form-control" rows="6" placeholder="Optional note for the day"></textarea>
+            <span asp-validation-for="Form.Notes" class="text-danger small"></span>
+        </div>
+        <button class="btn btn-dark" type="submit">Save daily tracking</button>
+    </form>
+
+    <form asp-action="SetMeal" method="post" class="section-card form-stack">
+        <div class="card-heading">
+            <h2>Meal completion</h2>
+        </div>
+        <input asp-for="Form.TrackingDate" type="hidden" />
+        <input asp-for="Form.PeriodStartDate" type="hidden" />
+        <input asp-for="Form.PeriodEndDate" type="hidden" />
+        <div>
+            <label asp-for="Form.MealPlanItemId" class="form-label">Meal item</label>
+            <select asp-for="Form.MealPlanItemId" class="form-select">
+                <option value="">Choose scheduled meal</option>
+                @foreach (var plan in Model.MealPlans)
+                {
+                    <optgroup label="@plan.Name">
+                        @foreach (var item in plan.Items.OrderBy(item => item.PlannedDate).ThenBy(item => item.MealSlot))
+                        {
+                            var catalogName = item.FoodId.HasValue && foodsById.TryGetValue(item.FoodId.Value, out var food)
+                                ? food.Name
+                                : item.RecipeId.HasValue && recipesById.TryGetValue(item.RecipeId.Value, out var recipe)
+                                    ? recipe.Name
+                                    : "Catalog item";
+                            <option value="@item.Id">@item.PlannedDate.ToString("yyyy-MM-dd") · @item.MealSlot · @catalogName</option>
+                        }
+                    </optgroup>
+                }
+            </select>
+        </div>
+        <div>
+            <label asp-for="Form.IsCompleted" class="form-label">Completion status</label>
+            <select asp-for="Form.IsCompleted" class="form-select">
+                <option value="true">Completed</option>
+                <option value="false">Not completed</option>
+            </select>
+        </div>
+        <button class="btn btn-dark" type="submit">Update meal</button>
+    </form>
+</section>
+
+<section class="content-grid two-columns">
+    <div class="section-card">
+        <div class="card-heading">
+            <h2>Daily tracking</h2>
+            <span class="badge text-bg-light border">@Model.Form.TrackingDate.ToString("yyyy-MM-dd")</span>
+        </div>
+        @if (Model.DailyTracking is null)
+        {
+            <p class="empty-state">No tracking record for this date yet.</p>
+        }
+        else
+        {
+            <p>@Model.DailyTracking.Notes</p>
+            <div class="item-stack">
+                @foreach (var meal in Model.DailyTracking.Meals)
+                {
+                    <article class="plan-row">
+                        <div>
+                            <div class="item-title">@meal.MealPlanItemId</div>
+                            <small>@meal.CreatedAtUtc.LocalDateTime.ToString("yyyy-MM-dd HH:mm")</small>
+                        </div>
+                        <span class="badge @(meal.IsCompleted ? "text-bg-success" : "text-bg-secondary")">
+                            @(meal.IsCompleted ? "Completed" : "Not completed")
+                        </span>
+                    </article>
+                }
+            </div>
+        }
+    </div>
+
+    <div class="section-card">
+        <div class="card-heading">
+            <h2>Progress summary</h2>
+            <span class="badge text-bg-light border">@Model.Form.PeriodStartDate.ToString("yyyy-MM-dd") to @Model.Form.PeriodEndDate.ToString("yyyy-MM-dd")</span>
+        </div>
+        @if (Model.ProgressSummary is null)
+        {
+            <p class="empty-state">No progress summary available yet.</p>
+        }
+        else
+        {
+            <div class="progress-stat">
+                <strong>@Model.ProgressSummary.CompletedMeals / @Model.ProgressSummary.PlannedMeals</strong>
+                <span>completed meals</span>
+            </div>
+            <div class="progress mb-3" role="progressbar" aria-label="Completion rate" aria-valuenow="@completionRate.ToString("0.##", CultureInfo.InvariantCulture)" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-bar" style="width: @completionRate.ToString("0.##", CultureInfo.InvariantCulture)%"></div>
+            </div>
+            <p class="text-muted mb-0">Calculated @Model.ProgressSummary.CalculatedAtUtc.LocalDateTime.ToString("yyyy-MM-dd HH:mm")</p>
+        }
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

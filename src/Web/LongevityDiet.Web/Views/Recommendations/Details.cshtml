@@ -1,0 +1,115 @@
+@model RecommendationDetailsViewModel
+@{
+    ViewData["Title"] = "Recommendation";
+    var canAccept = string.Equals(Model.Request.Status, "Completed", StringComparison.OrdinalIgnoreCase)
+        && Model.Request.AcceptedMealPlanId is null;
+}
+
+<section class="page-head">
+    <div>
+        <p class="eyebrow">Recommendation review</p>
+        <h1>@Model.Request.Status request</h1>
+        <p class="text-muted mb-0">@Model.Request.Days day(s), @string.Join(", ", Model.Request.PreferenceTags)</p>
+    </div>
+    <a class="btn btn-outline-secondary" asp-action="Index">Back to recommendations</a>
+</section>
+
+<section class="two-pane">
+    <div class="section-card">
+        <div class="card-heading">
+            <h2>Suggested meals</h2>
+            <span class="badge text-bg-light border">@Model.Request.Status</span>
+        </div>
+        <div class="item-stack">
+            @foreach (var title in Model.Request.SuggestedMealTitles)
+            {
+                <article class="content-item">
+                    <div class="item-title">@title</div>
+                </article>
+            }
+            @if (!Model.Request.SuggestedMealTitles.Any())
+            {
+                <p class="empty-state">The result is not available yet. Refresh this screen after the worker processes the request.</p>
+            }
+        </div>
+        @if (!string.IsNullOrWhiteSpace(Model.Request.Disclaimer))
+        {
+            <p class="note-box">@Model.Request.Disclaimer</p>
+        }
+        @if (Model.Request.AcceptedMealPlanId.HasValue)
+        {
+            <a class="btn btn-dark" asp-controller="MealPlans" asp-action="Details" asp-route-id="@Model.Request.AcceptedMealPlanId">Open accepted plan</a>
+        }
+    </div>
+
+    <form asp-action="Accept" asp-route-id="@Model.Request.Id" method="post" class="section-card form-stack">
+        <div class="card-heading">
+            <h2>Accept as plan</h2>
+        </div>
+        <div asp-validation-summary="All" class="text-danger small"></div>
+        @if (!canAccept)
+        {
+            <p class="empty-state">Acceptance is available after the recommendation is completed and before it has been accepted.</p>
+        }
+        <div>
+            <label asp-for="AcceptForm.Name" class="form-label"></label>
+            <input asp-for="AcceptForm.Name" class="form-control" disabled="@(!canAccept)" />
+            <span asp-validation-for="AcceptForm.Name" class="text-danger small"></span>
+        </div>
+        <div class="form-row">
+            <div>
+                <label asp-for="AcceptForm.StartDate" class="form-label"></label>
+                <input asp-for="AcceptForm.StartDate" type="date" class="form-control" disabled="@(!canAccept)" />
+            </div>
+            <div>
+                <label asp-for="AcceptForm.EndDate" class="form-label"></label>
+                <input asp-for="AcceptForm.EndDate" type="date" class="form-control" disabled="@(!canAccept)" />
+            </div>
+        </div>
+        <div class="form-row">
+            <div>
+                <label asp-for="AcceptForm.PlannedDate" class="form-label"></label>
+                <input asp-for="AcceptForm.PlannedDate" type="date" class="form-control" disabled="@(!canAccept)" />
+            </div>
+            <div>
+                <label asp-for="AcceptForm.MealSlot" class="form-label"></label>
+                <select asp-for="AcceptForm.MealSlot" class="form-select" disabled="@(!canAccept)">
+                    <option>Breakfast</option>
+                    <option>Lunch</option>
+                    <option>Dinner</option>
+                    <option>Snack</option>
+                </select>
+            </div>
+        </div>
+        <div>
+            <label asp-for="AcceptForm.FoodId" class="form-label">Food</label>
+            <select asp-for="AcceptForm.FoodId" class="form-select" disabled="@(!canAccept)">
+                <option value="">No food selected</option>
+                @foreach (var food in Model.Foods)
+                {
+                    <option value="@food.Id">@food.Name (@food.Category)</option>
+                }
+            </select>
+        </div>
+        <div>
+            <label asp-for="AcceptForm.RecipeId" class="form-label">Recipe</label>
+            <select asp-for="AcceptForm.RecipeId" class="form-select" disabled="@(!canAccept)">
+                <option value="">No recipe selected</option>
+                @foreach (var recipe in Model.Recipes)
+                {
+                    <option value="@recipe.Id">@recipe.Name</option>
+                }
+            </select>
+            <span asp-validation-for="AcceptForm.FoodId" class="text-danger small"></span>
+        </div>
+        <div>
+            <label asp-for="AcceptForm.Notes" class="form-label"></label>
+            <textarea asp-for="AcceptForm.Notes" class="form-control" rows="3" disabled="@(!canAccept)"></textarea>
+        </div>
+        <button class="btn btn-dark" type="submit" disabled="@(!canAccept)">Accept recommendation</button>
+    </form>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,8 +1,58 @@
+@inject UserSession UserSession
 @{
-    ViewData["Title"] = "Longevity Diet Platform";
+    ViewData["Title"] = "Dashboard";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Longevity Diet Platform</h1>
-    <p>Educational meal planning and tracking scaffold for the PRN232 microservices assignment.</p>
-</div>
+<section class="page-head">
+    <div>
+        <p class="eyebrow">PRN232 microservices demo</p>
+        <h1>Longevity Diet Platform</h1>
+        <p class="text-muted mb-0">Browse approved diet knowledge, plan meals, request safe AI-assisted suggestions, and track daily progress through one web app.</p>
+    </div>
+    <div class="head-actions">
+        @if (UserSession.IsSignedIn)
+        {
+            <a class="btn btn-dark" asp-controller="MealPlans" asp-action="Index">Open meal plans</a>
+            <a class="btn btn-outline-secondary" asp-controller="Tracking" asp-action="Index">Track today</a>
+        }
+        else
+        {
+            <a class="btn btn-dark" asp-controller="Auth" asp-action="Login">Sign in</a>
+            <a class="btn btn-outline-secondary" asp-controller="Knowledge" asp-action="Index">Browse knowledge</a>
+        }
+    </div>
+</section>
+
+<section class="dashboard-grid">
+    <a class="module-card" asp-controller="Knowledge" asp-action="Index">
+        <span class="module-kicker">Knowledge</span>
+        <strong>Guidelines, foods, recipes</strong>
+        <small>Search approved content that planning and recommendation flows depend on.</small>
+    </a>
+    <a class="module-card" asp-controller="MealPlans" asp-action="Index">
+        <span class="module-kicker">Planning</span>
+        <strong>Meal plans and schedule</strong>
+        <small>Create plans, add food or recipe items, and publish reminders.</small>
+    </a>
+    <a class="module-card" asp-controller="Recommendations" asp-action="Index">
+        <span class="module-kicker">Recommendation</span>
+        <strong>AI-assisted review flow</strong>
+        <small>Request suggestions, review the result, then accept an edited final plan.</small>
+    </a>
+    <a class="module-card" asp-controller="Tracking" asp-action="Index">
+        <span class="module-kicker">Tracking</span>
+        <strong>Daily completion and progress</strong>
+        <small>Record completed meals and view summary progress.</small>
+    </a>
+</section>
+
+@if (UserSession.IsAdmin)
+{
+    <section class="admin-band">
+        <div>
+            <strong>Admin workspace</strong>
+            <p class="mb-0 text-muted">Manage book-derived guidelines, foods, and recipes. Approved content becomes visible to users.</p>
+        </div>
+        <a class="btn btn-outline-secondary" asp-controller="AdminKnowledge" asp-action="Index">Manage content</a>
+    </section>
+}

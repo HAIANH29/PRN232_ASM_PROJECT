@@ -8,9 +8,9 @@ Read together with:
 
 ## Current Snapshot
 
-Current phase: Milestone 7 API Gateway Integration is complete, including Docker runtime smoke; Book Knowledge manual source review remains pending.
+Current phase: Milestone 8 Web Application is complete, including Docker/Web browser-flow smoke; Book Knowledge manual source review remains pending.
 
-Estimated product completion: about 78-82%.
+Estimated product completion: about 88-90%.
 
 What is already in code:
 - .NET solution and project structure exist.
@@ -35,14 +35,15 @@ What is already in code:
 - Tracking Service now supports authenticated daily tracking, meal completion/not-completion tracking, progress summary calculation, ownership checks, Tracking EF Core migration, and the real Tracking -> Notification Service gRPC flow.
 - Notification Service now accepts progress notification gRPC requests and publishes notification messages to RabbitMQ.
 - Notification Worker now declares durable reminder/notification queues, dead-letter queues, retry handling, Resend sender abstraction, and local log fallback delivery.
+- Web Application now supports the main User and Admin browser flows through the API Gateway.
 
 What is not yet product-ready:
 - The team still needs to verify book-derived seed items against a legally obtained source copy before marking them `Approved`.
 - Search/filter/sort/pagination are implemented for Diet Knowledge and Meal Planning; Tracking supports date-filtered paged history.
 - RabbitMQ publish/consume behavior exists for Meal Planning reminders/recommendations, Recommendation Service processing/results, Notification Service notifications, and Notification Worker delivery.
 - Gemini integration has a configurable HTTP client abstraction with safe disabled-mode fallback; real Gemini and Resend delivery need configured API keys for production/demo external calls.
-- Web Application is still mostly the default MVC shell.
-- Tests and end-to-end Docker smoke tests are not complete.
+- Automated tests and the final submission/demo package are not complete.
+- Automated tests and the final submission/demo package are not complete.
 
 ## Definition Of 100% Complete
 
@@ -308,22 +309,24 @@ Done when:
 
 Target: T+11 to T+14 days.
 
+Status: Completed on 2026-10-10.
+
 Code/work to do:
-- Implement login/register pages.
-- Store/use JWT securely enough for the assignment demo.
-- Implement user profile view.
-- Implement diet guideline browsing.
-- Implement food and recipe search/filter screens.
-- Implement admin screens for guidelines, foods, recipes.
-- Implement meal plan creation/editing screens.
-- Implement tracking and progress screens.
-- Implement AI recommendation request/review/accept screens.
-- Add user-friendly validation messages.
+- [x] Implement login/register pages.
+- [x] Store/use JWT securely enough for the assignment demo.
+- [x] Implement user profile view.
+- [x] Implement diet guideline browsing.
+- [x] Implement food and recipe search/filter screens.
+- [x] Implement admin screens for guidelines, foods, recipes.
+- [x] Implement meal plan creation/editing screens.
+- [x] Implement tracking and progress screens.
+- [x] Implement AI recommendation request/review/accept screens.
+- [x] Add user-friendly validation messages.
 
 Verification:
-- User demo path works from browser.
-- Admin demo path works from browser.
-- Web calls backend through API Gateway.
+- [x] User demo path works from browser.
+- [x] Admin demo path works from browser.
+- [x] Web calls backend through API Gateway.
 
 Done when:
 - The teacher can see the product behavior without manually using Swagger for every workflow.
@@ -445,7 +448,7 @@ This minimum path is enough to demonstrate the required PRN232 architecture and 
 | PostgreSQL database-per-service | Identity, Diet Knowledge, Meal Planning, and Tracking migrations exist | Keep service ownership boundaries intact |
 | Docker Compose | Gateway and core backend services Docker-smoke-tested through current milestone | Full Web demo startup verification |
 | C4 docs | Existing | Keep synchronized with implementation |
-| Web Application | MVC shell exists | Build real User/Admin screens |
+| Web Application | Main User/Admin browser flows implemented through the API Gateway | Add final demo script and automated UI/API smoke tests if time allows |
 | External providers | Resend sender abstraction with log fallback exists; Gemini client abstraction with disabled-mode fallback exists | Configure real Resend/Gemini keys only for demo/production if needed |
 | Tests | Not present | Add unit/integration/API tests |
 
@@ -542,14 +545,14 @@ Note: schedule support is represented on `MealPlanItem` rather than a separate t
 
 ### Web Application
 
-- [ ] Login/register.
-- [ ] Profile.
-- [ ] User diet knowledge browsing.
-- [ ] Admin content management.
-- [ ] Meal planning.
-- [ ] Recommendation request/review/accept.
-- [ ] Tracking/progress.
-- [ ] Friendly error/validation handling.
+- [x] Login/register.
+- [x] Profile.
+- [x] User diet knowledge browsing.
+- [x] Admin content management.
+- [x] Meal planning.
+- [x] Recommendation request/review/accept.
+- [x] Tracking/progress.
+- [x] Friendly error/validation handling.
 
 ### Documentation And Submission
 

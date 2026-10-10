@@ -1,0 +1,36 @@
+@model LoginForm
+@{
+    ViewData["Title"] = "Sign in";
+}
+
+<section class="auth-wrap">
+    <div class="auth-panel">
+        <p class="eyebrow">Account access</p>
+        <h1>Sign in</h1>
+        <p class="text-muted">Use a demo User or Admin account to run the browser workflows through the API Gateway.</p>
+
+        <form asp-action="Login" method="post" class="form-stack">
+            <div asp-validation-summary="All" class="text-danger small"></div>
+            <div>
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" autocomplete="email" />
+                <span asp-validation-for="Email" class="text-danger small"></span>
+            </div>
+            <div>
+                <label asp-for="Password" class="form-label"></label>
+                <input asp-for="Password" class="form-control" autocomplete="current-password" />
+                <span asp-validation-for="Password" class="text-danger small"></span>
+            </div>
+            <button class="btn btn-dark w-100" type="submit">Sign in</button>
+        </form>
+    </div>
+    <aside class="auth-side">
+        <strong>Demo route</strong>
+        <p>After sign-in, the web app stores the JWT in an HttpOnly cookie and forwards it to public REST services through the gateway.</p>
+        <a asp-action="Register" class="btn btn-outline-secondary">Create account</a>
+    </aside>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

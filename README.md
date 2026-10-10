@@ -2,7 +2,7 @@
 
 PRN232 microservices scaffold for an educational diet planning and tracking platform based on approved knowledge from *The Longevity Diet*.
 
-This repository has the Phase 1 microservice scaffold plus the Milestone 1 Identity, Milestone 2 Diet Knowledge, Milestone 3 Meal Planning, Milestone 4 Tracking/gRPC Notification, Milestone 5 RabbitMQ notification delivery, Milestone 6 Recommendation Service, and Milestone 7 API Gateway implementations. The remaining web UI, tests, and final demo package are still being implemented incrementally.
+This repository has the Phase 1 microservice scaffold plus the Milestone 1 Identity, Milestone 2 Diet Knowledge, Milestone 3 Meal Planning, Milestone 4 Tracking/gRPC Notification, Milestone 5 RabbitMQ notification delivery, Milestone 6 Recommendation Service, Milestone 7 API Gateway, and Milestone 8 Web Application implementations. Tests and the final demo package are still being implemented incrementally.
 
 Project status and remaining work are tracked in `PROJECT_PROGRESS.md`. The completion roadmap is tracked in `PROJECT_SCHEDULE.md`. Update the progress file after each completed project change.
 
@@ -148,5 +148,6 @@ Recommendation Service:
 
 ## Remaining TODO
 
-- Build the real Web Application screens.
 - Add tests around each implemented slice.
+- Add the final demo script/submission checklist.
+- Complete team source verification and approval for book-derived seed data.

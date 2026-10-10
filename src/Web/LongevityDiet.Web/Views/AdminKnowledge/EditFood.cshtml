@@ -1,0 +1,56 @@
+@model FoodForm
+@{
+    ViewData["Title"] = "Edit food";
+}
+
+<section class="page-head">
+    <div>
+        <p class="eyebrow">Admin edit</p>
+        <h1>Edit food</h1>
+    </div>
+    <a class="btn btn-outline-secondary" asp-action="Index">Back to admin</a>
+</section>
+
+<form asp-action="EditFood" asp-route-id="@Model.Id" method="post" class="section-card form-grid">
+    <div asp-validation-summary="All" class="text-danger small grid-full"></div>
+    <div>
+        <label asp-for="Name" class="form-label"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger small"></span>
+    </div>
+    <div>
+        <label asp-for="Category" class="form-label"></label>
+        <input asp-for="Category" class="form-control" />
+        <span asp-validation-for="Category" class="text-danger small"></span>
+    </div>
+    <div class="grid-full">
+        <label asp-for="CompatibilityNotes" class="form-label"></label>
+        <textarea asp-for="CompatibilityNotes" class="form-control" rows="5"></textarea>
+    </div>
+    <div>
+        <label asp-for="SourceChapter" class="form-label"></label>
+        <input asp-for="SourceChapter" class="form-control" />
+    </div>
+    <div>
+        <label asp-for="SourcePage" class="form-label"></label>
+        <input asp-for="SourcePage" class="form-control" />
+    </div>
+    <div>
+        <label asp-for="ReviewStatus" class="form-label"></label>
+        <select asp-for="ReviewStatus" class="form-select">
+            <option>NeedsReview</option>
+            <option>Approved</option>
+        </select>
+    </div>
+    <div>
+        <label asp-for="ReviewedBy" class="form-label"></label>
+        <input asp-for="ReviewedBy" class="form-control" />
+    </div>
+    <div class="grid-full form-actions">
+        <button class="btn btn-dark" type="submit">Save changes</button>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
