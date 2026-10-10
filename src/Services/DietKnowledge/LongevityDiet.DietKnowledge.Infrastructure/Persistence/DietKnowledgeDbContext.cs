@@ -13,6 +13,12 @@ public sealed class DietKnowledgeDbContext(DbContextOptions<DietKnowledgeDbConte
 
     public DbSet<RecipeIngredient> RecipeIngredients => Set<RecipeIngredient>();
 
+    public DbSet<BookSourceDocument> BookSourceDocuments => Set<BookSourceDocument>();
+
+    public DbSet<BookSourceChunk> BookSourceChunks => Set<BookSourceChunk>();
+
+    public DbSet<KnowledgeCandidate> KnowledgeCandidates => Set<KnowledgeCandidate>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<DietGuideline>(entity =>
@@ -79,6 +85,61 @@ public sealed class DietKnowledgeDbContext(DbContextOptions<DietKnowledgeDbConte
                 .HasForeignKey(ingredient => ingredient.FoodId)
                 .OnDelete(DeleteBehavior.Restrict);
             entity.HasIndex(ingredient => new { ingredient.RecipeId, ingredient.FoodId }).IsUnique();
+        });
+
+        modelBuilder.Entity<BookSourceDocument>(entity =>
+        {
+            entity.HasKey(document => document.Id);
+            entity.Property(document => document.OriginalFileName).HasMaxLength(260).IsRequired();
+            entity.Property(document => document.StoredFileName).HasMaxLength(120).IsRequired();
+            entity.Property(document => document.ContentType).HasMaxLength(120).IsRequired();
+            entity.Property(document => document.StoragePath).HasMaxLength(500).IsRequired();
+            entity.Property(document => document.Status).HasMaxLength(40).IsRequired();
+            entity.Property(document => document.UploadedBy).HasMaxLength(120).IsRequired();
+            entity.Property(document => document.ErrorMessage).HasMaxLength(1000).IsRequired();
+            entity.Property(document => document.UploadedAtUtc).IsRequired();
+            entity.HasIndex(document => document.Status);
+            entity.HasIndex(document => document.UploadedAtUtc);
+        });
+
+        modelBuilder.Entity<BookSourceChunk>(entity =>
+        {
+            entity.HasKey(chunk => chunk.Id);
+            entity.Property(chunk => chunk.Text).HasMaxLength(8000).IsRequired();
+            entity.Property(chunk => chunk.CreatedAtUtc).IsRequired();
+            entity.HasOne(chunk => chunk.Document)
+                .WithMany(document => document.Chunks)
+                .HasForeignKey(chunk => chunk.DocumentId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasIndex(chunk => new { chunk.DocumentId, chunk.ChunkIndex }).IsUnique();
+            entity.HasIndex(chunk => chunk.PageNumber);
+        });
+
+        modelBuilder.Entity<KnowledgeCandidate>(entity =>
+        {
+            entity.HasKey(candidate => candidate.Id);
+            entity.Property(candidate => candidate.CandidateType).HasMaxLength(40).IsRequired();
+            entity.Property(candidate => candidate.Title).HasMaxLength(200).IsRequired();
+            entity.Property(candidate => candidate.Summary).HasMaxLength(2000).IsRequired();
+            entity.Property(candidate => candidate.SourceTitle).HasMaxLength(200).IsRequired();
+            entity.Property(candidate => candidate.SourceChapter).HasMaxLength(200).IsRequired();
+            entity.Property(candidate => candidate.SourcePage).HasMaxLength(80).IsRequired();
+            entity.Property(candidate => candidate.SourceReference).HasMaxLength(500).IsRequired();
+            entity.Property(candidate => candidate.Status).HasMaxLength(40).IsRequired();
+            entity.Property(candidate => candidate.GeneratedBy).HasMaxLength(120).IsRequired();
+            entity.Property(candidate => candidate.ReviewedBy).HasMaxLength(120).IsRequired();
+            entity.Property(candidate => candidate.CreatedAtUtc).IsRequired();
+            entity.HasOne(candidate => candidate.Document)
+                .WithMany(document => document.Candidates)
+                .HasForeignKey(candidate => candidate.DocumentId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(candidate => candidate.Chunk)
+                .WithMany(chunk => chunk.Candidates)
+                .HasForeignKey(candidate => candidate.ChunkId)
+                .OnDelete(DeleteBehavior.SetNull);
+            entity.HasIndex(candidate => candidate.DocumentId);
+            entity.HasIndex(candidate => candidate.Status);
+            entity.HasIndex(candidate => candidate.CandidateType);
         });
     }
 }

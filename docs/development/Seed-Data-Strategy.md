@@ -39,6 +39,8 @@ Implementation target:
 - A separate local demo seed file, `demo-approved-knowledge-seed.json`, provides approved teacher-demo data when `DietKnowledgeSeed__IncludeDemoApprovedContent=true`.
 - Public browse/search/filter endpoints expose only active `Approved` content.
 - Admin endpoints can manage and filter `NeedsReview`, `Approved`, and `Rejected` content.
+- Admin PDF ingestion is not seed data. Uploaded PDFs are private local artifacts; extracted chunks and generated candidates are stored in DietKnowledgeDb for review only.
+- Generated candidates must be approved into managed Diet Knowledge content before public browse/search, Meal Planning, or Recommendation can use them.
 - The startup seed path retries briefly so Docker Compose can tolerate PostgreSQL startup timing.
 
 ## Meal Planning Service
@@ -77,10 +79,11 @@ Recommended local/demo setup order:
 2. Seed Identity roles and demo accounts.
 3. Apply Diet Knowledge migrations.
 4. Seed book knowledge review data and approved local demo knowledge when enabled.
-5. Approve verified Diet Knowledge items through admin APIs or by updating reviewed seed metadata before demo reset.
-6. Apply Meal Planning migrations.
-7. Apply Tracking migrations.
-8. Create sample meal plans and tracking data through APIs if needed.
+5. Optionally upload a legally obtained PDF through Admin Book Sources and generate review candidates.
+6. Approve verified Diet Knowledge items through admin APIs, candidate approval, or reviewed seed metadata before demo reset.
+7. Apply Meal Planning migrations.
+8. Apply Tracking migrations.
+9. Create sample meal plans and tracking data through APIs if needed.
 
 ## Future Implementation Checklist
 

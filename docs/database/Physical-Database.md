@@ -73,10 +73,51 @@ Initial migration exists: `InitialIdentitySchema`.
   - `RecipeId`
   - `FoodId`
   - `QuantityText`
+- `BookSourceDocuments`
+  - `Id`
+  - `OriginalFileName`
+  - `StoredFileName`
+  - `ContentType`
+  - `FileSizeBytes`
+  - `StoragePath`
+  - `Status`
+  - `UploadedBy`
+  - `UploadedAtUtc`
+  - `ProcessedAtUtc`
+  - `ChunkCount`
+  - `ErrorMessage`
+- `BookSourceChunks`
+  - `Id`
+  - `DocumentId`
+  - `ChunkIndex`
+  - `PageNumber`
+  - `Text`
+  - `CharacterCount`
+  - `TokenEstimate`
+  - `CreatedAtUtc`
+- `KnowledgeCandidates`
+  - `Id`
+  - `DocumentId`
+  - `ChunkId`
+  - `CandidateType`
+  - `Title`
+  - `Summary`
+  - `SourceTitle`
+  - `SourceChapter`
+  - `SourcePage`
+  - `SourceReference`
+  - `Status`
+  - `GeneratedBy`
+  - `CreatedAtUtc`
+  - `ReviewedBy`
+  - `ReviewedAtUtc`
+  - `ApprovedKnowledgeId`
 
 Owned by `Diet Knowledge Service`.
 
-Migrations exist: `InitialDietKnowledgeSchema`, `AddBookKnowledgeReviewMetadata`.
+Migrations exist: `InitialDietKnowledgeSchema`, `AddBookKnowledgeReviewMetadata`, `AddBookSourceIngestion`.
+
+`BookSourceDocument`, `BookSourceChunk`, and `KnowledgeCandidate` are Admin-only ingestion/review tables. Public Diet Knowledge endpoints and Recommendation context do not expose or consume raw chunk text directly.
 
 ## MealPlanningDb
 
@@ -166,3 +207,4 @@ Initial migration exists: `InitialTrackingSchema`.
 - No cross-database foreign keys.
 - Do not create `RecommendationDb` or `NotificationDb` unless a future persistence requirement needs them.
 - EF Core migrations exist for Identity, Diet Knowledge, Meal Planning, and Tracking.
+- Uploaded PDF binaries are stored outside PostgreSQL in local/container storage; only metadata and extracted chunks are stored in DietKnowledgeDb.

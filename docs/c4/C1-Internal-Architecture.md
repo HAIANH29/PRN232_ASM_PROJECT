@@ -34,6 +34,7 @@ flowchart LR
 
     Identity --> IdentityDb
     Diet --> DietDb
+    Diet -->|HTTPS| Gemini
     Meal --> MealDb
     Tracking --> TrackingDb
 
@@ -49,4 +50,4 @@ flowchart LR
     Worker -->|HTTPS| Resend
 ```
 
-Recommendation Service and Notification Service are stateless in the current scope and do not own databases.
+Recommendation Service and Notification Service are stateless in the current scope and do not own databases. Diet Knowledge Service may call Gemini only for Admin book-source candidate extraction; public user and recommendation flows still rely on approved Diet Knowledge content.

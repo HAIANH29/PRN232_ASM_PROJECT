@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using LongevityDiet.Web.Models;
+using Microsoft.AspNetCore.Http;
 
 namespace LongevityDiet.Web.Services;
 
@@ -27,6 +28,25 @@ public sealed class ApiGatewayClient(HttpClient httpClient, ILogger<ApiGatewayCl
         CancellationToken cancellationToken = default)
     {
         using var request = BuildRequest(HttpMethod.Post, path, token, body);
+        return await SendAsync<T>(request, cancellationToken);
+    }
+
+    public async Task<ApiCallResult<T>> PostFileAsync<T>(
+        string path,
+        IFormFile file,
+        string formFieldName,
+        string? token = null,
+        CancellationToken cancellationToken = default)
+    {
+        using var request = BuildRequest(HttpMethod.Post, path, token);
+        await using var stream = file.OpenReadStream();
+        using var content = new MultipartFormDataContent();
+        using var fileContent = new StreamContent(stream);
+        fileContent.Headers.ContentType = new MediaTypeHeaderValue(
+            string.IsNullOrWhiteSpace(file.ContentType) ? "application/pdf" : file.ContentType);
+        content.Add(fileContent, formFieldName, file.FileName);
+        request.Content = content;
+
         return await SendAsync<T>(request, cancellationToken);
     }
 

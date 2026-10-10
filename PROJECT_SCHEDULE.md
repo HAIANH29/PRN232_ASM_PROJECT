@@ -8,9 +8,9 @@ Read together with:
 
 ## Current Snapshot
 
-Current phase: Milestone 9 Database, Docker, and demo data is complete, including Docker startup and demo-data smoke; Book Knowledge manual source review remains pending.
+Current phase: Milestone 9.5 Admin book PDF ingestion and AI chunking is complete; manual source review and approval remain a team responsibility.
 
-Estimated product completion: about 92-94%.
+Estimated product completion: about 95-96%.
 
 What is already in code:
 - .NET solution and project structure exist.
@@ -31,6 +31,7 @@ What is already in code:
 - Architecture docs exist and match the updated microservice diagram.
 - Identity Service now supports register/login/profile/admin-check, password hashing, JWT generation, role seeding, demo admin seeding, and the initial Identity EF Core migration.
 - Diet Knowledge Service now supports book-knowledge review metadata, JSON seed data, public browsing/search/filter/sort/pagination for active approved content, admin CRUD, activation/deactivation, and Diet Knowledge EF Core migrations.
+- Diet Knowledge Service now supports Admin-only PDF upload, text extraction/chunking, Gemini-assisted knowledge candidate generation with local fallback, and candidate approval into managed knowledge.
 - Meal Planning Service now supports authenticated meal plan CRUD, meal plan item scheduling, ownership checks, Diet Knowledge validation through REST, RabbitMQ reminder publishing, recommendation request publishing, recommendation result consumption/storage, recommendation accept flow, and the initial Meal Planning EF Core migration.
 - Tracking Service now supports authenticated daily tracking, meal completion/not-completion tracking, progress summary calculation, ownership checks, Tracking EF Core migration, and the real Tracking -> Notification Service gRPC flow.
 - Notification Service now accepts progress notification gRPC requests and publishes notification messages to RabbitMQ.
@@ -40,6 +41,7 @@ What is already in code:
 
 What is not yet product-ready:
 - The team still needs to verify book-derived seed items against a legally obtained source copy before marking them `Approved`.
+- Uploaded PDF chunks and generated candidates still require Admin/team review before they should be approved for demos.
 - Search/filter/sort/pagination are implemented for Diet Knowledge and Meal Planning; Tracking supports date-filtered paged history.
 - RabbitMQ publish/consume behavior exists for Meal Planning reminders/recommendations, Recommendation Service processing/results, Notification Service notifications, and Notification Worker delivery.
 - Gemini integration has a configurable HTTP client abstraction with safe disabled-mode fallback; real Gemini and Resend delivery need configured API keys for production/demo external calls.
@@ -54,6 +56,7 @@ The project is submission-ready only when all of these are true:
 - Each public REST API has Swagger and health endpoint.
 - Identity supports register, login, profile, JWT issuing, password hashing, User/Admin roles.
 - Diet Knowledge supports admin CRUD and user browse/search/filter/sort/pagination.
+- Admin can upload a legally obtained book PDF, review extracted chunks, and approve generated candidates into managed Diet Knowledge.
 - Meal Planning supports create/update/delete meal plans, meal items, scheduling, ownership checks, and reminder publishing.
 - Tracking supports meal completion, daily tracking, progress summaries, ownership checks, and gRPC notification trigger.
 - Recommendation flow works through RabbitMQ request/result messages and follows AI safety scope.
@@ -361,6 +364,33 @@ Verification:
 Done when:
 - The project can be run from a clean machine using documented steps.
 
+### Milestone 9.5 — Admin Book PDF Ingestion And AI Chunking
+
+Target: T+15 to T+15.5 days.
+
+Status: Completed on 2026-10-10.
+
+Code/work to do:
+- [x] Update project rules so PDF ingestion stays inside Diet Knowledge Service and does not create a new microservice.
+- [x] Add `BookSourceDocument`, `BookSourceChunk`, and `KnowledgeCandidate` persistence in DietKnowledgeDb.
+- [x] Add Admin-only PDF upload/chunk/list endpoints.
+- [x] Add Gemini-assisted candidate extraction with a safe local fallback when Gemini is disabled.
+- [x] Add candidate approve/reject endpoints.
+- [x] Add Web Admin Book Sources screens for upload, chunk review, candidate generation, and approval.
+- [x] Keep raw PDF chunks out of public user APIs and Recommendation context.
+- [x] Add Diet Knowledge EF Core migration for the ingestion tables.
+- [ ] Team review of real uploaded-source candidates before marking final knowledge approved.
+
+Verification:
+- [x] Diet Knowledge API builds.
+- [x] Web app builds.
+- [x] Full solution build/test.
+- [x] Docker Compose config.
+- [x] API smoke for upload, chunking, candidate generation, and approval.
+
+Done when:
+- Admin can ingest a legally obtained PDF from the browser, create review candidates, and approve verified items into managed Diet Knowledge without exposing raw chunks to normal users.
+
 ### Milestone 10 — Tests
 
 Target: T+15 to T+16.5 days.
@@ -456,6 +486,7 @@ This minimum path is enough to demonstrate the required PRN232 architecture and 
 | C4 docs | Existing | Keep synchronized with implementation |
 | Web Application | Main User/Admin browser flows implemented through the API Gateway | Add final demo script and automated UI/API smoke tests if time allows |
 | External providers | Resend sender abstraction with log fallback exists; Gemini client abstraction with disabled-mode fallback exists | Configure real Resend/Gemini keys only for demo/production if needed |
+| Admin PDF ingestion | Implemented and smoke-tested in Diet Knowledge/Web as an Admin-only flow | Team must verify real book candidates before approval; add final demo script |
 | Tests | Not present | Add unit/integration/API tests |
 
 ## Per-Service Checklist
@@ -485,6 +516,8 @@ This minimum path is enough to demonstrate the required PRN232 architecture and 
 - [x] Migration and JSON seed content.
 - [x] Approved local demo seed content for public demo flows.
 - [x] Source/review metadata for book knowledge.
+- [x] Admin PDF upload/chunk/candidate extraction workflow.
+- [x] Candidate approval into managed guideline/food knowledge.
 - [ ] Team source verification and approval of seed content.
 - [ ] Tests.
 
@@ -560,6 +593,7 @@ Note: schedule support is represented on `MealPlanItem` rather than a separate t
 - [x] Recommendation request/review/accept.
 - [x] Tracking/progress.
 - [x] Friendly error/validation handling.
+- [x] Admin Book Sources upload/chunk/review screens.
 
 ### Documentation And Submission
 

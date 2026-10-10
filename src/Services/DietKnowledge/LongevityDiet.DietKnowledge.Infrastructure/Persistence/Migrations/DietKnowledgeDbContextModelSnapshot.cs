@@ -22,6 +22,107 @@ namespace LongevityDiet.DietKnowledge.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("LongevityDiet.DietKnowledge.Domain.Entities.BookSourceChunk", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("CharacterCount")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ChunkIndex")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("DocumentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("PageNumber")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(8000)
+                        .HasColumnType("character varying(8000)");
+
+                    b.Property<int>("TokenEstimate")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PageNumber");
+
+                    b.HasIndex("DocumentId", "ChunkIndex")
+                        .IsUnique();
+
+                    b.ToTable("BookSourceChunks");
+                });
+
+            modelBuilder.Entity("LongevityDiet.DietKnowledge.Domain.Entities.BookSourceDocument", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ChunkCount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("ErrorMessage")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<long>("FileSizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("OriginalFileName")
+                        .IsRequired()
+                        .HasMaxLength(260)
+                        .HasColumnType("character varying(260)");
+
+                    b.Property<DateTimeOffset?>("ProcessedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<string>("StoragePath")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("StoredFileName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<DateTimeOffset>("UploadedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UploadedBy")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("UploadedAtUtc");
+
+                    b.ToTable("BookSourceDocuments");
+                });
+
             modelBuilder.Entity("LongevityDiet.DietKnowledge.Domain.Entities.DietGuideline", b =>
                 {
                     b.Property<Guid>("Id")
@@ -168,6 +269,90 @@ namespace LongevityDiet.DietKnowledge.Infrastructure.Persistence.Migrations
                     b.ToTable("Foods");
                 });
 
+            modelBuilder.Entity("LongevityDiet.DietKnowledge.Domain.Entities.KnowledgeCandidate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ApprovedKnowledgeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CandidateType")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<Guid?>("ChunkId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("DocumentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("GeneratedBy")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<DateTimeOffset?>("ReviewedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ReviewedBy")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("SourceChapter")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("SourcePage")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<string>("SourceReference")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("SourceTitle")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<string>("Summary")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CandidateType");
+
+                    b.HasIndex("ChunkId");
+
+                    b.HasIndex("DocumentId");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("KnowledgeCandidates");
+                });
+
             modelBuilder.Entity("LongevityDiet.DietKnowledge.Domain.Entities.Recipe", b =>
                 {
                     b.Property<Guid>("Id")
@@ -262,6 +447,35 @@ namespace LongevityDiet.DietKnowledge.Infrastructure.Persistence.Migrations
                     b.ToTable("RecipeIngredients");
                 });
 
+            modelBuilder.Entity("LongevityDiet.DietKnowledge.Domain.Entities.BookSourceChunk", b =>
+                {
+                    b.HasOne("LongevityDiet.DietKnowledge.Domain.Entities.BookSourceDocument", "Document")
+                        .WithMany("Chunks")
+                        .HasForeignKey("DocumentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Document");
+                });
+
+            modelBuilder.Entity("LongevityDiet.DietKnowledge.Domain.Entities.KnowledgeCandidate", b =>
+                {
+                    b.HasOne("LongevityDiet.DietKnowledge.Domain.Entities.BookSourceChunk", "Chunk")
+                        .WithMany("Candidates")
+                        .HasForeignKey("ChunkId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("LongevityDiet.DietKnowledge.Domain.Entities.BookSourceDocument", "Document")
+                        .WithMany("Candidates")
+                        .HasForeignKey("DocumentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Chunk");
+
+                    b.Navigation("Document");
+                });
+
             modelBuilder.Entity("LongevityDiet.DietKnowledge.Domain.Entities.RecipeIngredient", b =>
                 {
                     b.HasOne("LongevityDiet.DietKnowledge.Domain.Entities.Food", "Food")
@@ -279,6 +493,18 @@ namespace LongevityDiet.DietKnowledge.Infrastructure.Persistence.Migrations
                     b.Navigation("Food");
 
                     b.Navigation("Recipe");
+                });
+
+            modelBuilder.Entity("LongevityDiet.DietKnowledge.Domain.Entities.BookSourceChunk", b =>
+                {
+                    b.Navigation("Candidates");
+                });
+
+            modelBuilder.Entity("LongevityDiet.DietKnowledge.Domain.Entities.BookSourceDocument", b =>
+                {
+                    b.Navigation("Candidates");
+
+                    b.Navigation("Chunks");
                 });
 
             modelBuilder.Entity("LongevityDiet.DietKnowledge.Domain.Entities.Recipe", b =>

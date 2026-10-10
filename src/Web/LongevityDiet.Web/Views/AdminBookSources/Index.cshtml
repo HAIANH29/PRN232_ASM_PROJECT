@@ -1,0 +1,84 @@
+@model AdminBookSourcesViewModel
+@{
+    ViewData["Title"] = "Book Sources";
+}
+
+<section class="page-head">
+    <div>
+        <p class="eyebrow">Admin workspace</p>
+        <h1>Book source ingestion</h1>
+        <p class="text-muted mb-0">Upload a legally obtained PDF, extract chunks, and generate review candidates before approving knowledge.</p>
+    </div>
+    <div class="head-actions">
+        <a class="btn btn-outline-secondary" asp-controller="AdminKnowledge" asp-action="Index">Managed knowledge</a>
+    </div>
+</section>
+
+<section class="section-card narrow-card">
+    <div class="card-heading">
+        <h2>Upload book PDF</h2>
+    </div>
+    <form asp-action="Upload" method="post" enctype="multipart/form-data" class="form-stack">
+        <div asp-validation-summary="ModelOnly" class="text-danger small"></div>
+        <div>
+            <label asp-for="Upload.File" class="form-label">PDF file</label>
+            <input asp-for="Upload.File" type="file" accept="application/pdf,.pdf" class="form-control" />
+            <span asp-validation-for="Upload.File" class="text-danger small"></span>
+        </div>
+        <button class="btn btn-dark" type="submit">Upload and chunk</button>
+    </form>
+</section>
+
+<section class="section-card mt-3">
+    <div class="card-heading">
+        <h2>Uploaded sources</h2>
+        <span class="count-pill">@Model.Documents.TotalCount</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>File</th>
+                    <th>Status</th>
+                    <th>Chunks</th>
+                    <th>Uploaded</th>
+                    <th class="table-actions">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Documents.Items)
+                {
+                    <tr>
+                        <td>
+                            <div class="item-title">@item.OriginalFileName</div>
+                            <small>@FormatBytes(item.FileSizeBytes) by @item.UploadedBy</small>
+                        </td>
+                        <td><span class="badge @(item.Status == "Failed" ? "text-bg-danger" : item.Status == "Chunked" ? "text-bg-success" : "text-bg-secondary")">@item.Status</span></td>
+                        <td>@item.ChunkCount</td>
+                        <td>@item.UploadedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                        <td class="table-actions">
+                            <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@item.Id">Open</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (!Model.Documents.Items.Any())
+    {
+        <p class="empty-state mt-3">No uploaded book sources yet.</p>
+    }
+</section>
+
+@functions {
+    private static string FormatBytes(long bytes)
+    {
+        return bytes >= 1024 * 1024
+            ? $"{bytes / 1024d / 1024d:0.0} MB"
+            : $"{Math.Max(1, bytes / 1024d):0.0} KB";
+    }
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

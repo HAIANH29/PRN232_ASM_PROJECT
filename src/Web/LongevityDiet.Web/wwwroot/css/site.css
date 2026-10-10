@@ -344,6 +344,19 @@ a {
   font-weight: 750;
 }
 
+.candidate-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.chunk-text {
+  max-height: 320px;
+  overflow: auto;
+  white-space: pre-wrap;
+}
+
 .plan-row {
   display: flex;
   align-items: center;

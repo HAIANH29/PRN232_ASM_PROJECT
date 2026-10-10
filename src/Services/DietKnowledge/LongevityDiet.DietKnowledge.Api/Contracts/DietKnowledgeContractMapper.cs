@@ -63,6 +63,14 @@ internal static class DietKnowledgeContractMapper
             request.SortDirection);
     }
 
+    public static BookSourceDocumentQuery ToQuery(this BookSourceDocumentListRequest request)
+    {
+        return new BookSourceDocumentQuery(
+            request.PageNumber,
+            request.PageSize,
+            request.Status);
+    }
+
     public static CreateDietGuidelineCommand ToCommand(this CreateDietGuidelineRequest request)
     {
         return new CreateDietGuidelineCommand(
@@ -202,6 +210,56 @@ internal static class DietKnowledgeContractMapper
             model.Ingredients.Select(ToResponse).ToArray(),
             model.CreatedAtUtc,
             model.UpdatedAtUtc);
+    }
+
+    public static BookSourceDocumentResponse ToResponse(this BookSourceDocumentModel model)
+    {
+        return new BookSourceDocumentResponse(
+            model.Id,
+            model.OriginalFileName,
+            model.StoredFileName,
+            model.ContentType,
+            model.FileSizeBytes,
+            model.Status,
+            model.UploadedBy,
+            model.UploadedAtUtc,
+            model.ProcessedAtUtc,
+            model.ChunkCount,
+            model.ErrorMessage);
+    }
+
+    public static BookSourceChunkResponse ToResponse(this BookSourceChunkModel model)
+    {
+        return new BookSourceChunkResponse(
+            model.Id,
+            model.DocumentId,
+            model.ChunkIndex,
+            model.PageNumber,
+            model.Text,
+            model.CharacterCount,
+            model.TokenEstimate,
+            model.CreatedAtUtc);
+    }
+
+    public static KnowledgeCandidateResponse ToResponse(this KnowledgeCandidateModel model)
+    {
+        return new KnowledgeCandidateResponse(
+            model.Id,
+            model.DocumentId,
+            model.ChunkId,
+            model.CandidateType,
+            model.Title,
+            model.Summary,
+            model.SourceTitle,
+            model.SourceChapter,
+            model.SourcePage,
+            model.SourceReference,
+            model.Status,
+            model.GeneratedBy,
+            model.CreatedAtUtc,
+            model.ReviewedBy,
+            model.ReviewedAtUtc,
+            model.ApprovedKnowledgeId);
     }
 
     private static RecipeIngredientCommand ToCommand(RecipeIngredientRequest request)

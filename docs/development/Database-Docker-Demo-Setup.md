@@ -36,7 +36,7 @@ Each stateful service owns and initializes only its own database:
 | Service | Database | Startup behavior |
 | --- | --- | --- |
 | Identity Service | `IdentityDb` | Applies EF Core migrations, seeds `User` and `Admin` roles, demo admin, and demo user |
-| Diet Knowledge Service | `DietKnowledgeDb` | Applies EF Core migrations, seeds book-review data, and optionally seeds approved local demo knowledge |
+| Diet Knowledge Service | `DietKnowledgeDb` | Applies EF Core migrations, seeds book-review data, optionally seeds approved local demo knowledge, and stores Admin PDF ingestion metadata/chunks/candidates |
 | Meal Planning Service | `MealPlanningDb` | Applies EF Core migrations |
 | Tracking Service | `TrackingDb` | Applies EF Core migrations |
 
@@ -73,6 +73,16 @@ Diet Knowledge loads two seed datasets:
 
 The local demo dataset is for the teacher demo path. The team still must replace placeholder source references with exact chapter/page/source metadata after checking a legally obtained copy of the book before claiming final book-source approval.
 
+## Admin Book PDF Ingestion
+
+The Web admin area includes `Book Sources` for uploading a legally obtained PDF copy used by the project team.
+
+- Uploaded PDF files are private local artifacts and are not committed to git.
+- Docker stores them in the `diet-knowledge-book-sources` volume at `/app/storage/book-sources`.
+- Diet Knowledge Service extracts text into `BookSourceChunks` and can generate `KnowledgeCandidates`.
+- Generated candidates remain Admin-only until approved into managed Diet Knowledge content.
+- Public browsing, Meal Planning validation, and Recommendation context still use only active `Approved` guidelines, foods, and recipes.
+
 ## Environment Variables
 
 | Variable | Purpose | Default |
@@ -89,6 +99,7 @@ The local demo dataset is for the teacher demo path. The team still must replace
 | `IDENTITY_USER_PASSWORD` | Demo user password | `User@123456` |
 | `IDENTITY_USER_DISPLAY_NAME` | Demo user display name | `Demo User` |
 | `DIET_KNOWLEDGE_SEED_INCLUDE_DEMO_APPROVED_CONTENT` | Loads approved local demo knowledge | `true` |
+| `BOOK_KNOWLEDGE_STORAGE_PATH` | Container path for uploaded book PDFs | `/app/storage/book-sources` |
 | `GEMINI_ENABLED` | Enables real Gemini calls | `false` |
 | `GEMINI_ENDPOINT` | Gemini API base URL | `https://generativelanguage.googleapis.com` |
 | `GEMINI_API_KEY` | Gemini API key | `development-only` |

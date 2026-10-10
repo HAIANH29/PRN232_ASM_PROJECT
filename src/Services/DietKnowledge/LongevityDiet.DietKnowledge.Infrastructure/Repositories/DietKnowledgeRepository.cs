@@ -264,6 +264,95 @@ public sealed class DietKnowledgeRepository(DietKnowledgeDbContext dbContext) : 
         }
     }
 
+    public async Task<PagedResult<BookSourceDocument>> ListBookSourceDocumentsAsync(
+        BookSourceDocumentQuery query,
+        CancellationToken cancellationToken = default)
+    {
+        var source = dbContext.BookSourceDocuments.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(query.Status))
+        {
+            source = source.Where(document => document.Status == query.Status);
+        }
+
+        source = source.OrderByDescending(document => document.UploadedAtUtc);
+
+        return await ToPagedResultAsync(source, query.PageNumber, query.PageSize, cancellationToken);
+    }
+
+    public Task<BookSourceDocument?> GetBookSourceDocumentByIdAsync(
+        Guid id,
+        bool includeChunks = false,
+        bool includeCandidates = false,
+        CancellationToken cancellationToken = default)
+    {
+        var query = dbContext.BookSourceDocuments.AsQueryable();
+
+        if (includeChunks)
+        {
+            query = query.Include(document => document.Chunks);
+        }
+
+        if (includeCandidates)
+        {
+            query = query.Include(document => document.Candidates);
+        }
+
+        return query.FirstOrDefaultAsync(document => document.Id == id, cancellationToken);
+    }
+
+    public async Task AddBookSourceDocumentAsync(
+        BookSourceDocument document,
+        CancellationToken cancellationToken = default)
+    {
+        await dbContext.BookSourceDocuments.AddAsync(document, cancellationToken);
+    }
+
+    public async Task<IReadOnlyCollection<BookSourceChunk>> ListBookSourceChunksAsync(
+        Guid documentId,
+        CancellationToken cancellationToken = default)
+    {
+        return await dbContext.BookSourceChunks
+            .AsNoTracking()
+            .Where(chunk => chunk.DocumentId == documentId)
+            .OrderBy(chunk => chunk.ChunkIndex)
+            .ToArrayAsync(cancellationToken);
+    }
+
+    public async Task AddBookSourceChunksAsync(
+        IReadOnlyCollection<BookSourceChunk> chunks,
+        CancellationToken cancellationToken = default)
+    {
+        await dbContext.BookSourceChunks.AddRangeAsync(chunks, cancellationToken);
+    }
+
+    public async Task<IReadOnlyCollection<KnowledgeCandidate>> ListKnowledgeCandidatesAsync(
+        Guid documentId,
+        CancellationToken cancellationToken = default)
+    {
+        return await dbContext.KnowledgeCandidates
+            .AsNoTracking()
+            .Where(candidate => candidate.DocumentId == documentId)
+            .OrderByDescending(candidate => candidate.CreatedAtUtc)
+            .ToArrayAsync(cancellationToken);
+    }
+
+    public Task<KnowledgeCandidate?> GetKnowledgeCandidateByIdAsync(
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        return dbContext.KnowledgeCandidates
+            .Include(candidate => candidate.Document)
+            .FirstOrDefaultAsync(candidate => candidate.Id == id, cancellationToken);
+    }
+
+    public async Task AddKnowledgeCandidatesAsync(
+        IReadOnlyCollection<KnowledgeCandidate> candidates,
+        CancellationToken cancellationToken = default)
+    {
+        await dbContext.KnowledgeCandidates.AddRangeAsync(candidates, cancellationToken);
+    }
+
     public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         await dbContext.SaveChangesAsync(cancellationToken);

@@ -70,5 +70,39 @@ public interface IDietKnowledgeRepository
         Recipe recipe,
         IReadOnlyCollection<RecipeIngredient> ingredients);
 
+    Task<PagedResult<BookSourceDocument>> ListBookSourceDocumentsAsync(
+        BookSourceDocumentQuery query,
+        CancellationToken cancellationToken = default);
+
+    Task<BookSourceDocument?> GetBookSourceDocumentByIdAsync(
+        Guid id,
+        bool includeChunks = false,
+        bool includeCandidates = false,
+        CancellationToken cancellationToken = default);
+
+    Task AddBookSourceDocumentAsync(
+        BookSourceDocument document,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyCollection<BookSourceChunk>> ListBookSourceChunksAsync(
+        Guid documentId,
+        CancellationToken cancellationToken = default);
+
+    Task AddBookSourceChunksAsync(
+        IReadOnlyCollection<BookSourceChunk> chunks,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyCollection<KnowledgeCandidate>> ListKnowledgeCandidatesAsync(
+        Guid documentId,
+        CancellationToken cancellationToken = default);
+
+    Task<KnowledgeCandidate?> GetKnowledgeCandidateByIdAsync(
+        Guid id,
+        CancellationToken cancellationToken = default);
+
+    Task AddKnowledgeCandidatesAsync(
+        IReadOnlyCollection<KnowledgeCandidate> candidates,
+        CancellationToken cancellationToken = default);
+
     Task SaveChangesAsync(CancellationToken cancellationToken = default);
 }

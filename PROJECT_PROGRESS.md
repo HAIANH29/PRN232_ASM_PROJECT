@@ -4,10 +4,10 @@ This file is the shared progress tracker for the project. Every human or AI agen
 
 ## Current Status
 
-- Phase: Milestone 9 Database, Docker, and demo data complete; manual book source review/approval remains.
+- Phase: Milestone 9.5 Admin book PDF ingestion and AI chunking complete; manual real book source review/approval remains.
 - Branch: `HA/phase-1-microservices-scaffold`.
-- Last pushed baseline before this update: Web footer layout fix after commit `d8a73b0`.
-- Verification baseline: `dotnet restore LongevityDietPlatform.sln`, `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `dotnet test LongevityDietPlatform.sln --no-restore -m:1 --verbosity minimal`, `docker compose config --quiet`, and Milestone 9 Docker/demo-data smoke passed on 2026-10-10.
+- Last pushed baseline before this update: Milestone 9 after commit `f0ec65a`.
+- Verification baseline: `dotnet restore LongevityDietPlatform.sln`, `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `dotnet test LongevityDietPlatform.sln --no-restore -m:1 --verbosity minimal`, `docker compose config --quiet`, `docker compose up -d --build`, and Admin PDF ingestion API smoke passed on 2026-10-10.
 - Completion roadmap: `PROJECT_SCHEDULE.md`.
 
 ## Done
@@ -47,10 +47,11 @@ This file is the shared progress tracker for the project. Every human or AI agen
 - Wired the Web Application to call public backend services only through the API Gateway.
 - Fixed Meal Planning item insertion for existing meal plans so Web meal-plan item creation stores a new `MealPlanItem` instead of attempting to update a missing row.
 - Added clean Docker/database setup documentation, Docker health checks, demo admin/user seed accounts, and approved local demo Diet Knowledge seed data for browser demos.
+- Added Admin-only book PDF ingestion in Diet Knowledge Service: upload, PDF text extraction, chunk storage, Gemini-assisted candidate generation with local fallback, candidate approve/reject, EF Core migration, and Web Admin Book Sources screens.
 
 ## Incomplete / Remaining Work
 
-- Verify each seeded book-knowledge item against a legally obtained source copy and approve only reviewed items.
+- Verify each real book-derived seed/candidate item against a legally obtained source copy and approve only reviewed items.
 - Add automated tests for implemented slices.
 - Add final demo script/submission checklist and any final documentation polish required by the teacher.
 
@@ -69,6 +70,18 @@ Each update should include:
 Do not mark a feature as complete if it only has placeholders or configuration. Call it a scaffold until the real behavior exists and has been verified.
 
 ## Change Log
+
+### 2026-10-10 — Complete Milestone 9.5 Admin Book PDF Ingestion And AI Chunking
+
+- Updated project rules and documentation so PDF ingestion is Admin-only, owned by Diet Knowledge Service, and does not expose raw chunks to normal users or Recommendation context.
+- Added Diet Knowledge domain/application/infrastructure/API support for `BookSourceDocument`, `BookSourceChunk`, and `KnowledgeCandidate`.
+- Added PDF upload, PdfPig text extraction, chunking, Gemini-assisted candidate generation, safe local fallback candidate generation, candidate approval into managed guideline/food knowledge, and candidate rejection.
+- Added the Diet Knowledge EF Core migration `AddBookSourceIngestion`.
+- Added Web Admin Book Sources screens for upload, source details, chunk review, candidate generation, approval, and rejection.
+- Added Docker storage volume/configuration for uploaded book PDFs and updated README, book-knowledge docs, database docs, ERD, C1 architecture docs, seed strategy, `.env.example`, and `PROJECT_SCHEDULE.md`.
+- Verification: `dotnet restore LongevityDietPlatform.sln`, `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `dotnet test LongevityDietPlatform.sln --no-restore -m:1 --verbosity minimal`, `docker compose config --quiet`, `git diff --check`, `docker compose up -d --build`, targeted `docker compose up -d --build diet-knowledge-service`, Web home smoke, Diet Knowledge health smoke, gateway routes smoke, admin login through the gateway, temporary PDF upload through the gateway, chunk extraction, candidate generation, and candidate approval into managed Diet Knowledge.
+- Smoke document: `f00ec797-44bc-464b-bb2b-377fdfbc449a`; approved knowledge: `d2099645-32ea-44a6-95da-ebaa2a72c051`.
+- Remaining TODO: use the team's legally obtained real PDF/source copy, review generated candidates manually, approve only verified items, add automated tests, and add the final demo/submission checklist.
 
 ### 2026-10-10 — Complete Milestone 9 Database, Docker, And Demo Data
 

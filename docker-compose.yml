@@ -54,6 +54,13 @@ services:
       ConnectionStrings__DietKnowledgeDb: Host=diet-knowledge-db;Port=5432;Database=DietKnowledgeDb;Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
       Jwt__SigningKey: ${JWT_SIGNING_KEY:-development-only-replace-with-secret}
       DietKnowledgeSeed__IncludeDemoApprovedContent: ${DIET_KNOWLEDGE_SEED_INCLUDE_DEMO_APPROVED_CONTENT:-true}
+      BookKnowledgeIngestion__StoragePath: ${BOOK_KNOWLEDGE_STORAGE_PATH:-/app/storage/book-sources}
+      Gemini__Enabled: ${GEMINI_ENABLED:-false}
+      Gemini__Endpoint: ${GEMINI_ENDPOINT:-https://generativelanguage.googleapis.com}
+      Gemini__ApiKey: ${GEMINI_API_KEY:-development-only}
+      Gemini__Model: ${GEMINI_MODEL:-gemini-2.0-flash}
+    volumes:
+      - diet-knowledge-book-sources:/app/storage/book-sources
     depends_on:
       diet-knowledge-db:
         condition: service_healthy
@@ -217,5 +224,6 @@ services:
 volumes:
   identity-db-data:
   diet-knowledge-db-data:
+  diet-knowledge-book-sources:
   meal-planning-db-data:
   tracking-db-data:
