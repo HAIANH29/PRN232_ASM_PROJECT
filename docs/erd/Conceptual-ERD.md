@@ -61,6 +61,35 @@ erDiagram
         string QuantityText
     }
 
+    BOOK_SOURCE_DOCUMENT {
+        guid Id
+        string OriginalFileName
+        string Status
+        string UploadedBy
+        datetime UploadedAtUtc
+        int ChunkCount
+    }
+
+    BOOK_SOURCE_CHUNK {
+        guid Id
+        guid DocumentId
+        int ChunkIndex
+        int PageNumber
+        string Text
+        int TokenEstimate
+    }
+
+    KNOWLEDGE_CANDIDATE {
+        guid Id
+        guid DocumentId
+        guid ChunkId
+        string CandidateType
+        string Title
+        string Summary
+        string Status
+        guid ApprovedKnowledgeId
+    }
+
     MEAL_PLAN {
         guid Id
         guid UserId
@@ -129,6 +158,9 @@ erDiagram
     USER }o--o{ ROLE : has
     RECIPE ||--o{ RECIPE_INGREDIENT : contains
     FOOD ||--o{ RECIPE_INGREDIENT : used_by
+    BOOK_SOURCE_DOCUMENT ||--o{ BOOK_SOURCE_CHUNK : extracted_into
+    BOOK_SOURCE_DOCUMENT ||--o{ KNOWLEDGE_CANDIDATE : generates
+    BOOK_SOURCE_CHUNK ||--o{ KNOWLEDGE_CANDIDATE : supports
     MEAL_PLAN ||--o{ MEAL_PLAN_ITEM : contains
     DAILY_TRACKING ||--o{ MEAL_TRACKING : records
 ```
@@ -136,3 +168,5 @@ erDiagram
 Cross-service relationships such as `MealPlan.UserId`, `MealPlanItem.RecipeId`, `MealPlanItem.FoodId`, and `MealTracking.MealPlanItemId` are ID references only, not cross-database foreign keys.
 
 Meal scheduling is represented by `MealPlanItem.PlannedDate`, `MealSlot`, and `ReminderAtUtc` rather than a separate `MealSchedule` table in the current workflow.
+
+Book-source tables are internal to Diet Knowledge review. `KnowledgeCandidate.ApprovedKnowledgeId` stores the created guideline/food identifier after approval but is not modeled as a foreign key because candidates can approve into more than one managed content type.

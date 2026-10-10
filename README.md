@@ -19,7 +19,7 @@ Development conventions:
 - `LongevityDiet.Web` - ASP.NET Core MVC web application.
 - `LongevityDiet.ApiGateway` - YARP reverse proxy gateway.
 - `LongevityDiet.Identity.Api` - REST API for users, roles, authentication, and JWT ownership.
-- `LongevityDiet.DietKnowledge.Api` - REST API for guidelines, foods, recipes, and ingredients.
+- `LongevityDiet.DietKnowledge.Api` - REST API for guidelines, foods, recipes, ingredients, and Admin book-source ingestion.
 - `LongevityDiet.MealPlanning.Api` - REST API for meal plans, reminder publishing, and AI recommendation request publishing.
 - `LongevityDiet.Tracking.Api` - REST API for daily and meal tracking.
 - `LongevityDiet.Recommendation.Service` - internal RabbitMQ recommendation worker with approved-knowledge context, safe fallback behavior, and optional Google Gemini integration.
@@ -84,6 +84,7 @@ Database initialization and demo data:
 - Docker Compose waits for PostgreSQL and RabbitMQ health checks before starting dependent services.
 - Diet Knowledge loads `book-knowledge-seed.json` as `NeedsReview` review data.
 - Diet Knowledge also loads approved local demo knowledge from `demo-approved-knowledge-seed.json` when `DIET_KNOWLEDGE_SEED_INCLUDE_DEMO_APPROVED_CONTENT=true`, which is the default for local teacher demos.
+- Admin PDF uploads are stored in the Docker volume `diet-knowledge-book-sources` at `/app/storage/book-sources`.
 - Full setup details and environment variables are documented in `docs/development/Database-Docker-Demo-Setup.md`.
 
 Diet Knowledge endpoints:
@@ -98,8 +99,17 @@ Diet Knowledge endpoints:
   - `POST /api/admin/foods`, `PUT|DELETE /api/admin/foods/{id}`
   - `POST /api/admin/recipes`, `PUT|DELETE /api/admin/recipes/{id}`
   - `PATCH /api/admin/{diet-guidelines|foods|recipes}/{id}/activation`
+- Admin book-source ingestion:
+  - `POST /api/admin/book-sources` multipart PDF upload
+  - `GET /api/admin/book-sources`
+  - `GET /api/admin/book-sources/{id}/chunks`
+  - `POST /api/admin/book-sources/{id}/candidates/generate`
+  - `GET /api/admin/book-sources/{id}/candidates`
+  - `POST /api/admin/knowledge-candidates/{id}/approve`
+  - `POST /api/admin/knowledge-candidates/{id}/reject`
 - Admin list endpoints can filter by `reviewStatus=NeedsReview|Approved|Rejected`.
 - Seeded book-knowledge items are `NeedsReview` until the team fills source metadata and approves them.
+- Uploaded PDF chunks and candidates are Admin-only. Public endpoints and Recommendation context continue to use only active `Approved` guidelines, foods, and recipes.
 
 Meal Planning endpoints:
 
@@ -156,6 +166,14 @@ Recommendation Service:
 - Can call Gemini through a configurable HTTP client when `GEMINI_ENABLED=true`, `GEMINI_API_KEY` is configured, and `GEMINI_MODEL` is set.
 - Publishes `RecommendationResult` messages to `recommendation.results`, where Meal Planning consumes and stores them for user review.
 - Keeps the required safety disclaimer and avoids diagnosis, treatment advice, disease prediction, and lifespan prediction.
+
+Admin Book Sources:
+
+- Sign in as Admin and open `Book Sources` in the Web navigation.
+- Upload a legally obtained PDF copy for private project research.
+- The Diet Knowledge Service extracts chunks, stores them in `DietKnowledgeDb`, and can use Gemini to generate candidate summaries.
+- If Gemini is disabled, safe placeholder candidates are created so the workflow can still be demonstrated.
+- Approving a candidate creates managed Diet Knowledge content; raw chunks are never user-facing content.
 
 ## Remaining TODO
 

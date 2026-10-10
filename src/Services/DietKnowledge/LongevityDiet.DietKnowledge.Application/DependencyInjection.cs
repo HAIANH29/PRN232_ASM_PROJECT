@@ -8,6 +8,7 @@ public static class DependencyInjection
     public static IServiceCollection AddDietKnowledgeApplication(this IServiceCollection services)
     {
         services.AddScoped<IDietKnowledgeService, DietKnowledgeService>();
+        services.AddScoped<IBookKnowledgeIngestionService, BookKnowledgeIngestionService>();
 
         return services;
     }

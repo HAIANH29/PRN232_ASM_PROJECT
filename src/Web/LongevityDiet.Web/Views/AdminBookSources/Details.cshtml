@@ -1,0 +1,129 @@
+@model AdminBookSourceDetailsViewModel
+@{
+    ViewData["Title"] = "Book Source Details";
+}
+
+<section class="page-head">
+    <div>
+        <p class="eyebrow">Book source</p>
+        <h1>@Model.Document.OriginalFileName</h1>
+        <p class="text-muted mb-0">Review extracted chunks, generate candidates, then approve only the items that are safe and source-verified.</p>
+    </div>
+    <div class="head-actions">
+        <a class="btn btn-outline-secondary" asp-action="Index">Back to sources</a>
+        <form asp-action="GenerateCandidates" asp-route-id="@Model.Document.Id" method="post" class="inline-form">
+            <button class="btn btn-dark" type="submit" disabled="@(Model.Document.Status != "Chunked")">Generate candidates</button>
+        </form>
+    </div>
+</section>
+
+<section class="content-grid two-columns">
+    <div class="section-card">
+        <div class="card-heading">
+            <h2>Document</h2>
+            <span class="badge @(Model.Document.Status == "Failed" ? "text-bg-danger" : Model.Document.Status == "Chunked" ? "text-bg-success" : "text-bg-secondary")">@Model.Document.Status</span>
+        </div>
+        <dl class="detail-list">
+            <dt>Uploaded by</dt>
+            <dd>@Model.Document.UploadedBy</dd>
+            <dt>Uploaded at</dt>
+            <dd>@Model.Document.UploadedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</dd>
+            <dt>Processed at</dt>
+            <dd>@(Model.Document.ProcessedAtUtc?.ToLocalTime().ToString("yyyy-MM-dd HH:mm") ?? "-")</dd>
+            <dt>Chunks</dt>
+            <dd>@Model.Document.ChunkCount</dd>
+            <dt>Stored file</dt>
+            <dd>@Model.Document.StoredFileName</dd>
+        </dl>
+        @if (!string.IsNullOrWhiteSpace(Model.Document.ErrorMessage))
+        {
+            <p class="note-box">@Model.Document.ErrorMessage</p>
+        }
+    </div>
+
+    <div class="section-card">
+        <div class="card-heading">
+            <h2>Review rule</h2>
+        </div>
+        <p class="text-muted mb-0">Candidates are not visible to users and are not used by recommendations until an Admin approves them into managed Diet Knowledge content.</p>
+    </div>
+</section>
+
+<section class="section-card mt-3">
+    <div class="card-heading">
+        <h2>Knowledge candidates</h2>
+        <span class="count-pill">@Model.Candidates.Count</span>
+    </div>
+    @if (!Model.Candidates.Any())
+    {
+        <p class="empty-state">No candidates yet. Generate candidates after the document is chunked.</p>
+    }
+    else
+    {
+        <div class="item-stack">
+            @foreach (var candidate in Model.Candidates)
+            {
+                <article class="content-item">
+                    <div class="candidate-head">
+                        <div>
+                            <div class="item-title">@candidate.Title</div>
+                            <small>@candidate.CandidateType · @candidate.GeneratedBy · @candidate.Status</small>
+                        </div>
+                        @if (candidate.Status == "NeedsReview")
+                        {
+                            <div class="row-actions">
+                                <form asp-action="ApproveCandidate" method="post" class="inline-form">
+                                    <input type="hidden" name="documentId" value="@Model.Document.Id" />
+                                    <input type="hidden" name="candidateId" value="@candidate.Id" />
+                                    <button class="btn btn-sm btn-dark" type="submit">Approve</button>
+                                </form>
+                                <form asp-action="RejectCandidate" method="post" class="inline-form">
+                                    <input type="hidden" name="documentId" value="@Model.Document.Id" />
+                                    <input type="hidden" name="candidateId" value="@candidate.Id" />
+                                    <button class="btn btn-sm btn-outline-danger" type="submit">Reject</button>
+                                </form>
+                            </div>
+                        }
+                    </div>
+                    <p>@candidate.Summary</p>
+                    <small>@candidate.SourceTitle · @candidate.SourceChapter · page @candidate.SourcePage · @candidate.SourceReference</small>
+                </article>
+            }
+        </div>
+    }
+</section>
+
+<section class="section-card mt-3">
+    <div class="card-heading">
+        <h2>Extracted chunks</h2>
+        <span class="count-pill">@Model.Chunks.Count</span>
+    </div>
+    @if (!Model.Chunks.Any())
+    {
+        <p class="empty-state">No extracted chunks available.</p>
+    }
+    else
+    {
+        <div class="item-stack">
+            @foreach (var chunk in Model.Chunks)
+            {
+                <details class="content-item">
+                    <summary class="item-title">Chunk @chunk.ChunkIndex · page @chunk.PageNumber · @chunk.CharacterCount chars</summary>
+                    <p class="chunk-text">@Shorten(chunk.Text, 1800)</p>
+                </details>
+            }
+        </div>
+    }
+</section>
+
+@functions {
+    private static string Shorten(string value, int maxLength)
+    {
+        if (string.IsNullOrWhiteSpace(value) || value.Length <= maxLength)
+        {
+            return value;
+        }
+
+        return $"{value[..maxLength]}...";
+    }
+}

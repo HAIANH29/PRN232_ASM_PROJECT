@@ -23,6 +23,7 @@ Always keep the project aligned with the book-based domain.
 
 Do:
 - Diet guidelines derived from the approved book content
+- Admin-only PDF ingestion for a legitimately obtained book copy, used to create review candidates
 - Foods and recipes compatible with those guidelines
 - Meal planning
 - Daily tracking / progress
@@ -31,6 +32,7 @@ Do:
 
 Do NOT:
 - Turn the product into a generic nutrition platform
+- Expose uploaded book PDFs or raw extracted chunks to normal users
 - Add diagnosis, treatment, disease prediction, lifespan prediction, or medical advice
 - Invent unnecessary microservices
 - Add mobile app, payment, social networking, wearable integration, or media storage unless explicitly requested
@@ -87,12 +89,16 @@ Owns:
 - Food
 - Recipe
 - RecipeIngredient
+- BookSourceDocument
+- BookSourceChunk
+- KnowledgeCandidate
 
 Database:
 - DietKnowledgeDb
 
 Admin can manage this content.
 Users can browse/search/filter this content.
+Admin can upload a legally obtained PDF source for private project research. The service extracts chunks and generates knowledge candidates for Admin review. Public reads and Recommendation context must still use only active `Approved` DietGuideline/Food/Recipe content, not raw PDF chunks.
 
 ### Meal Planning Service
 Owns:
@@ -256,6 +262,8 @@ Rules:
 - Cross-service references use IDs only.
 - Use EF Core migrations per service.
 - Do not create RecommendationDb or NotificationDb unless a concrete future requirement needs persistence.
+- PDF ingestion metadata and chunks belong to DietKnowledgeDb because they support Diet Knowledge review.
+- Uploaded PDF binaries are local/private development artifacts. Do not commit them to git or redistribute the full book content.
 
 ## 9. Initial Functional Scope
 
@@ -278,16 +286,22 @@ Rules:
 - CRUD Foods
 - CRUD Recipes
 - Activate/deactivate managed content
+- Upload book-source PDF files for Admin-only chunking and candidate extraction
+- Review, approve, or reject generated knowledge candidates
 
 Do not add admin capabilities unrelated to this scope.
 
 ## 10. AI Recommendation Rules
 AI is an enhancement, not the source of truth.
 
+Admin PDF ingestion may use Google Gemini to summarize extracted chunks into review candidates, but those candidates are not source-of-truth content until an Admin verifies and approves them.
+
 Recommendation must be based on:
 - Approved knowledge derived from *The Longevity Diet*
 - Foods/recipes available in the system
 - User preferences supplied by the user
+
+Recommendation must not use raw uploaded PDF text or unapproved chunks directly.
 
 Google Gemini must not be used as a generic medical/nutrition authority.
 
