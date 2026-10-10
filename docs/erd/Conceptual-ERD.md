@@ -64,10 +64,16 @@ erDiagram
     BOOK_SOURCE_DOCUMENT {
         guid Id
         string OriginalFileName
+        string StoredFileName
+        string ContentType
+        long FileSizeBytes
+        string StoragePath
         string Status
         string UploadedBy
         datetime UploadedAtUtc
+        datetime ProcessedAtUtc
         int ChunkCount
+        string ErrorMessage
     }
 
     BOOK_SOURCE_CHUNK {
@@ -76,7 +82,9 @@ erDiagram
         int ChunkIndex
         int PageNumber
         string Text
+        int CharacterCount
         int TokenEstimate
+        datetime CreatedAtUtc
     }
 
     KNOWLEDGE_CANDIDATE {
@@ -86,7 +94,15 @@ erDiagram
         string CandidateType
         string Title
         string Summary
+        string SourceTitle
+        string SourceChapter
+        string SourcePage
+        string SourceReference
         string Status
+        string GeneratedBy
+        datetime CreatedAtUtc
+        string ReviewedBy
+        datetime ReviewedAtUtc
         guid ApprovedKnowledgeId
     }
 
@@ -122,6 +138,7 @@ erDiagram
         guid AcceptedMealPlanId
         datetime RequestedAtUtc
         datetime CompletedAtUtc
+        datetime UpdatedAtUtc
     }
 
     DAILY_TRACKING {
@@ -170,3 +187,5 @@ Cross-service relationships such as `MealPlan.UserId`, `MealPlanItem.RecipeId`, 
 Meal scheduling is represented by `MealPlanItem.PlannedDate`, `MealSlot`, and `ReminderAtUtc` rather than a separate `MealSchedule` table in the current workflow.
 
 Book-source tables are internal to Diet Knowledge review. `KnowledgeCandidate.ApprovedKnowledgeId` stores the created guideline/food identifier after approval but is not modeled as a foreign key because candidates can approve into more than one managed content type.
+
+Recommendation Service and Notification Service are stateless in the current scope, so they do not appear as database entities.

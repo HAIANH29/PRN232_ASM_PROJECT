@@ -8,9 +8,9 @@ Read together with:
 
 ## Current Snapshot
 
-Current phase: Milestone 10 automated tests is complete; manual source review/approval and the final submission package remain.
+Current phase: Milestone 11 documentation and submission package is complete; manual source review/approval and final QA remain.
 
-Estimated product completion: about 97-98%.
+Estimated product completion: about 98-99%.
 
 What is already in code:
 - .NET solution and project structure exist.
@@ -45,7 +45,7 @@ What is not yet product-ready:
 - Search/filter/sort/pagination are implemented for Diet Knowledge and Meal Planning; Tracking supports date-filtered paged history.
 - RabbitMQ publish/consume behavior exists for Meal Planning reminders/recommendations, Recommendation Service processing/results, Notification Service notifications, and Notification Worker delivery.
 - Gemini integration has a configurable HTTP client abstraction with safe disabled-mode fallback; real Gemini and Resend delivery need configured API keys for production/demo external calls.
-- Automated core tests are now present; the final submission/demo package is not complete.
+- Automated core tests and the final submission/demo package are now present.
 
 ## Definition Of 100% Complete
 
@@ -416,17 +416,19 @@ Done when:
 
 Target: T+16.5 to T+17.5 days.
 
+Status: Completed on 2026-10-10.
+
 Code/work to do:
-- Update C4 diagrams if implementation changed.
-- Update ERD and physical database docs.
-- Update README run/demo instructions.
-- Update `PROJECT_PROGRESS.md`.
-- Add a demo script with exact presentation steps.
-- Add a final submission checklist.
+- [x] Update C4 diagrams if implementation changed.
+- [x] Update ERD and physical database docs.
+- [x] Update README run/demo instructions.
+- [x] Update `PROJECT_PROGRESS.md`.
+- [x] Add a demo script with exact presentation steps.
+- [x] Add a final submission checklist.
 
 Verification:
-- Another person can follow README and demo script.
-- Docs match actual architecture.
+- [x] Another person can follow README and demo script.
+- [x] Docs match actual architecture.
 
 Done when:
 - The repository is understandable to the teacher without extra explanation.
@@ -600,12 +602,12 @@ Note: schedule support is represented on `MealPlanItem` rather than a separate t
 ### Documentation And Submission
 
 - [x] README run guide.
-- [ ] C0/C1 docs updated.
-- [ ] ERD updated.
-- [ ] Physical database docs updated.
-- [ ] Demo script.
-- [ ] Final checklist.
-- [ ] `PROJECT_PROGRESS.md` updated after every milestone.
+- [x] C0/C1 docs updated.
+- [x] ERD updated.
+- [x] Physical database docs updated.
+- [x] Demo script.
+- [x] Final checklist.
+- [x] `PROJECT_PROGRESS.md` updated after every milestone.
 
 ## Rule For Future Work
 

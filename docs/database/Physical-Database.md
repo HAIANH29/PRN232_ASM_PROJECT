@@ -2,6 +2,13 @@
 
 PostgreSQL is used with database-per-stateful-service ownership.
 
+Local Docker Compose exposes the databases on separate host ports for development only:
+
+- `IdentityDb`: `localhost:5433`
+- `DietKnowledgeDb`: `localhost:5434`
+- `MealPlanningDb`: `localhost:5435`
+- `TrackingDb`: `localhost:5436`
+
 ## IdentityDb
 
 - `Users`
@@ -119,6 +126,8 @@ Migrations exist: `InitialDietKnowledgeSchema`, `AddBookKnowledgeReviewMetadata`
 
 `BookSourceDocument`, `BookSourceChunk`, and `KnowledgeCandidate` are Admin-only ingestion/review tables. Public Diet Knowledge endpoints and Recommendation context do not expose or consume raw chunk text directly.
 
+Uploaded PDF binaries are stored in a Docker/local file volume. PostgreSQL stores metadata, extracted chunks, and review candidates only.
+
 ## MealPlanningDb
 
 - `MealPlans`
@@ -200,6 +209,12 @@ Initial migration exists: `InitialTrackingSchema`.
 - `Recommendation Service` has no database in Phase 1.
 - `Notification Service` has no database in Phase 1.
 - `Notification Worker` has no database in Phase 1.
+
+## Verification Snapshot
+
+- EF Core migrations exist for all four stateful service databases.
+- Startup migration initializers apply migrations service-by-service.
+- `dotnet test LongevityDietPlatform.sln` includes repository-level checks for Diet Knowledge search/filter/pagination and Tracking progress summary behavior.
 
 ## Rules
 

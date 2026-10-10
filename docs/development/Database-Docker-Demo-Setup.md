@@ -124,6 +124,14 @@ $body = @{ email = "user@longevity.local"; password = "User@123456" } | ConvertT
 Invoke-RestMethod http://localhost:5001/identity/api/auth/login -Method Post -ContentType "application/json" -Body $body
 ```
 
+Run automated tests before final demo:
+
+```powershell
+dotnet test LongevityDietPlatform.sln
+```
+
+For the presentation path, follow `docs/submission/Demo-Script.md`.
+
 ## Reset Local Demo Data
 
 This removes local Docker volumes and recreates the databases from migrations and seed data:
