@@ -19,6 +19,16 @@ public static class DependencyInjection
                 configuration.GetConnectionString("DietKnowledgeDb"),
                 npgsql => npgsql.EnableRetryOnFailure()));
 
+        services.Configure<DietKnowledgeSeedOptions>(options =>
+        {
+            if (bool.TryParse(
+                configuration["DietKnowledgeSeed:IncludeDemoApprovedContent"],
+                out var includeDemoApprovedContent))
+            {
+                options.IncludeDemoApprovedContent = includeDemoApprovedContent;
+            }
+        });
+
         services.AddScoped<IDietKnowledgeRepository, DietKnowledgeRepository>();
         services.AddScoped<IDietKnowledgeSeeder, DietKnowledgeSeeder>();
 

@@ -37,6 +37,9 @@ public static class DependencyInjection
             options.AdminEmail = configuration["IdentitySeed:AdminEmail"] ?? options.AdminEmail;
             options.AdminPassword = configuration["IdentitySeed:AdminPassword"] ?? options.AdminPassword;
             options.AdminDisplayName = configuration["IdentitySeed:AdminDisplayName"] ?? options.AdminDisplayName;
+            options.UserEmail = configuration["IdentitySeed:UserEmail"] ?? options.UserEmail;
+            options.UserPassword = configuration["IdentitySeed:UserPassword"] ?? options.UserPassword;
+            options.UserDisplayName = configuration["IdentitySeed:UserDisplayName"] ?? options.UserDisplayName;
         });
 
         services.AddScoped<IUserRepository, UserRepository>();

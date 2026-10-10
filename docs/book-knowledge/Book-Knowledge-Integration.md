@@ -30,6 +30,8 @@ This project uses book-derived knowledge as curated educational content. Do not 
 - `Approved` content must include `SourceChapter`, either `SourcePage` or `SourceReference`, and `ReviewedBy`.
 - The JSON seed file is version-controlled at `src/Services/DietKnowledge/LongevityDiet.DietKnowledge.Infrastructure/Seed/Data/book-knowledge-seed.json`.
 - Seed entries are intentionally `NeedsReview` until the team verifies exact source locations from its legal copy.
+- Local teacher-demo data is version-controlled separately at `src/Services/DietKnowledge/LongevityDiet.DietKnowledge.Infrastructure/Seed/Data/demo-approved-knowledge-seed.json` and can be disabled with `DietKnowledgeSeed__IncludeDemoApprovedContent=false`.
+- The demo-approved file exists so fresh local setup has public browse/search/recommendation data; it does not replace the team's final source verification responsibility.
 
 ## AI Safety Rule
 

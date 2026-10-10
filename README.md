@@ -10,6 +10,7 @@ Development conventions:
 
 - API conventions: `docs/development/Api-Conventions.md`
 - API Gateway routes: `docs/development/Gateway-Routes.md`
+- Clean database/Docker/demo setup: `docs/development/Database-Docker-Demo-Setup.md`
 - Seed data strategy: `docs/development/Seed-Data-Strategy.md`
 - Book knowledge workflow: `docs/book-knowledge/Book-Knowledge-Integration.md`
 
@@ -74,6 +75,16 @@ Local demo Identity credentials are configured through `.env`:
 
 - Admin email: `IDENTITY_ADMIN_EMAIL` defaults to `admin@longevity.local`
 - Admin password: `IDENTITY_ADMIN_PASSWORD` defaults to `Admin@123456`
+- User email: `IDENTITY_USER_EMAIL` defaults to `user@longevity.local`
+- User password: `IDENTITY_USER_PASSWORD` defaults to `User@123456`
+
+Database initialization and demo data:
+
+- Identity, Diet Knowledge, Meal Planning, and Tracking apply their own EF Core migrations at service startup.
+- Docker Compose waits for PostgreSQL and RabbitMQ health checks before starting dependent services.
+- Diet Knowledge loads `book-knowledge-seed.json` as `NeedsReview` review data.
+- Diet Knowledge also loads approved local demo knowledge from `demo-approved-knowledge-seed.json` when `DIET_KNOWLEDGE_SEED_INCLUDE_DEMO_APPROVED_CONTENT=true`, which is the default for local teacher demos.
+- Full setup details and environment variables are documented in `docs/development/Database-Docker-Demo-Setup.md`.
 
 Diet Knowledge endpoints:
 

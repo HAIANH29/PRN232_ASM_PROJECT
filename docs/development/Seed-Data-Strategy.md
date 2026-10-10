@@ -16,11 +16,12 @@ Seed data should support local development and teacher demos without breaking se
 Purpose:
 - Seed roles: `User`, `Admin`.
 - Seed one demo admin account.
-- Seed one demo user account if useful for browser demos.
+- Seed one demo user account for browser demos.
 
 Implementation target:
-- Implemented through `IdentitySeeder`, which applies Identity migrations and seeds `User`/`Admin` roles plus a configurable demo admin account.
+- Implemented through `IdentitySeeder`, which applies Identity migrations and seeds `User`/`Admin` roles plus configurable demo admin and demo user accounts.
 - Demo admin settings are supplied through `IdentitySeed__AdminEmail`, `IdentitySeed__AdminPassword`, and `IdentitySeed__AdminDisplayName`.
+- Demo user settings are supplied through `IdentitySeed__UserEmail`, `IdentitySeed__UserPassword`, and `IdentitySeed__UserDisplayName`.
 - The startup seed path retries briefly so Docker Compose can tolerate PostgreSQL startup timing.
 - Store demo passwords in configuration for local/demo use; never hard-code production secrets.
 
@@ -35,6 +36,7 @@ Implementation target:
 - Implemented through `DietKnowledgeSeeder`, which applies Diet Knowledge migrations and loads `book-knowledge-seed.json`.
 - Seed content stays concise, summarized in the team's own words, and inside the approved educational Longevity Diet scope.
 - Seed content is active but `NeedsReview` by default until the team verifies exact source locations from a legally obtained copy.
+- A separate local demo seed file, `demo-approved-knowledge-seed.json`, provides approved teacher-demo data when `DietKnowledgeSeed__IncludeDemoApprovedContent=true`.
 - Public browse/search/filter endpoints expose only active `Approved` content.
 - Admin endpoints can manage and filter `NeedsReview`, `Approved`, and `Rejected` content.
 - The startup seed path retries briefly so Docker Compose can tolerate PostgreSQL startup timing.
@@ -74,7 +76,7 @@ Recommended local/demo setup order:
 1. Apply Identity migrations.
 2. Seed Identity roles and demo accounts.
 3. Apply Diet Knowledge migrations.
-4. Seed book knowledge review data.
+4. Seed book knowledge review data and approved local demo knowledge when enabled.
 5. Approve verified Diet Knowledge items through admin APIs or by updating reviewed seed metadata before demo reset.
 6. Apply Meal Planning migrations.
 7. Apply Tracking migrations.
@@ -84,6 +86,7 @@ Recommended local/demo setup order:
 
 - [x] Add Identity seed data after migrations exist.
 - [x] Add Diet Knowledge seed data after CRUD models are finalized.
+- [x] Add approved local demo knowledge so clean setup has public data immediately.
 - [x] Decide whether Meal Planning needs static sample plans or API-created demo data.
 - [x] Decide whether Tracking needs static sample progress or API-created demo data.
 - [x] Document demo account credentials in local-only docs or `.env.example` placeholders.

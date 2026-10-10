@@ -6,7 +6,8 @@ services:
     ports:
       - "5000:8080"
     depends_on:
-      - api-gateway
+      api-gateway:
+        condition: service_started
 
   api-gateway:
     build:
@@ -15,10 +16,14 @@ services:
     ports:
       - "5001:8080"
     depends_on:
-      - identity-service
-      - diet-knowledge-service
-      - meal-planning-service
-      - tracking-service
+      identity-service:
+        condition: service_started
+      diet-knowledge-service:
+        condition: service_started
+      meal-planning-service:
+        condition: service_started
+      tracking-service:
+        condition: service_started
 
   identity-service:
     build:
@@ -32,8 +37,12 @@ services:
       IdentitySeed__AdminEmail: ${IDENTITY_ADMIN_EMAIL:-admin@longevity.local}
       IdentitySeed__AdminPassword: ${IDENTITY_ADMIN_PASSWORD:-Admin@123456}
       IdentitySeed__AdminDisplayName: ${IDENTITY_ADMIN_DISPLAY_NAME:-Demo Admin}
+      IdentitySeed__UserEmail: ${IDENTITY_USER_EMAIL:-user@longevity.local}
+      IdentitySeed__UserPassword: ${IDENTITY_USER_PASSWORD:-User@123456}
+      IdentitySeed__UserDisplayName: ${IDENTITY_USER_DISPLAY_NAME:-Demo User}
     depends_on:
-      - identity-db
+      identity-db:
+        condition: service_healthy
 
   diet-knowledge-service:
     build:
@@ -44,8 +53,10 @@ services:
     environment:
       ConnectionStrings__DietKnowledgeDb: Host=diet-knowledge-db;Port=5432;Database=DietKnowledgeDb;Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
       Jwt__SigningKey: ${JWT_SIGNING_KEY:-development-only-replace-with-secret}
+      DietKnowledgeSeed__IncludeDemoApprovedContent: ${DIET_KNOWLEDGE_SEED_INCLUDE_DEMO_APPROVED_CONTENT:-true}
     depends_on:
-      - diet-knowledge-db
+      diet-knowledge-db:
+        condition: service_healthy
 
   meal-planning-service:
     build:
@@ -59,9 +70,12 @@ services:
       Jwt__SigningKey: ${JWT_SIGNING_KEY:-development-only-replace-with-secret}
       RabbitMq__HostName: rabbitmq
     depends_on:
-      - meal-planning-db
-      - diet-knowledge-service
-      - rabbitmq
+      meal-planning-db:
+        condition: service_healthy
+      diet-knowledge-service:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
 
   tracking-service:
     build:
@@ -74,8 +88,10 @@ services:
       Jwt__SigningKey: ${JWT_SIGNING_KEY:-development-only-replace-with-secret}
       NotificationService__GrpcAddress: http://notification-service:8080
     depends_on:
-      - tracking-db
-      - notification-service
+      tracking-db:
+        condition: service_healthy
+      notification-service:
+        condition: service_started
 
   recommendation-service:
     build:
@@ -89,8 +105,10 @@ services:
       Gemini__ApiKey: ${GEMINI_API_KEY:-development-only}
       Gemini__Model: ${GEMINI_MODEL:-gemini-2.0-flash}
     depends_on:
-      - diet-knowledge-service
-      - rabbitmq
+      diet-knowledge-service:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
 
   notification-service:
     build:
@@ -101,7 +119,8 @@ services:
     environment:
       RabbitMq__HostName: rabbitmq
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
 
   notification-worker:
     build:
@@ -114,7 +133,8 @@ services:
       Resend__FromEmail: ${RESEND_FROM_EMAIL:-onboarding@resend.dev}
       Resend__FromName: ${RESEND_FROM_NAME:-Longevity Diet Platform}
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -124,6 +144,11 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-guest}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-guest}
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   identity-db:
     image: postgres:16
@@ -135,6 +160,11 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     volumes:
       - identity-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   diet-knowledge-db:
     image: postgres:16
@@ -146,6 +176,11 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     volumes:
       - diet-knowledge-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   meal-planning-db:
     image: postgres:16
@@ -157,6 +192,11 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     volumes:
       - meal-planning-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   tracking-db:
     image: postgres:16
@@ -168,6 +208,11 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     volumes:
       - tracking-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
 volumes:
   identity-db-data:

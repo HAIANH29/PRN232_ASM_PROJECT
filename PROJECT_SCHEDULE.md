@@ -8,9 +8,9 @@ Read together with:
 
 ## Current Snapshot
 
-Current phase: Milestone 8 Web Application is complete, including Docker/Web browser-flow smoke; Book Knowledge manual source review remains pending.
+Current phase: Milestone 9 Database, Docker, and demo data is complete, including Docker startup and demo-data smoke; Book Knowledge manual source review remains pending.
 
-Estimated product completion: about 88-90%.
+Estimated product completion: about 92-94%.
 
 What is already in code:
 - .NET solution and project structure exist.
@@ -36,13 +36,13 @@ What is already in code:
 - Notification Service now accepts progress notification gRPC requests and publishes notification messages to RabbitMQ.
 - Notification Worker now declares durable reminder/notification queues, dead-letter queues, retry handling, Resend sender abstraction, and local log fallback delivery.
 - Web Application now supports the main User and Admin browser flows through the API Gateway.
+- Milestone 9 Docker/database demo setup now includes health-checked PostgreSQL/RabbitMQ startup, demo admin/user seed accounts, approved local demo Diet Knowledge seed data, and clean-machine setup documentation.
 
 What is not yet product-ready:
 - The team still needs to verify book-derived seed items against a legally obtained source copy before marking them `Approved`.
 - Search/filter/sort/pagination are implemented for Diet Knowledge and Meal Planning; Tracking supports date-filtered paged history.
 - RabbitMQ publish/consume behavior exists for Meal Planning reminders/recommendations, Recommendation Service processing/results, Notification Service notifications, and Notification Worker delivery.
 - Gemini integration has a configurable HTTP client abstraction with safe disabled-mode fallback; real Gemini and Resend delivery need configured API keys for production/demo external calls.
-- Automated tests and the final submission/demo package are not complete.
 - Automated tests and the final submission/demo package are not complete.
 
 ## Definition Of 100% Complete
@@ -335,22 +335,28 @@ Done when:
 
 Target: T+14 to T+15 days.
 
+Status: Completed on 2026-10-10.
+
 Code/work to do:
-- Add migrations for all four databases.
-- Confirm Docker Compose database connection strings.
-- Add database initialization instructions.
-- Add demo seed data:
+- [x] Add migrations for all four databases.
+- [x] Confirm Docker Compose database connection strings.
+- [x] Add database initialization instructions.
+- [x] Add demo seed data:
   - admin account
   - user account
   - diet guidelines
   - foods
   - recipes
-- Add environment variable documentation.
+- [x] Add environment variable documentation.
 
 Verification:
-- Fresh checkout can run migrations and start.
-- Demo data appears after setup.
-- Compose starts without manual service hacks.
+- [x] Fresh checkout can run migrations and start.
+- [x] Demo data appears after setup.
+- [x] Compose starts without manual service hacks.
+- [x] `dotnet build LongevityDietPlatform.sln`
+- [x] `dotnet test LongevityDietPlatform.sln`
+- [x] `docker compose config --quiet`
+- [x] `docker compose up -d --build`
 
 Done when:
 - The project can be run from a clean machine using documented steps.
@@ -446,7 +452,7 @@ This minimum path is enough to demonstrate the required PRN232 architecture and 
 | RabbitMQ async messaging | Meal Planning publishes reminders/recommendation requests and consumes recommendation results; Recommendation Service consumes requests and publishes results; Notification Service publishes notification messages; Notification Worker consumes reminder/notification messages | Add tests and final demo script |
 | .NET Worker Service | Notification Worker implemented and Docker-smoke-tested for reminder/notification delivery | Add tests |
 | PostgreSQL database-per-service | Identity, Diet Knowledge, Meal Planning, and Tracking migrations exist | Keep service ownership boundaries intact |
-| Docker Compose | Gateway and core backend services Docker-smoke-tested through current milestone | Full Web demo startup verification |
+| Docker Compose | Full stack Docker startup, health checks, and demo seed smoke verified through Milestone 9 | Add final demo script/checklist |
 | C4 docs | Existing | Keep synchronized with implementation |
 | Web Application | Main User/Admin browser flows implemented through the API Gateway | Add final demo script and automated UI/API smoke tests if time allows |
 | External providers | Resend sender abstraction with log fallback exists; Gemini client abstraction with disabled-mode fallback exists | Configure real Resend/Gemini keys only for demo/production if needed |
@@ -463,7 +469,7 @@ This minimum path is enough to demonstrate the required PRN232 architecture and 
 - [x] Profile API.
 - [x] Role seed.
 - [x] Admin/User authorization policy.
-- [x] Migration and seed data.
+- [x] Migration and admin/user seed data.
 - [ ] Tests.
 
 ### Diet Knowledge Service
@@ -477,6 +483,7 @@ This minimum path is enough to demonstrate the required PRN232 architecture and 
 - [x] Admin-only mutations.
 - [x] User read endpoints.
 - [x] Migration and JSON seed content.
+- [x] Approved local demo seed content for public demo flows.
 - [x] Source/review metadata for book knowledge.
 - [ ] Team source verification and approval of seed content.
 - [ ] Tests.
@@ -556,7 +563,7 @@ Note: schedule support is represented on `MealPlanItem` rather than a separate t
 
 ### Documentation And Submission
 
-- [ ] README run guide.
+- [x] README run guide.
 - [ ] C0/C1 docs updated.
 - [ ] ERD updated.
 - [ ] Physical database docs updated.

@@ -3,23 +3,39 @@ using LongevityDiet.DietKnowledge.Application.Common;
 using LongevityDiet.DietKnowledge.Domain.Entities;
 using LongevityDiet.DietKnowledge.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace LongevityDiet.DietKnowledge.Infrastructure.Seed;
 
-public sealed class DietKnowledgeSeeder(DietKnowledgeDbContext dbContext) : IDietKnowledgeSeeder
+public sealed class DietKnowledgeSeeder(
+    DietKnowledgeDbContext dbContext,
+    IOptions<DietKnowledgeSeedOptions> options) : IDietKnowledgeSeeder
 {
-    private const string SeedFileName = "book-knowledge-seed.json";
+    private const string BookSeedFileName = "book-knowledge-seed.json";
+    private const string DemoSeedFileName = "demo-approved-knowledge-seed.json";
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNameCaseInsensitive = true
     };
 
+    private readonly DietKnowledgeSeedOptions seedOptions = options.Value;
+
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
         await dbContext.Database.MigrateAsync(cancellationToken);
 
-        var seed = await LoadSeedAsync(cancellationToken);
+        await SeedFromFileAsync(BookSeedFileName, cancellationToken);
+
+        if (seedOptions.IncludeDemoApprovedContent)
+        {
+            await SeedFromFileAsync(DemoSeedFileName, cancellationToken);
+        }
+    }
+
+    private async Task SeedFromFileAsync(string seedFileName, CancellationToken cancellationToken)
+    {
+        var seed = await LoadSeedAsync(seedFileName, cancellationToken);
 
         foreach (var guideline in seed.Guidelines)
         {
@@ -33,20 +49,36 @@ public sealed class DietKnowledgeSeeder(DietKnowledgeDbContext dbContext) : IDie
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        var foodMap = await dbContext.Foods
-            .ToDictionaryAsync(food => food.Name, cancellationToken);
-
-        foreach (var recipe in seed.Recipes)
+        if (seed.Recipes.Count > 0)
         {
-            await EnsureRecipeAsync(recipe, foodMap, cancellationToken);
-        }
+            var recipeFoodNames = seed.Recipes
+                .SelectMany(recipe => recipe.Ingredients)
+                .Select(ingredient => ingredient.FoodName)
+                .Where(name => !string.IsNullOrWhiteSpace(name))
+                .Distinct()
+                .ToArray();
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+            var foods = await dbContext.Foods
+                .Where(food => recipeFoodNames.Contains(food.Name))
+                .ToListAsync(cancellationToken);
+            var foodMap = foods
+                .GroupBy(food => food.Name)
+                .ToDictionary(group => group.Key, group => group.First());
+
+            foreach (var recipe in seed.Recipes)
+            {
+                await EnsureRecipeAsync(recipe, foodMap, cancellationToken);
+            }
+
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
     }
 
-    private static async Task<BookKnowledgeSeed> LoadSeedAsync(CancellationToken cancellationToken)
+    private static async Task<BookKnowledgeSeed> LoadSeedAsync(
+        string seedFileName,
+        CancellationToken cancellationToken)
     {
-        var path = Path.Combine(AppContext.BaseDirectory, "Seed", "Data", SeedFileName);
+        var path = Path.Combine(AppContext.BaseDirectory, "Seed", "Data", seedFileName);
 
         if (!File.Exists(path))
         {
