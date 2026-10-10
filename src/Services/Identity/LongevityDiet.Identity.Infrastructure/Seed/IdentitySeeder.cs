@@ -21,33 +21,19 @@ public sealed class IdentitySeeder(
         var userRole = await EnsureRoleAsync(IdentityRoleNames.User, cancellationToken);
         var adminRole = await EnsureRoleAsync(IdentityRoleNames.Admin, cancellationToken);
 
-        var normalizedAdminEmail = Normalize(seedOptions.AdminEmail);
-        var admin = await dbContext.Users
-            .Include(user => user.Roles)
-            .FirstOrDefaultAsync(user => user.NormalizedEmail == normalizedAdminEmail, cancellationToken);
+        await EnsureUserAsync(
+            seedOptions.AdminEmail,
+            seedOptions.AdminPassword,
+            seedOptions.AdminDisplayName,
+            [userRole, adminRole],
+            cancellationToken);
 
-        if (admin is null)
-        {
-            admin = new User
-            {
-                Id = Guid.NewGuid(),
-                Email = seedOptions.AdminEmail.Trim(),
-                NormalizedEmail = normalizedAdminEmail,
-                DisplayName = seedOptions.AdminDisplayName.Trim(),
-                PasswordHash = passwordHasher.Hash(seedOptions.AdminPassword),
-                IsActive = true,
-                CreatedAtUtc = DateTimeOffset.UtcNow
-            };
-
-            admin.Roles.Add(userRole);
-            admin.Roles.Add(adminRole);
-            await dbContext.Users.AddAsync(admin, cancellationToken);
-        }
-        else
-        {
-            EnsureUserHasRole(admin, userRole);
-            EnsureUserHasRole(admin, adminRole);
-        }
+        await EnsureUserAsync(
+            seedOptions.UserEmail,
+            seedOptions.UserPassword,
+            seedOptions.UserDisplayName,
+            [userRole],
+            cancellationToken);
 
         await dbContext.SaveChangesAsync(cancellationToken);
     }
@@ -72,6 +58,45 @@ public sealed class IdentitySeeder(
 
         await dbContext.Roles.AddAsync(role, cancellationToken);
         return role;
+    }
+
+    private async Task EnsureUserAsync(
+        string email,
+        string password,
+        string displayName,
+        IReadOnlyCollection<Role> roles,
+        CancellationToken cancellationToken)
+    {
+        var normalizedEmail = Normalize(email);
+        var user = await dbContext.Users
+            .Include(existing => existing.Roles)
+            .FirstOrDefaultAsync(existing => existing.NormalizedEmail == normalizedEmail, cancellationToken);
+
+        if (user is null)
+        {
+            user = new User
+            {
+                Id = Guid.NewGuid(),
+                Email = email.Trim(),
+                NormalizedEmail = normalizedEmail,
+                DisplayName = displayName.Trim(),
+                PasswordHash = passwordHasher.Hash(password),
+                IsActive = true,
+                CreatedAtUtc = DateTimeOffset.UtcNow
+            };
+
+            await dbContext.Users.AddAsync(user, cancellationToken);
+        }
+        else
+        {
+            user.DisplayName = displayName.Trim();
+            user.IsActive = true;
+        }
+
+        foreach (var role in roles)
+        {
+            EnsureUserHasRole(user, role);
+        }
     }
 
     private static void EnsureUserHasRole(User user, Role role)

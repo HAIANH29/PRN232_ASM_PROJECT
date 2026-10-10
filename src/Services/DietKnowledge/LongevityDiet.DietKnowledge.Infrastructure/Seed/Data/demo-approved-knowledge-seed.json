@@ -1,0 +1,162 @@
+{
+  "guidelines": [
+    {
+      "title": "Plant-forward everyday meals",
+      "summary": "Use vegetables, legumes, whole grains, nuts, and olive-oil-based fats as the normal planning base for meals.",
+      "sourceNote": "Local demo summary written in the team's own words for the PRN232 teacher demo. Replace with exact source metadata after team review.",
+      "sourceTitle": "The Longevity Diet",
+      "sourceChapter": "Team-approved demo scope",
+      "sourcePage": "",
+      "sourceReference": "Local demo seed; replace with exact book chapter/page after source verification.",
+      "reviewStatus": "Approved",
+      "reviewedBy": "Demo Seed",
+      "reviewedAtUtc": "2026-10-10T00:00:00Z",
+      "isActive": true
+    },
+    {
+      "title": "Legume and whole-grain planning base",
+      "summary": "Plan regular meals around beans, lentils, chickpeas, and minimally refined grains, keeping portions practical and balanced.",
+      "sourceNote": "Local demo summary written in the team's own words for the PRN232 teacher demo. Replace with exact source metadata after team review.",
+      "sourceTitle": "The Longevity Diet",
+      "sourceChapter": "Team-approved demo scope",
+      "sourcePage": "",
+      "sourceReference": "Local demo seed; replace with exact book chapter/page after source verification.",
+      "reviewStatus": "Approved",
+      "reviewedBy": "Demo Seed",
+      "reviewedAtUtc": "2026-10-10T00:00:00Z",
+      "isActive": true
+    },
+    {
+      "title": "Simple scheduled meals",
+      "summary": "Keep planned meals easy to repeat, easy to track, and framed as educational lifestyle support rather than medical treatment.",
+      "sourceNote": "Local demo summary written in the team's own words for the PRN232 teacher demo. Replace with exact source metadata after team review.",
+      "sourceTitle": "The Longevity Diet",
+      "sourceChapter": "Team-approved demo scope",
+      "sourcePage": "",
+      "sourceReference": "Local demo seed; replace with exact book chapter/page after source verification.",
+      "reviewStatus": "Approved",
+      "reviewedBy": "Demo Seed",
+      "reviewedAtUtc": "2026-10-10T00:00:00Z",
+      "isActive": true
+    }
+  ],
+  "foods": [
+    {
+      "name": "Green lentils",
+      "category": "Legume",
+      "compatibilityNotes": "A flexible plant-protein base for bowls, soups, and salads.",
+      "sourceTitle": "The Longevity Diet",
+      "sourceChapter": "Team-approved demo scope",
+      "sourcePage": "",
+      "sourceReference": "Local demo seed; replace with exact book chapter/page after source verification.",
+      "reviewStatus": "Approved",
+      "reviewedBy": "Demo Seed",
+      "reviewedAtUtc": "2026-10-10T00:00:00Z",
+      "isActive": true
+    },
+    {
+      "name": "Navy beans",
+      "category": "Legume",
+      "compatibilityNotes": "A mild bean option for soups, stews, and vegetable-heavy meals.",
+      "sourceTitle": "The Longevity Diet",
+      "sourceChapter": "Team-approved demo scope",
+      "sourcePage": "",
+      "sourceReference": "Local demo seed; replace with exact book chapter/page after source verification.",
+      "reviewStatus": "Approved",
+      "reviewedBy": "Demo Seed",
+      "reviewedAtUtc": "2026-10-10T00:00:00Z",
+      "isActive": true
+    },
+    {
+      "name": "Farro",
+      "category": "Whole grain",
+      "compatibilityNotes": "A minimally refined grain for warm bowls and vegetable plates.",
+      "sourceTitle": "The Longevity Diet",
+      "sourceChapter": "Team-approved demo scope",
+      "sourcePage": "",
+      "sourceReference": "Local demo seed; replace with exact book chapter/page after source verification.",
+      "reviewStatus": "Approved",
+      "reviewedBy": "Demo Seed",
+      "reviewedAtUtc": "2026-10-10T00:00:00Z",
+      "isActive": true
+    },
+    {
+      "name": "Kale",
+      "category": "Vegetable",
+      "compatibilityNotes": "A leafy green that works in salads, soups, and grain bowls.",
+      "sourceTitle": "The Longevity Diet",
+      "sourceChapter": "Team-approved demo scope",
+      "sourcePage": "",
+      "sourceReference": "Local demo seed; replace with exact book chapter/page after source verification.",
+      "reviewStatus": "Approved",
+      "reviewedBy": "Demo Seed",
+      "reviewedAtUtc": "2026-10-10T00:00:00Z",
+      "isActive": true
+    },
+    {
+      "name": "Carrots",
+      "category": "Vegetable",
+      "compatibilityNotes": "A simple vegetable option for soups, bowls, and side dishes.",
+      "sourceTitle": "The Longevity Diet",
+      "sourceChapter": "Team-approved demo scope",
+      "sourcePage": "",
+      "sourceReference": "Local demo seed; replace with exact book chapter/page after source verification.",
+      "reviewStatus": "Approved",
+      "reviewedBy": "Demo Seed",
+      "reviewedAtUtc": "2026-10-10T00:00:00Z",
+      "isActive": true
+    },
+    {
+      "name": "Lemon-herb seasoning",
+      "category": "Seasoning",
+      "compatibilityNotes": "Adds flavor while keeping recipes simple and educational.",
+      "sourceTitle": "The Longevity Diet",
+      "sourceChapter": "Team-approved demo scope",
+      "sourcePage": "",
+      "sourceReference": "Local demo seed; replace with exact book chapter/page after source verification.",
+      "reviewStatus": "Approved",
+      "reviewedBy": "Demo Seed",
+      "reviewedAtUtc": "2026-10-10T00:00:00Z",
+      "isActive": true
+    }
+  ],
+  "recipes": [
+    {
+      "name": "Green lentil farro bowl",
+      "description": "A demo meal with green lentils, farro, kale, carrots, and lemon-herb seasoning.",
+      "sourceTitle": "The Longevity Diet",
+      "sourceChapter": "Team-approved demo scope",
+      "sourcePage": "",
+      "sourceReference": "Local demo seed; replace with exact book chapter/page after source verification.",
+      "reviewStatus": "Approved",
+      "reviewedBy": "Demo Seed",
+      "reviewedAtUtc": "2026-10-10T00:00:00Z",
+      "isActive": true,
+      "ingredients": [
+        { "foodName": "Green lentils", "quantityText": "1 cup cooked" },
+        { "foodName": "Farro", "quantityText": "3/4 cup cooked" },
+        { "foodName": "Kale", "quantityText": "1 cup" },
+        { "foodName": "Carrots", "quantityText": "1/2 cup" },
+        { "foodName": "Lemon-herb seasoning", "quantityText": "to taste" }
+      ]
+    },
+    {
+      "name": "Navy bean kale soup",
+      "description": "A warm demo soup with navy beans, kale, carrots, and lemon-herb seasoning.",
+      "sourceTitle": "The Longevity Diet",
+      "sourceChapter": "Team-approved demo scope",
+      "sourcePage": "",
+      "sourceReference": "Local demo seed; replace with exact book chapter/page after source verification.",
+      "reviewStatus": "Approved",
+      "reviewedBy": "Demo Seed",
+      "reviewedAtUtc": "2026-10-10T00:00:00Z",
+      "isActive": true,
+      "ingredients": [
+        { "foodName": "Navy beans", "quantityText": "1 cup cooked" },
+        { "foodName": "Kale", "quantityText": "1 cup" },
+        { "foodName": "Carrots", "quantityText": "1 cup" },
+        { "foodName": "Lemon-herb seasoning", "quantityText": "to taste" }
+      ]
+    }
+  ]
+}

@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <Content Include="Seed\Data\book-knowledge-seed.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="Seed\Data\demo-approved-knowledge-seed.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
   <PropertyGroup>

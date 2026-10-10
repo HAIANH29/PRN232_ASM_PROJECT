@@ -4,10 +4,10 @@ This file is the shared progress tracker for the project. Every human or AI agen
 
 ## Current Status
 
-- Phase: Milestone 8 Web Application complete, including Docker browser-flow smoke; manual book source review/approval remains.
+- Phase: Milestone 9 Database, Docker, and demo data complete; manual book source review/approval remains.
 - Branch: `HA/phase-1-microservices-scaffold`.
-- Last pushed baseline before this update: Milestone 4 Tracking Service and gRPC Notification after commit `f045546`.
-- Verification baseline: `dotnet restore LongevityDietPlatform.sln`, `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `dotnet test LongevityDietPlatform.sln --no-restore -m:1 --verbosity minimal`, `docker compose config`, and Milestone 8 Docker/Web smoke passed on 2026-10-10.
+- Last pushed baseline before this update: Web footer layout fix after commit `d8a73b0`.
+- Verification baseline: `dotnet restore LongevityDietPlatform.sln`, `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `dotnet test LongevityDietPlatform.sln --no-restore -m:1 --verbosity minimal`, `docker compose config --quiet`, and Milestone 9 Docker/demo-data smoke passed on 2026-10-10.
 - Completion roadmap: `PROJECT_SCHEDULE.md`.
 
 ## Done
@@ -46,12 +46,13 @@ This file is the shared progress tracker for the project. Every human or AI agen
 - Implemented Web Application screens for login/register/profile, diet knowledge browsing, admin content management, meal planning, tracking/progress, and recommendation request/review/accept flows.
 - Wired the Web Application to call public backend services only through the API Gateway.
 - Fixed Meal Planning item insertion for existing meal plans so Web meal-plan item creation stores a new `MealPlanItem` instead of attempting to update a missing row.
+- Added clean Docker/database setup documentation, Docker health checks, demo admin/user seed accounts, and approved local demo Diet Knowledge seed data for browser demos.
 
 ## Incomplete / Remaining Work
 
 - Verify each seeded book-knowledge item against a legally obtained source copy and approve only reviewed items.
 - Add automated tests for implemented slices.
-- Add final demo script/submission checklist and any final README polish required by the teacher.
+- Add final demo script/submission checklist and any final documentation polish required by the teacher.
 
 ## Update Rules
 
@@ -68,6 +69,17 @@ Each update should include:
 Do not mark a feature as complete if it only has placeholders or configuration. Call it a scaffold until the real behavior exists and has been verified.
 
 ## Change Log
+
+### 2026-10-10 — Complete Milestone 9 Database, Docker, And Demo Data
+
+- Confirmed EF Core migrations exist for all four stateful service databases: Identity, Diet Knowledge, Meal Planning, and Tracking.
+- Added configurable demo user seeding alongside the existing demo admin and role seed data.
+- Added approved local demo Diet Knowledge seed data for public browser flows while keeping the source-review book seed data as `NeedsReview`.
+- Added Docker Compose PostgreSQL/RabbitMQ health checks and startup dependency conditions so services wait for core infrastructure before starting.
+- Added database initialization, environment variable, demo account, demo data, and local reset instructions in `docs/development/Database-Docker-Demo-Setup.md`.
+- Updated README, seed strategy docs, book-knowledge docs, `.env.example`, and the schedule.
+- Verification: `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `dotnet test LongevityDietPlatform.sln --no-restore -m:1 --verbosity minimal`, `docker compose config --quiet`, `docker compose up -d --build`, `docker compose up -d --force-recreate`, targeted `docker compose up -d --build diet-knowledge-service`, `docker compose ps`, gateway route smoke, Web home smoke, demo admin/user login through the gateway, and public Diet Knowledge smoke showing seeded guidelines, foods, recipes, plus targeted demo seed items.
+- Remaining TODO: team still needs to replace demo source placeholders with exact book source metadata after reviewing a legally obtained copy; automated tests and final submission/demo checklist remain.
 
 ### 2026-10-10 — Fix Web Footer Layout
 
