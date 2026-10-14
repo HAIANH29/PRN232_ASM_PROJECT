@@ -78,7 +78,8 @@ Do not mark a feature as complete if it only has placeholders or configuration. 
 - Added `DELETE /api/admin/book-sources/{id}` (Admin only, `204`; `404` if missing): removes the document, chunks (cascade) and candidates, then deletes the stored PDF (only inside the storage root). Knowledge already approved from the book is kept. Web: Delete buttons (with confirm) on the book source list and details pages.
 - Tests: 2 new ingestion tests (delete removes document/chunks/candidates/file; missing document throws) — 31 pass.
 - Verification (Docker): deleted the older duplicate `82122d9a91ebd063.pdf` through the gateway (`204`, file removed from volume, second delete `404`, delete as `User` `403`); admin web session redirects member routes and nav shows only admin links; user session unchanged.
-- Remaining TODO: two orphan PDFs remain in the `diet-knowledge-book-sources` volume from test records removed earlier by direct SQL; no web-level automated test for the admin redirects.
+- Cleanup: removed two orphan PDFs from the `diet-knowledge-book-sources` volume (left by test records deleted earlier via direct SQL); the volume now matches the single remaining database record.
+- Remaining TODO: no web-level automated test for the admin redirects.
 
 ### 2026-10-14 — Gemini retry, time budget, and per-chunk local fallback
 
