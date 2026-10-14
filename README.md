@@ -132,6 +132,7 @@ Diet Knowledge endpoints:
   - `POST /api/admin/book-sources` multipart PDF upload
   - `GET /api/admin/book-sources`
   - `GET /api/admin/book-sources/{id}/chunks`
+  - `DELETE /api/admin/book-sources/{id}` removes the PDF, its chunks and candidates (approved knowledge is kept)
   - `POST /api/admin/book-sources/{id}/candidates/generate`
   - `GET /api/admin/book-sources/{id}/candidates`
   - `POST /api/admin/knowledge-candidates/{id}/approve`

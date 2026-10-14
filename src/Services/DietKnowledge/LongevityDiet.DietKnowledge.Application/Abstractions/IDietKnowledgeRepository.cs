@@ -84,6 +84,9 @@ public interface IDietKnowledgeRepository
         BookSourceDocument document,
         CancellationToken cancellationToken = default);
 
+    // Removes the document together with its chunks and candidates.
+    void RemoveBookSourceDocument(BookSourceDocument document);
+
     Task<IReadOnlyCollection<BookSourceChunk>> ListBookSourceChunksAsync(
         Guid documentId,
         CancellationToken cancellationToken = default);

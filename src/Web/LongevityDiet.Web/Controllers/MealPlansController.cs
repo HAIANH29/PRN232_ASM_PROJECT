@@ -10,7 +10,7 @@ public sealed class MealPlansController(ApiGatewayClient api, UserSession sessio
     [HttpGet]
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
-        var guard = RequireUser();
+        var guard = RequireMember();
         if (guard is not null)
         {
             return guard;
@@ -28,7 +28,7 @@ public sealed class MealPlansController(ApiGatewayClient api, UserSession sessio
         [Bind(Prefix = "Form")] MealPlanForm form,
         CancellationToken cancellationToken)
     {
-        var guard = RequireUser();
+        var guard = RequireMember();
         if (guard is not null)
         {
             return guard;
@@ -64,7 +64,7 @@ public sealed class MealPlansController(ApiGatewayClient api, UserSession sessio
     [HttpGet]
     public async Task<IActionResult> Details(Guid id, CancellationToken cancellationToken)
     {
-        var guard = RequireUser();
+        var guard = RequireMember();
         if (guard is not null)
         {
             return guard;
@@ -86,7 +86,7 @@ public sealed class MealPlansController(ApiGatewayClient api, UserSession sessio
         [Bind(Prefix = "EditForm")] MealPlanForm form,
         CancellationToken cancellationToken)
     {
-        var guard = RequireUser();
+        var guard = RequireMember();
         if (guard is not null)
         {
             return guard;
@@ -117,7 +117,7 @@ public sealed class MealPlansController(ApiGatewayClient api, UserSession sessio
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        var guard = RequireUser();
+        var guard = RequireMember();
         if (guard is not null)
         {
             return guard;
@@ -135,7 +135,7 @@ public sealed class MealPlansController(ApiGatewayClient api, UserSession sessio
         [Bind(Prefix = "ItemForm")] MealPlanItemForm form,
         CancellationToken cancellationToken)
     {
-        var guard = RequireUser();
+        var guard = RequireMember();
         if (guard is not null)
         {
             return guard;
@@ -167,7 +167,7 @@ public sealed class MealPlansController(ApiGatewayClient api, UserSession sessio
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteItem(Guid id, Guid itemId, CancellationToken cancellationToken)
     {
-        var guard = RequireUser();
+        var guard = RequireMember();
         if (guard is not null)
         {
             return guard;

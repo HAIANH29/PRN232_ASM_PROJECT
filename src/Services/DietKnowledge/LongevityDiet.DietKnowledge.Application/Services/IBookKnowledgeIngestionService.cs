@@ -24,6 +24,10 @@ public interface IBookKnowledgeIngestionService
         UploadBookSourceCommand command,
         CancellationToken cancellationToken = default);
 
+    Task DeleteDocumentAsync(
+        Guid id,
+        CancellationToken cancellationToken = default);
+
     Task<IReadOnlyCollection<KnowledgeCandidateModel>> GenerateCandidatesAsync(
         GenerateKnowledgeCandidatesCommand command,
         CancellationToken cancellationToken = default);

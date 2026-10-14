@@ -14,6 +14,10 @@
         <form asp-action="GenerateCandidates" asp-route-id="@Model.Document.Id" method="post" class="inline-form">
             <button class="btn btn-dark" type="submit" disabled="@(Model.Document.Status != "Chunked")">Generate candidates</button>
         </form>
+        <form asp-action="Delete" asp-route-id="@Model.Document.Id" method="post" class="inline-form"
+              onsubmit="return confirm('Delete this book source with its chunks and candidates? Knowledge already approved from it is kept.');">
+            <button class="btn btn-outline-danger" type="submit">Delete</button>
+        </form>
     </div>
 </section>
 

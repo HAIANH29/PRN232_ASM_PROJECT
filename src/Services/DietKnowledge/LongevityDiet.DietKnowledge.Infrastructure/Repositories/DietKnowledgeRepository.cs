@@ -308,6 +308,12 @@ public sealed class DietKnowledgeRepository(DietKnowledgeDbContext dbContext) : 
         await dbContext.BookSourceDocuments.AddAsync(document, cancellationToken);
     }
 
+    public void RemoveBookSourceDocument(BookSourceDocument document)
+    {
+        // Chunks and candidates are removed by the configured cascade delete.
+        dbContext.BookSourceDocuments.Remove(document);
+    }
+
     public async Task<IReadOnlyCollection<BookSourceChunk>> ListBookSourceChunksAsync(
         Guid documentId,
         CancellationToken cancellationToken = default)

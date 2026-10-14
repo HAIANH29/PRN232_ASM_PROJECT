@@ -73,6 +73,13 @@ public sealed class BookSourcesController(IBookKnowledgeIngestionService ingesti
                 HttpContext.TraceIdentifier));
     }
 
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    {
+        await ingestionService.DeleteDocumentAsync(id, cancellationToken);
+        return NoContent();
+    }
+
     [HttpGet("{id:guid}/chunks")]
     public async Task<ActionResult<ApiResponse<IReadOnlyCollection<BookSourceChunkResponse>>>> ListChunks(
         Guid id,

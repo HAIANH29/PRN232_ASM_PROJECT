@@ -14,20 +14,23 @@
     <header>
         <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom app-nav">
             <div class="container-fluid">
-                <a class="navbar-brand fw-semibold" asp-controller="Home" asp-action="Index">Longevity Diet Platform</a>
+                <a class="navbar-brand fw-semibold" asp-controller="@(UserSession.IsAdmin ? "AdminKnowledge" : "Home")" asp-action="Index">Longevity Diet Platform@(UserSession.IsAdmin ? " Admin" : "")</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-lg-inline-flex justify-content-between">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Home" asp-action="Index">Dashboard</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Knowledge" asp-action="Index">Knowledge</a>
-                        </li>
-                        @if (UserSession.IsSignedIn)
+                        @if (!UserSession.IsAdmin)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Home" asp-action="Index">Dashboard</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Knowledge" asp-action="Index">Knowledge</a>
+                            </li>
+                        }
+                        @if (UserSession.IsSignedIn && !UserSession.IsAdmin)
                         {
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="MealPlans" asp-action="Index">Meal Plans</a>
@@ -42,7 +45,7 @@
                         @if (UserSession.IsAdmin)
                         {
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="AdminKnowledge" asp-action="Index">Admin</a>
+                                <a class="nav-link" asp-controller="AdminKnowledge" asp-action="Index">Managed Knowledge</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="AdminBookSources" asp-action="Index">Book Sources</a>

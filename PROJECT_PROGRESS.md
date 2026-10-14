@@ -72,6 +72,28 @@ Do not mark a feature as complete if it only has placeholders or configuration. 
 
 ## Change Log
 
+### 2026-10-14 — Admin-only workspace and book source deletion
+
+- Admin accounts no longer see member screens: layout shows only `Managed Knowledge` and `Book Sources` for admins; `Home`, `Knowledge`, `MealPlans`, `Recommendations`, `Tracking` redirect admins to `AdminKnowledge` (new `AppController.RequireMember`).
+- Added `DELETE /api/admin/book-sources/{id}` (Admin only, `204`; `404` if missing): removes the document, chunks (cascade) and candidates, then deletes the stored PDF (only inside the storage root). Knowledge already approved from the book is kept. Web: Delete buttons (with confirm) on the book source list and details pages.
+- Tests: 2 new ingestion tests (delete removes document/chunks/candidates/file; missing document throws) — 31 pass.
+- Verification (Docker): deleted the older duplicate `82122d9a91ebd063.pdf` through the gateway (`204`, file removed from volume, second delete `404`, delete as `User` `403`); admin web session redirects member routes and nav shows only admin links; user session unchanged.
+- Remaining TODO: two orphan PDFs remain in the `diet-knowledge-book-sources` volume from test records removed earlier by direct SQL; no web-level automated test for the admin redirects.
+
+### 2026-10-14 — Gemini retry, time budget, and per-chunk local fallback
+
+- With Gemini enabled, `candidates/generate` returned `504`: `gemini-3.8-flash` answered `503 UNAVAILABLE` / timed out, and 8 sequential 30 s calls exceeded the gateway timeout.
+- `GeminiKnowledgeCandidateGenerator` now retries transient failures (408/429/5xx, timeouts) with linear backoff, caps total Gemini time per request, stops calling Gemini after consecutive failures, and fills failed/skipped chunks with local fallback drafts. New `Gemini__MaxRetries`, `RetryDelaySeconds`, `MaxConsecutiveFailures`, `TotalBudgetSeconds` options (defaults 2 / 2 / 2 / 60; not yet wired into `docker-compose.yml`).
+- Verification: `dotnet build` clean, 29 tests pass; against the real 23 MB PDF with Gemini overloaded, generate returned `200` in ~60 s with 5 `NeedsReview` fallback candidates.
+- Remaining TODO: a successful Gemini-generated candidate has not been observed yet (Gemini was overloaded); no unit test for the retry/fallback path; 60 s budget is close to the gateway timeout.
+
+### 2026-10-14 — Fix PDF ingestion failing on NUL characters
+
+- Real-PDF upload (23 MB, 161 pages) returned `500`: PdfPig text contained `\0`, which PostgreSQL rejects (`22021 invalid byte sequence for encoding "UTF8": 0x00`).
+- `PdfBookTextExtractor.Normalize` now strips control characters and unpaired surrogates before chunking.
+- Verification: `docker compose up -d --build`, admin login via gateway, re-upload through `/diet-knowledge/api/admin/book-sources` returned `201` with status `Chunked` and 161 chunks; `candidates/generate` produced 5 `LocalChunkFallback` candidates (`NeedsReview`).
+- Remaining TODO: no automated regression test for the NUL case yet; the uploaded file is a third-party summary ("Bookey"), not the book itself, so its candidates must not be approved as book-sourced knowledge without review.
+
 ### 2026-10-10 — Complete Milestone 11 Documentation And Submission Package
 
 - Updated README with current project status, test instructions, demo links, and a minimum browser demo path.

@@ -23,6 +23,18 @@ public abstract class AppController(ApiGatewayClient api, UserSession session) :
         return RedirectToAction("Login", "Auth");
     }
 
+    // Screens for regular members only (meal plans, recommendations, tracking); admins have their own workspace.
+    protected IActionResult? RequireMember()
+    {
+        var userResult = RequireUser();
+        if (userResult is not null)
+        {
+            return userResult;
+        }
+
+        return Session.IsAdmin ? RedirectToAction("Index", "AdminKnowledge") : null;
+    }
+
     protected IActionResult? RequireAdmin()
     {
         var userResult = RequireUser();
