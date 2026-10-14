@@ -89,7 +89,7 @@ public sealed class AdminKnowledgeController(ApiGatewayClient api, UserSession s
 
         if (form.IngredientFoodId == Guid.Empty)
         {
-            ModelState.AddModelError(nameof(form.IngredientFoodId), "Choose an approved food ingredient.");
+            ModelState.AddModelError(nameof(form.IngredientFoodId), Translator.Lookup("Choose an approved food ingredient."));
         }
 
         if (!ModelState.IsValid)
@@ -235,7 +235,7 @@ public sealed class AdminKnowledgeController(ApiGatewayClient api, UserSession s
 
         if (form.IngredientFoodId == Guid.Empty)
         {
-            ModelState.AddModelError(nameof(form.IngredientFoodId), "Choose an approved food ingredient.");
+            ModelState.AddModelError(nameof(form.IngredientFoodId), Translator.Lookup("Choose an approved food ingredient."));
         }
 
         if (!ModelState.IsValid)

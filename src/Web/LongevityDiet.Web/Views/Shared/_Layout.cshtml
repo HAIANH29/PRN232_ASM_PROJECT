@@ -1,6 +1,6 @@
 @inject UserSession UserSession
 <!DOCTYPE html>
-<html lang="en">
+<html lang="@(Translator.IsVietnamese ? "vi" : "en")">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -14,9 +14,9 @@
     <header>
         <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom app-nav">
             <div class="container-fluid">
-                <a class="navbar-brand fw-semibold" asp-controller="@(UserSession.IsAdmin ? "AdminKnowledge" : "Home")" asp-action="Index">Longevity Diet Platform@(UserSession.IsAdmin ? " Admin" : "")</a>
+                <a class="navbar-brand fw-semibold" asp-controller="@(UserSession.IsAdmin ? "AdminKnowledge" : "Home")" asp-action="Index">@T["Longevity Diet Platform"]@(UserSession.IsAdmin ? " " + T["Admin"] : "")</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+                        aria-expanded="false" aria-label="@T["Toggle navigation"]">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-lg-inline-flex justify-content-between">
@@ -24,46 +24,53 @@
                         @if (!UserSession.IsAdmin)
                         {
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Home" asp-action="Index">Dashboard</a>
+                                <a class="nav-link" asp-controller="Home" asp-action="Index">@T["Home"]</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Knowledge" asp-action="Index">Knowledge</a>
+                                <a class="nav-link" asp-controller="Knowledge" asp-action="Index">@T["Diet Knowledge"]</a>
                             </li>
                         }
                         @if (UserSession.IsSignedIn && !UserSession.IsAdmin)
                         {
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="MealPlans" asp-action="Index">Meal Plans</a>
+                                <a class="nav-link" asp-controller="MealPlans" asp-action="Index">@T["Meal Plans"]</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Recommendations" asp-action="Index">Recommendations</a>
+                                <a class="nav-link" asp-controller="Recommendations" asp-action="Index">@T["Meal Ideas"]</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Tracking" asp-action="Index">Tracking</a>
+                                <a class="nav-link" asp-controller="Tracking" asp-action="Index">@T["Daily Check-in"]</a>
                             </li>
                         }
                         @if (UserSession.IsAdmin)
                         {
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="AdminKnowledge" asp-action="Index">Managed Knowledge</a>
+                                <a class="nav-link" asp-controller="AdminKnowledge" asp-action="Index">@T["Managed Knowledge"]</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="AdminBookSources" asp-action="Index">Book Sources</a>
+                                <a class="nav-link" asp-controller="AdminBookSources" asp-action="Index">@T["Book Sources"]</a>
                             </li>
                         }
                     </ul>
                     <div class="d-flex align-items-center gap-2">
+                        @{
+                            var returnUrl = Context.Request.Path + Context.Request.QueryString;
+                        }
+                        <div class="lang-switch" role="group" aria-label="@T["Language"]">
+                            <a class="@(Translator.IsVietnamese ? "" : "active")" asp-controller="Language" asp-action="Set" asp-route-lang="en" asp-route-returnUrl="@returnUrl" title="English" lang="en">EN</a>
+                            <a class="@(Translator.IsVietnamese ? "active" : "")" asp-controller="Language" asp-action="Set" asp-route-lang="vi" asp-route-returnUrl="@returnUrl" title="Tiếng Việt" lang="vi">VI</a>
+                        </div>
                         @if (UserSession.IsSignedIn)
                         {
                             <a class="btn btn-sm btn-outline-secondary" asp-controller="Auth" asp-action="Profile">@UserSession.DisplayName</a>
                             <form asp-controller="Auth" asp-action="Logout" method="post">
-                                <button class="btn btn-sm btn-dark" type="submit">Sign out</button>
+                                <button class="btn btn-sm btn-dark" type="submit">@T["Sign out"]</button>
                             </form>
                         }
                         else
                         {
-                            <a class="btn btn-sm btn-outline-secondary" asp-controller="Auth" asp-action="Login">Sign in</a>
-                            <a class="btn btn-sm btn-dark" asp-controller="Auth" asp-action="Register">Register</a>
+                            <a class="btn btn-sm btn-outline-secondary" asp-controller="Auth" asp-action="Login">@T["Sign in"]</a>
+                            <a class="btn btn-sm btn-dark" asp-controller="Auth" asp-action="Register">@T["Register"]</a>
                         }
                     </div>
                 </div>
@@ -79,7 +86,7 @@
 
     <footer class="border-top footer text-muted bg-white">
         <div class="container-fluid">
-            &copy; 2026 - Longevity Diet Platform
+            &copy; 2026 - @T["Longevity Diet Platform"]
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

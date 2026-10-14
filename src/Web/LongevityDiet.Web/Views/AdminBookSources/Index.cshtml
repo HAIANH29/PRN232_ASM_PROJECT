@@ -1,48 +1,48 @@
 @model AdminBookSourcesViewModel
 @{
-    ViewData["Title"] = "Book Sources";
+    ViewData["Title"] = T["Book Sources"];
 }
 
 <section class="page-head">
     <div>
-        <p class="eyebrow">Admin workspace</p>
-        <h1>Book source ingestion</h1>
-        <p class="text-muted mb-0">Upload a legally obtained PDF, extract chunks, and generate review candidates before approving knowledge.</p>
+        <p class="eyebrow">@T["Admin workspace"]</p>
+        <h1>@T["Book source ingestion"]</h1>
+        <p class="text-muted mb-0">@T["Upload a legally obtained PDF, extract chunks, and generate review candidates before approving knowledge."]</p>
     </div>
     <div class="head-actions">
-        <a class="btn btn-outline-secondary" asp-controller="AdminKnowledge" asp-action="Index">Managed knowledge</a>
+        <a class="btn btn-outline-secondary" asp-controller="AdminKnowledge" asp-action="Index">@T["Managed knowledge"]</a>
     </div>
 </section>
 
 <section class="section-card narrow-card">
     <div class="card-heading">
-        <h2>Upload book PDF</h2>
+        <h2>@T["Upload book PDF"]</h2>
     </div>
     <form asp-action="Upload" method="post" enctype="multipart/form-data" class="form-stack">
         <div asp-validation-summary="ModelOnly" class="text-danger small"></div>
         <div>
-            <label asp-for="Upload.File" class="form-label">PDF file</label>
+            <label asp-for="Upload.File" class="form-label">@T["PDF file"]</label>
             <input asp-for="Upload.File" type="file" accept="application/pdf,.pdf" class="form-control" />
             <span asp-validation-for="Upload.File" class="text-danger small"></span>
         </div>
-        <button class="btn btn-dark" type="submit">Upload and chunk</button>
+        <button class="btn btn-dark" type="submit">@T["Upload and chunk"]</button>
     </form>
 </section>
 
 <section class="section-card mt-3">
     <div class="card-heading">
-        <h2>Uploaded sources</h2>
+        <h2>@T["Uploaded sources"]</h2>
         <span class="count-pill">@Model.Documents.TotalCount</span>
     </div>
     <div class="table-responsive">
         <table class="table align-middle">
             <thead>
                 <tr>
-                    <th>File</th>
-                    <th>Status</th>
-                    <th>Chunks</th>
-                    <th>Uploaded</th>
-                    <th class="table-actions">Actions</th>
+                    <th>@T["File"]</th>
+                    <th>@T["Status"]</th>
+                    <th>@T["Chunks"]</th>
+                    <th>@T["Uploaded"]</th>
+                    <th class="table-actions">@T["Actions"]</th>
                 </tr>
             </thead>
             <tbody>
@@ -51,16 +51,16 @@
                     <tr>
                         <td>
                             <div class="item-title">@item.OriginalFileName</div>
-                            <small>@FormatBytes(item.FileSizeBytes) by @item.UploadedBy</small>
+                            <small>@T.F("{0} by {1}", FormatBytes(item.FileSizeBytes), item.UploadedBy)</small>
                         </td>
-                        <td><span class="badge @(item.Status == "Failed" ? "text-bg-danger" : item.Status == "Chunked" ? "text-bg-success" : "text-bg-secondary")">@item.Status</span></td>
+                        <td><span class="badge @(item.Status == "Failed" ? "text-bg-danger" : item.Status == "Chunked" ? "text-bg-success" : "text-bg-secondary")">@T[item.Status]</span></td>
                         <td>@item.ChunkCount</td>
                         <td>@item.UploadedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
                         <td class="table-actions">
-                            <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@item.Id">Open</a>
+                            <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@item.Id">@T["Open"]</a>
                             <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="inline-form"
-                                  onsubmit="return confirm('Delete this book source with its chunks and candidates? Knowledge already approved from it is kept.');">
-                                <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+                                  onsubmit="return confirm('@T["Delete this book source with its chunks and candidates? Knowledge already approved from it is kept."]');">
+                                <button class="btn btn-sm btn-outline-danger" type="submit">@T["Delete"]</button>
                             </form>
                         </td>
                     </tr>
@@ -70,7 +70,7 @@
     </div>
     @if (!Model.Documents.Items.Any())
     {
-        <p class="empty-state mt-3">No uploaded book sources yet.</p>
+        <p class="empty-state mt-3">@T["No uploaded book sources yet."]</p>
     }
 </section>
 

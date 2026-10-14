@@ -72,6 +72,23 @@ Do not mark a feature as complete if it only has placeholders or configuration. 
 
 ## Change Log
 
+### 2026-10-14 — English/Vietnamese language switch (guests, members, admins)
+
+- Added an `EN | VI` switch in the top bar for everyone (guest, member, admin). `LanguageController.Set` stores the choice in a cookie (UI language only; date/number parsing stays en-US so forms keep working) and redirects to a local URL only.
+- Approach: English text is the key, `Services/Translations.cs` holds the Vietnamese dictionary, `Translator` (`@T["..."]`, `T.F(...)`) looks it up and falls back to English. Data-annotation labels/validation messages go through the same dictionary (`DictionaryStringLocalizerFactory`, `LocalizedValidationAttributeAdapterProvider`, `HumanizedDisplayNameProvider`); flash messages and API error messages are translated when shown.
+- All views (member, admin, auth, layout) were converted; stored values such as meal slots stay English in forms (`Breakfast`, ...) while their labels are translated.
+- Verification: headless-Chrome run in Vietnamese for guest, member and admin pages (no leftover English UI text; remaining English is database content), wrong-login / empty-form / bad-date errors shown in Vietnamese, switching back to English works, open-redirect attempt ignored.
+- Content follow-up (same day): platform content that ships with the app (seed guidelines, foods, recipes, categories, quantities, source notes, recommendation disclaimer) is now translated at display time through `Services/ContentTranslations.cs` (`T.C(...)`, `T.Q(...)`) on the Knowledge, Admin lists, Meal Plans, Daily check-in and Meal ideas screens; edit forms still show the stored value. The UI language is also sent with a recommendation request (`Language` on the API, command and `RecommendationRequestMessage`, default `en`), so Gemini writes meal titles and the disclaimer in Vietnamese when the UI is Vietnamese (new unit tests, 33 pass). The accept form pre-selects catalog items by English or Vietnamese name.
+- Remaining TODO: content written by people or by Gemini (admin-entered items, plan names, notes, PDF chunks and Gemini-generated knowledge candidates, recommendations created before this change) stays in its original language; searching in Vietnamese does not match English seed content; new UI text must be added to `Translations.cs` / `ContentTranslations.cs` (a missing entry just shows English); no automated test covers the dictionaries.
+
+### 2026-10-14 — Friendlier member UI (meal ideas, daily check-in, home)
+
+- Meal ideas (Recommendations): clearer wording ("How many meal ideas?" — the old "Days" field really meant the number of suggested meals), tap-to-add preference chips, a 3-step explainer, a note that illness/treatment/lifespan preferences are ignored, friendly status labels, and auto-refresh while a request is pending. Accepting now lists every suggested meal with its own day, meal slot and catalog recipe/food (pre-matched by name), so one request creates a multi-meal plan; plan dates are derived from the chosen days.
+- Daily check-in (Tracking): per-day meal list with "Mark as eaten"/"Undo" instead of a dropdown, meal names instead of GUIDs, default progress window = current week. Fixed the progress card: the API's `completionRate` is a 0–1 ratio (100% was shown as "1%") and its `plannedMeals` only counts already-tracked meals, so the planned total is now taken from the meal plans.
+- Home page rewritten (welcome + four plain-language entry cards + disclaimer); nav renamed (Home, Diet Knowledge, Meal Plans, Meal Ideas, Daily Check-in); meal plan form labels no longer show raw property names.
+- Verification: `dotnet build`/tests pass; Docker run checked with headless Chrome screenshots and a scripted flow (request ideas → untick one → create plan with 3 meals → mark eaten → progress 1 of 4, 25%).
+- Remaining TODO: UI copy is English only; the "Add item" form on the meal plan page still has separate Food/Recipe dropdowns; no automated UI tests; mobile layout only checked by CSS, not on a real device.
+
 ### 2026-10-14 — Admin-only workspace and book source deletion
 
 - Admin accounts no longer see member screens: layout shows only `Managed Knowledge` and `Book Sources` for admins; `Home`, `Knowledge`, `MealPlans`, `Recommendations`, `Tracking` redirect admins to `AdminKnowledge` (new `AppController.RequireMember`).
@@ -86,7 +103,8 @@ Do not mark a feature as complete if it only has placeholders or configuration. 
 - With Gemini enabled, `candidates/generate` returned `504`: `gemini-3.8-flash` answered `503 UNAVAILABLE` / timed out, and 8 sequential 30 s calls exceeded the gateway timeout.
 - `GeminiKnowledgeCandidateGenerator` now retries transient failures (408/429/5xx, timeouts) with linear backoff, caps total Gemini time per request, stops calling Gemini after consecutive failures, and fills failed/skipped chunks with local fallback drafts. New `Gemini__MaxRetries`, `RetryDelaySeconds`, `MaxConsecutiveFailures`, `TotalBudgetSeconds` options (defaults 2 / 2 / 2 / 60; not yet wired into `docker-compose.yml`).
 - Verification: `dotnet build` clean, 29 tests pass; against the real 23 MB PDF with Gemini overloaded, generate returned `200` in ~60 s with 5 `NeedsReview` fallback candidates.
-- Remaining TODO: a successful Gemini-generated candidate has not been observed yet (Gemini was overloaded); no unit test for the retry/fallback path; 60 s budget is close to the gateway timeout.
+- Follow-up verification: with a new key and `GEMINI_MODEL=gemini-3.1-flash-lite` (the free quota of `gemini-3.8-flash` was 20 requests/day and exhausted), candidate generation returned 12 `Gemini` candidates in ~22 s and a recommendation request completed with Gemini-written titles.
+- Remaining TODO: no unit test for the retry/fallback path; 60 s budget is close to the gateway timeout.
 
 ### 2026-10-14 — Fix PDF ingestion failing on NUL characters
 

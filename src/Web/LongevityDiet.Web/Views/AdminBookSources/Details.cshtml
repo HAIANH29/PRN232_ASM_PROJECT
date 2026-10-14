@@ -1,22 +1,22 @@
 @model AdminBookSourceDetailsViewModel
 @{
-    ViewData["Title"] = "Book Source Details";
+    ViewData["Title"] = T["Book Source Details"];
 }
 
 <section class="page-head">
     <div>
-        <p class="eyebrow">Book source</p>
+        <p class="eyebrow">@T["Book source"]</p>
         <h1>@Model.Document.OriginalFileName</h1>
-        <p class="text-muted mb-0">Review extracted chunks, generate candidates, then approve only the items that are safe and source-verified.</p>
+        <p class="text-muted mb-0">@T["Review extracted chunks, generate candidates, then approve only the items that are safe and source-verified."]</p>
     </div>
     <div class="head-actions">
-        <a class="btn btn-outline-secondary" asp-action="Index">Back to sources</a>
+        <a class="btn btn-outline-secondary" asp-action="Index">@T["Back to sources"]</a>
         <form asp-action="GenerateCandidates" asp-route-id="@Model.Document.Id" method="post" class="inline-form">
-            <button class="btn btn-dark" type="submit" disabled="@(Model.Document.Status != "Chunked")">Generate candidates</button>
+            <button class="btn btn-dark" type="submit" disabled="@(Model.Document.Status != "Chunked")">@T["Generate candidates"]</button>
         </form>
         <form asp-action="Delete" asp-route-id="@Model.Document.Id" method="post" class="inline-form"
-              onsubmit="return confirm('Delete this book source with its chunks and candidates? Knowledge already approved from it is kept.');">
-            <button class="btn btn-outline-danger" type="submit">Delete</button>
+              onsubmit="return confirm('@T["Delete this book source with its chunks and candidates? Knowledge already approved from it is kept."]');">
+            <button class="btn btn-outline-danger" type="submit">@T["Delete"]</button>
         </form>
     </div>
 </section>
@@ -24,19 +24,19 @@
 <section class="content-grid two-columns">
     <div class="section-card">
         <div class="card-heading">
-            <h2>Document</h2>
-            <span class="badge @(Model.Document.Status == "Failed" ? "text-bg-danger" : Model.Document.Status == "Chunked" ? "text-bg-success" : "text-bg-secondary")">@Model.Document.Status</span>
+            <h2>@T["Document"]</h2>
+            <span class="badge @(Model.Document.Status == "Failed" ? "text-bg-danger" : Model.Document.Status == "Chunked" ? "text-bg-success" : "text-bg-secondary")">@T[Model.Document.Status]</span>
         </div>
         <dl class="detail-list">
-            <dt>Uploaded by</dt>
+            <dt>@T["Uploaded by"]</dt>
             <dd>@Model.Document.UploadedBy</dd>
-            <dt>Uploaded at</dt>
+            <dt>@T["Uploaded at"]</dt>
             <dd>@Model.Document.UploadedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</dd>
-            <dt>Processed at</dt>
+            <dt>@T["Processed at"]</dt>
             <dd>@(Model.Document.ProcessedAtUtc?.ToLocalTime().ToString("yyyy-MM-dd HH:mm") ?? "-")</dd>
-            <dt>Chunks</dt>
+            <dt>@T["Chunks"]</dt>
             <dd>@Model.Document.ChunkCount</dd>
-            <dt>Stored file</dt>
+            <dt>@T["Stored file"]</dt>
             <dd>@Model.Document.StoredFileName</dd>
         </dl>
         @if (!string.IsNullOrWhiteSpace(Model.Document.ErrorMessage))
@@ -47,20 +47,20 @@
 
     <div class="section-card">
         <div class="card-heading">
-            <h2>Review rule</h2>
+            <h2>@T["Review rule"]</h2>
         </div>
-        <p class="text-muted mb-0">Candidates are not visible to users and are not used by recommendations until an Admin approves them into managed Diet Knowledge content.</p>
+        <p class="text-muted mb-0">@T["Candidates are not visible to users and are not used by recommendations until an Admin approves them into managed Diet Knowledge content."]</p>
     </div>
 </section>
 
 <section class="section-card mt-3">
     <div class="card-heading">
-        <h2>Knowledge candidates</h2>
+        <h2>@T["Knowledge candidates"]</h2>
         <span class="count-pill">@Model.Candidates.Count</span>
     </div>
     @if (!Model.Candidates.Any())
     {
-        <p class="empty-state">No candidates yet. Generate candidates after the document is chunked.</p>
+        <p class="empty-state">@T["No candidates yet. Generate candidates after the document is chunked."]</p>
     }
     else
     {
@@ -70,8 +70,8 @@
                 <article class="content-item">
                     <div class="candidate-head">
                         <div>
-                            <div class="item-title">@candidate.Title</div>
-                            <small>@candidate.CandidateType · @candidate.GeneratedBy · @candidate.Status</small>
+                            <div class="item-title">@T.C(candidate.Title)</div>
+                            <small>@T[candidate.CandidateType] · @candidate.GeneratedBy · @T[candidate.Status]</small>
                         </div>
                         @if (candidate.Status == "NeedsReview")
                         {
@@ -79,18 +79,18 @@
                                 <form asp-action="ApproveCandidate" method="post" class="inline-form">
                                     <input type="hidden" name="documentId" value="@Model.Document.Id" />
                                     <input type="hidden" name="candidateId" value="@candidate.Id" />
-                                    <button class="btn btn-sm btn-dark" type="submit">Approve</button>
+                                    <button class="btn btn-sm btn-dark" type="submit">@T["Approve"]</button>
                                 </form>
                                 <form asp-action="RejectCandidate" method="post" class="inline-form">
                                     <input type="hidden" name="documentId" value="@Model.Document.Id" />
                                     <input type="hidden" name="candidateId" value="@candidate.Id" />
-                                    <button class="btn btn-sm btn-outline-danger" type="submit">Reject</button>
+                                    <button class="btn btn-sm btn-outline-danger" type="submit">@T["Reject"]</button>
                                 </form>
                             </div>
                         }
                     </div>
-                    <p>@candidate.Summary</p>
-                    <small>@candidate.SourceTitle · @candidate.SourceChapter · page @candidate.SourcePage · @candidate.SourceReference</small>
+                    <p>@T.C(candidate.Summary)</p>
+                    <small>@T.C(candidate.SourceTitle) · @T.C(candidate.SourceChapter) · @T.F("page {0}", candidate.SourcePage) · @T.C(candidate.SourceReference)</small>
                 </article>
             }
         </div>
@@ -99,12 +99,12 @@
 
 <section class="section-card mt-3">
     <div class="card-heading">
-        <h2>Extracted chunks</h2>
+        <h2>@T["Extracted chunks"]</h2>
         <span class="count-pill">@Model.Chunks.Count</span>
     </div>
     @if (!Model.Chunks.Any())
     {
-        <p class="empty-state">No extracted chunks available.</p>
+        <p class="empty-state">@T["No extracted chunks available."]</p>
     }
     else
     {
@@ -112,7 +112,7 @@
             @foreach (var chunk in Model.Chunks)
             {
                 <details class="content-item">
-                    <summary class="item-title">Chunk @chunk.ChunkIndex · page @chunk.PageNumber · @chunk.CharacterCount chars</summary>
+                    <summary class="item-title">@T.F("Chunk {0} · page {1} · {2} chars", chunk.ChunkIndex, chunk.PageNumber, chunk.CharacterCount)</summary>
                     <p class="chunk-text">@Shorten(chunk.Text, 1800)</p>
                 </details>
             }

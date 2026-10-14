@@ -1,9 +1,18 @@
+using System.Globalization;
 using LongevityDiet.Web.Services;
+using Microsoft.AspNetCore.Localization;
+using Microsoft.Extensions.Localization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddSingleton<IStringLocalizerFactory, DictionaryStringLocalizerFactory>();
+builder.Services.AddSingleton<Translator>();
+builder.Services.AddSingleton<Microsoft.AspNetCore.Mvc.DataAnnotations.IValidationAttributeAdapterProvider, LocalizedValidationAttributeAdapterProvider>();
+builder.Services
+    .AddControllersWithViews(options => options.ModelMetadataDetailsProviders.Add(new HumanizedDisplayNameProvider()))
+    .AddDataAnnotationsLocalization(options =>
+        options.DataAnnotationLocalizerProvider = (_, factory) => factory.Create(typeof(SharedResource)));
 builder.Services.AddHealthChecks();
 builder.Services.AddHttpContextAccessor();
 builder.Services.Configure<ApiGatewayOptions>(
@@ -28,6 +37,15 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+// UI language comes from the language cookie (English by default); formats stay en-US.
+app.UseRequestLocalization(new RequestLocalizationOptions
+{
+    DefaultRequestCulture = new RequestCulture("en-US", "en"),
+    SupportedCultures = [new CultureInfo("en-US")],
+    SupportedUICultures = [new CultureInfo("en"), new CultureInfo("vi")],
+    RequestCultureProviders = [new CookieRequestCultureProvider()]
+});
+
 app.UseRouting();
 
 app.UseAuthorization();

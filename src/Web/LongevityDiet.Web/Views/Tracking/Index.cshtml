@@ -1,145 +1,148 @@
 @using System.Globalization
 @model TrackingIndexViewModel
 @{
-    ViewData["Title"] = "Tracking";
+    ViewData["Title"] = T["Daily check-in"];
     var foodsById = Model.Foods.ToDictionary(food => food.Id);
     var recipesById = Model.Recipes.ToDictionary(recipe => recipe.Id);
-    var completionRate = Model.ProgressSummary is null
+    // The Tracking API only counts meals that were already tracked, so the real plan size comes from the plans.
+    var plannedInPeriod = Model.MealPlans
+        .SelectMany(plan => plan.Items)
+        .Count(item => item.PlannedDate >= Model.Form.PeriodStartDate && item.PlannedDate <= Model.Form.PeriodEndDate);
+    var plannedTotal = Math.Max(plannedInPeriod, Model.ProgressSummary?.PlannedMeals ?? 0);
+    var completedTotal = Model.ProgressSummary?.CompletedMeals ?? 0;
+    // The API returns a 0-1 ratio, so convert to a percentage here.
+    var completionRate = plannedTotal == 0
         ? 0m
-        : Math.Min(100m, Math.Max(0m, Model.ProgressSummary.CompletionRate));
+        : Math.Min(100m, Math.Round(completedTotal * 100m / plannedTotal, 0));
+    var trackedByItem = (Model.DailyTracking?.Meals ?? Array.Empty<MealTrackingResponse>())
+        .ToDictionary(meal => meal.MealPlanItemId);
+    var day = Model.Form.TrackingDate;
+    var mealsOfDay = Model.MealPlans
+        .SelectMany(plan => plan.Items.Select(item => new { Plan = plan, Item = item }))
+        .Where(entry => entry.Item.PlannedDate == day)
+        .OrderBy(entry => entry.Item.MealSlot == "Breakfast" ? 0 : entry.Item.MealSlot == "Lunch" ? 1 : entry.Item.MealSlot == "Dinner" ? 2 : 3)
+        .ToList();
+    string NameOf(MealPlanItemResponse item) =>
+        item.FoodId.HasValue && foodsById.TryGetValue(item.FoodId.Value, out var food) ? T.C(food.Name)
+        : item.RecipeId.HasValue && recipesById.TryGetValue(item.RecipeId.Value, out var recipe) ? T.C(recipe.Name)
+        : T["Catalog item"];
+    var isToday = day == DateOnly.FromDateTime(DateTime.Today);
 }
 
 <section class="page-head">
     <div>
-        <p class="eyebrow">Daily progress</p>
-        <h1>Tracking</h1>
-        <p class="text-muted mb-0">Mark planned meals completed or not completed and review progress for the selected period.</p>
+        <p class="eyebrow">@T["Daily check-in"]</p>
+        <h1>@(isToday ? T["Today's meals"] : day.ToString("dddd, d MMMM yyyy", Translator.FormatCulture))</h1>
+        <p class="text-muted mb-0">@T["Tick off the meals you have eaten from your plan, add a short note, and see how the week is going."]</p>
     </div>
 </section>
 
 <form method="get" class="filter-bar">
     <div>
-        <label for="trackingDate" class="form-label">Tracking date</label>
+        <label for="trackingDate" class="form-label">@T["Day"]</label>
         <input id="trackingDate" name="trackingDate" type="date" class="form-control" value="@Model.Form.TrackingDate.ToString("yyyy-MM-dd")" />
     </div>
     <div>
-        <label for="periodStartDate" class="form-label">Period start</label>
+        <label for="periodStartDate" class="form-label">@T["Progress from"]</label>
         <input id="periodStartDate" name="periodStartDate" type="date" class="form-control" value="@Model.Form.PeriodStartDate.ToString("yyyy-MM-dd")" />
     </div>
     <div>
-        <label for="periodEndDate" class="form-label">Period end</label>
+        <label for="periodEndDate" class="form-label">@T["Progress to"]</label>
         <input id="periodEndDate" name="periodEndDate" type="date" class="form-control" value="@Model.Form.PeriodEndDate.ToString("yyyy-MM-dd")" />
     </div>
     <div class="filter-actions">
-        <button class="btn btn-dark" type="submit">Load</button>
+        <button class="btn btn-dark" type="submit">@T["Show"]</button>
     </div>
 </form>
 
 <section class="two-pane">
-    <form asp-action="SaveDaily" method="post" class="section-card form-stack">
-        <div class="card-heading">
-            <h2>Daily note</h2>
-        </div>
-        <input asp-for="Form.TrackingDate" type="hidden" />
-        <input asp-for="Form.PeriodStartDate" type="hidden" />
-        <input asp-for="Form.PeriodEndDate" type="hidden" />
-        <div>
-            <label asp-for="Form.Notes" class="form-label"></label>
-            <textarea asp-for="Form.Notes" class="form-control" rows="6" placeholder="Optional note for the day"></textarea>
-            <span asp-validation-for="Form.Notes" class="text-danger small"></span>
-        </div>
-        <button class="btn btn-dark" type="submit">Save daily tracking</button>
-    </form>
-
-    <form asp-action="SetMeal" method="post" class="section-card form-stack">
-        <div class="card-heading">
-            <h2>Meal completion</h2>
-        </div>
-        <input asp-for="Form.TrackingDate" type="hidden" />
-        <input asp-for="Form.PeriodStartDate" type="hidden" />
-        <input asp-for="Form.PeriodEndDate" type="hidden" />
-        <div>
-            <label asp-for="Form.MealPlanItemId" class="form-label">Meal item</label>
-            <select asp-for="Form.MealPlanItemId" class="form-select">
-                <option value="">Choose scheduled meal</option>
-                @foreach (var plan in Model.MealPlans)
-                {
-                    <optgroup label="@plan.Name">
-                        @foreach (var item in plan.Items.OrderBy(item => item.PlannedDate).ThenBy(item => item.MealSlot))
-                        {
-                            var catalogName = item.FoodId.HasValue && foodsById.TryGetValue(item.FoodId.Value, out var food)
-                                ? food.Name
-                                : item.RecipeId.HasValue && recipesById.TryGetValue(item.RecipeId.Value, out var recipe)
-                                    ? recipe.Name
-                                    : "Catalog item";
-                            <option value="@item.Id">@item.PlannedDate.ToString("yyyy-MM-dd") · @item.MealSlot · @catalogName</option>
-                        }
-                    </optgroup>
-                }
-            </select>
-        </div>
-        <div>
-            <label asp-for="Form.IsCompleted" class="form-label">Completion status</label>
-            <select asp-for="Form.IsCompleted" class="form-select">
-                <option value="true">Completed</option>
-                <option value="false">Not completed</option>
-            </select>
-        </div>
-        <button class="btn btn-dark" type="submit">Update meal</button>
-    </form>
-</section>
-
-<section class="content-grid two-columns">
     <div class="section-card">
         <div class="card-heading">
-            <h2>Daily tracking</h2>
-            <span class="badge text-bg-light border">@Model.Form.TrackingDate.ToString("yyyy-MM-dd")</span>
+            <h2>@T["Meals planned for this day"]</h2>
+            <span class="count-pill">@mealsOfDay.Count</span>
         </div>
-        @if (Model.DailyTracking is null)
+        @if (mealsOfDay.Count == 0)
         {
-            <p class="empty-state">No tracking record for this date yet.</p>
+            <p class="empty-state">
+                @T["Nothing is planned for this day. Pick another day above, or"]
+                <a asp-controller="MealPlans" asp-action="Index">@T["add meals to a plan"]</a>
+                @T["(or"] <a asp-controller="Recommendations" asp-action="Index">@T["get meal ideas"]</a>).
+            </p>
         }
         else
         {
-            <p>@Model.DailyTracking.Notes</p>
             <div class="item-stack">
-                @foreach (var meal in Model.DailyTracking.Meals)
+                @foreach (var entry in mealsOfDay)
                 {
+                    var done = trackedByItem.TryGetValue(entry.Item.Id, out var tracked) && tracked.IsCompleted;
                     <article class="plan-row">
                         <div>
-                            <div class="item-title">@meal.MealPlanItemId</div>
-                            <small>@meal.CreatedAtUtc.LocalDateTime.ToString("yyyy-MM-dd HH:mm")</small>
+                            <div class="item-title">@T[entry.Item.MealSlot]: @NameOf(entry.Item)</div>
+                            <small>@T.F("From plan \"{0}\"", entry.Plan.Name)</small>
                         </div>
-                        <span class="badge @(meal.IsCompleted ? "text-bg-success" : "text-bg-secondary")">
-                            @(meal.IsCompleted ? "Completed" : "Not completed")
-                        </span>
+                        <form asp-action="SetMeal" method="post" class="inline-form">
+                            <input type="hidden" name="Form.TrackingDate" value="@day.ToString("yyyy-MM-dd")" />
+                            <input type="hidden" name="Form.PeriodStartDate" value="@Model.Form.PeriodStartDate.ToString("yyyy-MM-dd")" />
+                            <input type="hidden" name="Form.PeriodEndDate" value="@Model.Form.PeriodEndDate.ToString("yyyy-MM-dd")" />
+                            <input type="hidden" name="Form.MealPlanItemId" value="@entry.Item.Id" />
+                            <input type="hidden" name="Form.IsCompleted" value="@((!done).ToString().ToLowerInvariant())" />
+                            @if (done)
+                            {
+                                <span class="badge text-bg-success me-2">@T["Eaten"]</span>
+                                <button class="btn btn-sm btn-outline-secondary" type="submit">@T["Undo"]</button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-sm btn-dark" type="submit">@T["Mark as eaten"]</button>
+                            }
+                        </form>
                     </article>
                 }
             </div>
         }
     </div>
 
-    <div class="section-card">
+    <form asp-action="SaveDaily" method="post" class="section-card form-stack">
         <div class="card-heading">
-            <h2>Progress summary</h2>
-            <span class="badge text-bg-light border">@Model.Form.PeriodStartDate.ToString("yyyy-MM-dd") to @Model.Form.PeriodEndDate.ToString("yyyy-MM-dd")</span>
+            <h2>@T["Note for the day"]</h2>
         </div>
-        @if (Model.ProgressSummary is null)
-        {
-            <p class="empty-state">No progress summary available yet.</p>
-        }
-        else
-        {
-            <div class="progress-stat">
-                <strong>@Model.ProgressSummary.CompletedMeals / @Model.ProgressSummary.PlannedMeals</strong>
-                <span>completed meals</span>
-            </div>
-            <div class="progress mb-3" role="progressbar" aria-label="Completion rate" aria-valuenow="@completionRate.ToString("0.##", CultureInfo.InvariantCulture)" aria-valuemin="0" aria-valuemax="100">
-                <div class="progress-bar" style="width: @completionRate.ToString("0.##", CultureInfo.InvariantCulture)%"></div>
-            </div>
-            <p class="text-muted mb-0">Calculated @Model.ProgressSummary.CalculatedAtUtc.LocalDateTime.ToString("yyyy-MM-dd HH:mm")</p>
-        }
+        <input asp-for="Form.TrackingDate" type="hidden" />
+        <input asp-for="Form.PeriodStartDate" type="hidden" />
+        <input asp-for="Form.PeriodEndDate" type="hidden" />
+        <div>
+            <label asp-for="Form.Notes" class="form-label">@T["How did the day go?"]</label>
+            <textarea asp-for="Form.Notes" class="form-control" rows="5" placeholder="@T["Optional - e.g. felt full after lunch, skipped the snack"]"></textarea>
+            <span asp-validation-for="Form.Notes" class="text-danger small"></span>
+        </div>
+        <button class="btn btn-dark" type="submit">@T["Save note"]</button>
+    </form>
+</section>
+
+<section class="section-card mt-3">
+    <div class="card-heading">
+        <h2>@T["Your progress"]</h2>
+        <span class="badge text-bg-light border">@Model.Form.PeriodStartDate.ToString("d MMM", Translator.FormatCulture) - @Model.Form.PeriodEndDate.ToString("d MMM yyyy", Translator.FormatCulture)</span>
     </div>
+    @if (plannedTotal == 0)
+    {
+        <p class="empty-state">
+            @T["No planned meals fall between these dates yet, so there is no progress to show. Change the \"Progress from / to\" dates, or"] <a asp-controller="MealPlans" asp-action="Index">@T["create a meal plan"]</a>.
+        </p>
+    }
+    else
+    {
+        <div class="progress-stat">
+            <strong>@T.F("{0} of {1}", completedTotal, plannedTotal)</strong>
+            <span>@T.F("planned meals eaten ({0}%)", completionRate.ToString("0", CultureInfo.InvariantCulture))</span>
+        </div>
+        <div class="progress mb-3" role="progressbar" aria-label="@T["Completion rate"]" aria-valuenow="@completionRate.ToString("0.##", CultureInfo.InvariantCulture)" aria-valuemin="0" aria-valuemax="100">
+            <div class="progress-bar" style="width: @completionRate.ToString("0.##", CultureInfo.InvariantCulture)%"></div>
+        </div>
+        @if (Model.ProgressSummary is not null)
+        {
+            <p class="text-muted mb-0">@T.F("Updated {0}", Model.ProgressSummary.CalculatedAtUtc.LocalDateTime.ToString("d MMM yyyy, HH:mm", Translator.FormatCulture))</p>
+        }
+    }
 </section>
 
 @section Scripts {
