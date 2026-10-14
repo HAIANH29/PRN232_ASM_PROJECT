@@ -103,7 +103,8 @@ internal static class MealPlanningContractMapper
         return new CreateRecommendationRequestCommand(
             userId,
             request.PreferenceTags,
-            request.Days);
+            request.Days,
+            request.Language);
     }
 
     public static AcceptRecommendationCommand ToCommand(

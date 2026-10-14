@@ -241,7 +241,8 @@ public sealed class MealPlanningService(
                 command.UserId,
                 preferenceTags,
                 days,
-                requestedAtUtc),
+                requestedAtUtc,
+                string.Equals(command.Language, "vi", StringComparison.OrdinalIgnoreCase) ? "vi" : "en"),
             cancellationToken);
 
         return MapRecommendationRequest(request);

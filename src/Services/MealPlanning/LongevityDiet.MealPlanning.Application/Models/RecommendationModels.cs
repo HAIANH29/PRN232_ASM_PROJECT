@@ -21,7 +21,8 @@ public sealed record RecommendationRequestModel(
 public sealed record CreateRecommendationRequestCommand(
     Guid UserId,
     IReadOnlyCollection<string> PreferenceTags,
-    int Days);
+    int Days,
+    string Language = "en");
 
 public sealed record AcceptRecommendationCommand(
     Guid UserId,
