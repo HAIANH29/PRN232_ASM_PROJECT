@@ -5,4 +5,5 @@ public sealed record RecommendationRequestMessage(
     Guid UserId,
     IReadOnlyCollection<string> PreferenceTags,
     int Days,
-    DateTimeOffset RequestedAtUtc);
+    DateTimeOffset RequestedAtUtc,
+    string Language = "en");

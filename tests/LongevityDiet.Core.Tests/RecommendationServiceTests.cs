@@ -71,6 +71,60 @@ public sealed class RecommendationServiceTests
     }
 
     [Fact]
+    public async Task GenerateAsync_asks_gemini_for_vietnamese_and_returns_vietnamese_disclaimer_when_requested()
+    {
+        var context = new ApprovedKnowledgeContext(
+            [],
+            [new ApprovedFood(Guid.NewGuid(), "Lentils", "Legume", "Compatible project food.", "Chapter 2", "22", "team source")],
+            []);
+        var gemini = new FakeGeminiClient
+        {
+            IsEnabled = true,
+            Response = """{"suggestedMealTitles":["Bát đậu lăng","Súp đậu"],"disclaimer":"ignored"}"""
+        };
+        var generator = new RecommendationGenerator(
+            new FakeApprovedKnowledgeClient(context),
+            gemini,
+            NullLogger<RecommendationGenerator>.Instance);
+
+        var result = await generator.GenerateAsync(new RecommendationRequestMessage(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            ["đậu"],
+            Days: 2,
+            DateTimeOffset.UtcNow,
+            Language: "vi"));
+
+        Assert.Equal(["Bát đậu lăng", "Súp đậu"], result.SuggestedMealTitles);
+        Assert.Equal(RecommendationSafetyPolicy.DisclaimerVi, result.Disclaimer);
+        Assert.Contains("Vietnamese", gemini.CapturedPrompt, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task GenerateAsync_defaults_to_english_when_no_language_is_given()
+    {
+        var context = new ApprovedKnowledgeContext(
+            [],
+            [new ApprovedFood(Guid.NewGuid(), "Lentils", "Legume", "Compatible project food.", "Chapter 2", "22", "team source")],
+            []);
+        var gemini = new FakeGeminiClient
+        {
+            IsEnabled = true,
+            Response = """{"suggestedMealTitles":["Lentil bowl"],"disclaimer":"ignored"}"""
+        };
+        var generator = new RecommendationGenerator(
+            new FakeApprovedKnowledgeClient(context),
+            gemini,
+            NullLogger<RecommendationGenerator>.Instance);
+
+        var result = await generator.GenerateAsync(new RecommendationRequestMessage(
+            Guid.NewGuid(), Guid.NewGuid(), [], Days: 1, DateTimeOffset.UtcNow));
+
+        Assert.Equal(RecommendationSafetyPolicy.Disclaimer, result.Disclaimer);
+        Assert.DoesNotContain("Vietnamese", gemini.CapturedPrompt, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task GenerateAsync_returns_safe_fallback_when_no_approved_knowledge_exists()
     {
         var generator = new RecommendationGenerator(
