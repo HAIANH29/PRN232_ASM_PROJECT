@@ -287,6 +287,31 @@ public sealed class BookKnowledgeIngestionService(
             "Recipe candidates must be recreated through the recipe admin screen so ingredients are reviewed explicitly.");
     }
 
+    public async Task DeleteDocumentAsync(
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        var document = await repository.GetBookSourceDocumentByIdAsync(id, cancellationToken: cancellationToken)
+            ?? throw new KeyNotFoundException("Book source document was not found.");
+
+        // Knowledge already approved from this book stays; only the raw PDF, chunks and candidates go.
+        var storagePath = document.StoragePath;
+        repository.RemoveBookSourceDocument(document);
+        await repository.SaveChangesAsync(cancellationToken);
+
+        try
+        {
+            fileStore.Delete(storagePath);
+        }
+        catch (IOException)
+        {
+            // The database record is already gone; a leftover file must not fail the request.
+        }
+        catch (UnauthorizedAccessException)
+        {
+        }
+    }
+
     private async Task EnsureDocumentExistsAsync(
         Guid documentId,
         CancellationToken cancellationToken)

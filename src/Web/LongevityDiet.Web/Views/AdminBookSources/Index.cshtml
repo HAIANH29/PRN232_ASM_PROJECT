@@ -58,6 +58,10 @@
                         <td>@item.UploadedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
                         <td class="table-actions">
                             <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@item.Id">Open</a>
+                            <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="inline-form"
+                                  onsubmit="return confirm('Delete this book source with its chunks and candidates? Knowledge already approved from it is kept.');">
+                                <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+                            </form>
                         </td>
                     </tr>
                 }

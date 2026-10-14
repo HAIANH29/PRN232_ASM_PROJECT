@@ -81,6 +81,25 @@ public sealed class AdminBookSourcesController(ApiGatewayClient api, UserSession
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    {
+        var guard = RequireAdmin();
+        if (guard is not null)
+        {
+            return guard;
+        }
+
+        var result = await Api.DeleteAsync(
+            $"/diet-knowledge/api/admin/book-sources/{id}",
+            Token,
+            cancellationToken);
+
+        AddResultMessage(result, "Book source deleted. Knowledge already approved from it was kept.");
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> GenerateCandidates(Guid id, CancellationToken cancellationToken)
     {
         var guard = RequireAdmin();

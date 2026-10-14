@@ -15,7 +15,7 @@ public sealed class TrackingController(ApiGatewayClient api, UserSession session
         DateOnly? periodEndDate,
         CancellationToken cancellationToken)
     {
-        var guard = RequireUser();
+        var guard = RequireMember();
         if (guard is not null)
         {
             return guard;
@@ -34,7 +34,7 @@ public sealed class TrackingController(ApiGatewayClient api, UserSession session
         [Bind(Prefix = "Form")] TrackingForm form,
         CancellationToken cancellationToken)
     {
-        var guard = RequireUser();
+        var guard = RequireMember();
         if (guard is not null)
         {
             return guard;
@@ -60,7 +60,7 @@ public sealed class TrackingController(ApiGatewayClient api, UserSession session
         [Bind(Prefix = "Form")] TrackingForm form,
         CancellationToken cancellationToken)
     {
-        var guard = RequireUser();
+        var guard = RequireMember();
         if (guard is not null)
         {
             return guard;

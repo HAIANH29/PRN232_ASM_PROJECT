@@ -24,6 +24,43 @@ public sealed class BookKnowledgeIngestionServiceTests
     }
 
     [Fact]
+    public async Task DeleteDocumentAsync_removes_document_chunks_candidates_and_stored_file()
+    {
+        var repository = new InMemoryDietKnowledgeRepository();
+        var fileStore = new FakeBookKnowledgeFileStore("storage");
+        var documentId = Guid.NewGuid();
+        var otherDocumentId = Guid.NewGuid();
+        repository.Documents.Add(new BookSourceDocument { Id = documentId, StoragePath = "storage/a.pdf" });
+        repository.Documents.Add(new BookSourceDocument { Id = otherDocumentId, StoragePath = "storage/b.pdf" });
+        repository.Chunks.Add(new BookSourceChunk { Id = Guid.NewGuid(), DocumentId = documentId, Text = "a" });
+        repository.Chunks.Add(new BookSourceChunk { Id = Guid.NewGuid(), DocumentId = otherDocumentId, Text = "b" });
+        repository.Candidates.Add(new KnowledgeCandidate { Id = Guid.NewGuid(), DocumentId = documentId });
+        var service = new BookKnowledgeIngestionService(
+            repository,
+            fileStore,
+            new FakeBookTextExtractor([]),
+            new FakeBookTextChunker(),
+            new FakeKnowledgeCandidateGenerator());
+
+        await service.DeleteDocumentAsync(documentId);
+
+        Assert.DoesNotContain(repository.Documents, document => document.Id == documentId);
+        Assert.Single(repository.Documents);
+        Assert.Single(repository.Chunks);
+        Assert.Empty(repository.Candidates);
+        Assert.Equal(["storage/a.pdf"], fileStore.DeletedPaths);
+        Assert.True(repository.SaveChangesCount > 0);
+    }
+
+    [Fact]
+    public async Task DeleteDocumentAsync_throws_when_document_is_missing()
+    {
+        var service = CreateService(new InMemoryDietKnowledgeRepository());
+
+        await Assert.ThrowsAsync<KeyNotFoundException>(() => service.DeleteDocumentAsync(Guid.NewGuid()));
+    }
+
+    [Fact]
     public async Task GenerateCandidatesAsync_deduplicates_and_stores_usable_candidates()
     {
         var repository = new InMemoryDietKnowledgeRepository();

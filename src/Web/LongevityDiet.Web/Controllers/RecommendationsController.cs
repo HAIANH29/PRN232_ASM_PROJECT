@@ -10,7 +10,7 @@ public sealed class RecommendationsController(ApiGatewayClient api, UserSession 
     [HttpGet]
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
-        var guard = RequireUser();
+        var guard = RequireMember();
         if (guard is not null)
         {
             return guard;
@@ -33,7 +33,7 @@ public sealed class RecommendationsController(ApiGatewayClient api, UserSession 
         [Bind(Prefix = "Form")] RecommendationForm form,
         CancellationToken cancellationToken)
     {
-        var guard = RequireUser();
+        var guard = RequireMember();
         if (guard is not null)
         {
             return guard;
@@ -67,7 +67,7 @@ public sealed class RecommendationsController(ApiGatewayClient api, UserSession 
     [HttpGet]
     public async Task<IActionResult> Details(Guid id, CancellationToken cancellationToken)
     {
-        var guard = RequireUser();
+        var guard = RequireMember();
         if (guard is not null)
         {
             return guard;
@@ -89,7 +89,7 @@ public sealed class RecommendationsController(ApiGatewayClient api, UserSession 
         [Bind(Prefix = "AcceptForm")] AcceptRecommendationForm form,
         CancellationToken cancellationToken)
     {
-        var guard = RequireUser();
+        var guard = RequireMember();
         if (guard is not null)
         {
             return guard;
