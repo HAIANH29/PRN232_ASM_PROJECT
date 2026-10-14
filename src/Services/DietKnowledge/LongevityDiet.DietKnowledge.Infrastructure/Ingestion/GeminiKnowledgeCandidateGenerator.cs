@@ -47,26 +47,100 @@ public sealed class GeminiKnowledgeCandidateGenerator(
         }
 
         var drafts = new List<KnowledgeCandidateDraft>();
+        var fallbackChunks = new List<BookSourceChunk>();
+        var deadline = DateTime.UtcNow.AddSeconds(Math.Max(1, geminiOptions.TotalBudgetSeconds));
+        var consecutiveFailures = 0;
+
         foreach (var chunk in selectedChunks)
         {
+            // Gemini looks unavailable or the time budget is spent: stop calling it and use local drafts.
+            if (consecutiveFailures >= Math.Max(1, geminiOptions.MaxConsecutiveFailures) ||
+                DateTime.UtcNow >= deadline)
+            {
+                fallbackChunks.Add(chunk);
+                continue;
+            }
+
             try
             {
-                var generated = await GenerateFromChunkAsync(document, chunk, cancellationToken);
+                var generated = await GenerateWithRetryAsync(document, chunk, deadline, cancellationToken);
                 drafts.AddRange(generated);
+                consecutiveFailures = 0;
             }
-            catch (Exception exception)
+            catch (Exception exception) when (!cancellationToken.IsCancellationRequested)
             {
+                consecutiveFailures++;
+                fallbackChunks.Add(chunk);
                 logger.LogWarning(
                     exception,
-                    "Gemini failed to generate knowledge candidates for document {DocumentId} chunk {ChunkIndex}.",
+                    "Gemini failed to generate knowledge candidates for document {DocumentId} chunk {ChunkIndex}; using local fallback.",
                     document.Id,
                     chunk.ChunkIndex);
             }
         }
 
-        return drafts.Count > 0
-            ? drafts
-            : CreateFallbackDrafts(document, selectedChunks);
+        if (fallbackChunks.Count > 0)
+        {
+            drafts.AddRange(CreateFallbackDrafts(document, fallbackChunks));
+        }
+
+        return drafts;
+    }
+
+    private async Task<IReadOnlyCollection<KnowledgeCandidateDraft>> GenerateWithRetryAsync(
+        BookSourceDocument document,
+        BookSourceChunk chunk,
+        DateTime deadline,
+        CancellationToken cancellationToken)
+    {
+        var maxAttempts = Math.Max(0, geminiOptions.MaxRetries) + 1;
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                // Bound each call by the remaining budget so one slow request cannot overrun it.
+                using var budgetCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                budgetCts.CancelAfter(deadline - DateTime.UtcNow > TimeSpan.Zero
+                    ? deadline - DateTime.UtcNow
+                    : TimeSpan.FromMilliseconds(1));
+                return await GenerateFromChunkAsync(document, chunk, budgetCts.Token);
+            }
+            catch (Exception exception) when (
+                attempt < maxAttempts &&
+                !cancellationToken.IsCancellationRequested &&
+                IsTransient(exception))
+            {
+                var delay = TimeSpan.FromSeconds(Math.Max(0, geminiOptions.RetryDelaySeconds) * attempt);
+                if (DateTime.UtcNow + delay >= deadline)
+                {
+                    throw;
+                }
+
+                logger.LogInformation(
+                    "Gemini transient failure on chunk {ChunkIndex} (attempt {Attempt}/{MaxAttempts}); retrying in {Delay}s.",
+                    chunk.ChunkIndex,
+                    attempt,
+                    maxAttempts,
+                    delay.TotalSeconds);
+                await Task.Delay(delay, cancellationToken);
+            }
+        }
+    }
+
+    private static bool IsTransient(Exception exception)
+    {
+        return exception switch
+        {
+            GeminiHttpException http => http.StatusCode is 408 or 429 or >= 500,
+            HttpRequestException => true,
+            TaskCanceledException => true, // HttpClient timeout (caller cancellation is filtered by the caller).
+            _ => false
+        };
+    }
+
+    private sealed class GeminiHttpException(int statusCode, string message) : Exception(message)
+    {
+        public int StatusCode { get; } = statusCode;
     }
 
     private async Task<IReadOnlyCollection<KnowledgeCandidateDraft>> GenerateFromChunkAsync(
@@ -95,7 +169,8 @@ public sealed class GeminiKnowledgeCandidateGenerator(
         var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
         if (!response.IsSuccessStatusCode)
         {
-            throw new InvalidOperationException(
+            throw new GeminiHttpException(
+                (int)response.StatusCode,
                 $"Gemini returned HTTP {(int)response.StatusCode}: {Truncate(responseBody, 500)}");
         }
 
