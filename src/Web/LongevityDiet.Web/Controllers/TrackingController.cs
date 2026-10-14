@@ -22,8 +22,10 @@ public sealed class TrackingController(ApiGatewayClient api, UserSession session
         }
 
         var date = trackingDate ?? DateOnly.FromDateTime(DateTime.Today);
-        var start = periodStartDate ?? date;
-        var end = periodEndDate ?? date;
+        // Default progress window: the calendar week (Monday-Sunday) of the selected day.
+        var weekStart = date.AddDays(-(((int)date.DayOfWeek + 6) % 7));
+        var start = periodStartDate ?? weekStart;
+        var end = periodEndDate ?? weekStart.AddDays(6);
 
         return View(await BuildModelAsync(date, start, end, cancellationToken));
     }

@@ -130,9 +130,9 @@ public abstract class AppController(ApiGatewayClient api, UserSession session) :
     {
         if (errors.Count == 0)
         {
-            return message;
+            return Translator.Lookup(message);
         }
 
-        return $"{message} {string.Join(" ", errors.Select(error => error.Message))}";
+        return $"{Translator.Lookup(message)} {string.Join(" ", errors.Select(error => Translator.Lookup(error.Message)))}";
     }
 }

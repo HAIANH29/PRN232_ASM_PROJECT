@@ -222,7 +222,7 @@ public sealed class MealPlansController(ApiGatewayClient api, UserSession sessio
         {
             ModelState.AddModelError(
                 nameof(MealPlanItemForm.FoodId),
-                "Choose exactly one approved food or recipe.");
+                Translator.Lookup("Choose exactly one approved food or recipe."));
         }
     }
 

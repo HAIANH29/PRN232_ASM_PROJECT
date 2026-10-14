@@ -33,12 +33,12 @@ public sealed class AdminBookSourcesController(ApiGatewayClient api, UserSession
 
         if (form.File is null || form.File.Length == 0)
         {
-            ModelState.AddModelError("Upload.File", "Choose a PDF file.");
+            ModelState.AddModelError("Upload.File", Translator.Lookup("Choose a PDF file."));
         }
         else if (!Path.GetExtension(form.File.FileName)
             .Equals(".pdf", StringComparison.OrdinalIgnoreCase))
         {
-            ModelState.AddModelError("Upload.File", "Only PDF files can be uploaded.");
+            ModelState.AddModelError("Upload.File", Translator.Lookup("Only PDF files can be uploaded."));
         }
 
         if (!ModelState.IsValid)
