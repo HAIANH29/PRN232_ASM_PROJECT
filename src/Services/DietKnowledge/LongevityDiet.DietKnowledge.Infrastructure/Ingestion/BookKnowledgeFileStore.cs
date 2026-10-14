@@ -31,6 +31,27 @@ public sealed class BookKnowledgeFileStore(
         return path;
     }
 
+    public void Delete(string storagePath)
+    {
+        if (string.IsNullOrWhiteSpace(storagePath))
+        {
+            return;
+        }
+
+        // Only delete files inside the configured storage root, never an arbitrary stored path.
+        var root = Path.GetFullPath(ResolveRoot(ingestionOptions.StoragePath));
+        var fullPath = Path.GetFullPath(storagePath);
+        var rootWithSeparator = root.EndsWith(Path.DirectorySeparatorChar)
+            ? root
+            : root + Path.DirectorySeparatorChar;
+        if (!fullPath.StartsWith(rootWithSeparator, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        File.Delete(fullPath);
+    }
+
     private static string ResolveRoot(string configuredPath)
     {
         var path = string.IsNullOrWhiteSpace(configuredPath)

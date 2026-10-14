@@ -13,6 +13,11 @@ public sealed class KnowledgeController(ApiGatewayClient api, UserSession sessio
         string? category,
         CancellationToken cancellationToken)
     {
+        if (Session.IsAdmin)
+        {
+            return RedirectToAction("Index", "AdminKnowledge");
+        }
+
         var model = new KnowledgeIndexViewModel
         {
             Search = search,

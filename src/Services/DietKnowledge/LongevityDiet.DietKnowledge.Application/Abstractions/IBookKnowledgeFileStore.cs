@@ -6,4 +6,6 @@ public interface IBookKnowledgeFileStore
         Stream content,
         string storedFileName,
         CancellationToken cancellationToken = default);
+
+    void Delete(string storagePath);
 }

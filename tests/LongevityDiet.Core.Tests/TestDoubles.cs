@@ -255,6 +255,13 @@ internal sealed class InMemoryDietKnowledgeRepository : IDietKnowledgeRepository
         return Task.CompletedTask;
     }
 
+    public void RemoveBookSourceDocument(BookSourceDocument document)
+    {
+        Documents.Remove(document);
+        Chunks.RemoveAll(chunk => chunk.DocumentId == document.Id);
+        Candidates.RemoveAll(candidate => candidate.DocumentId == document.Id);
+    }
+
     public Task<IReadOnlyCollection<BookSourceChunk>> ListBookSourceChunksAsync(
         Guid documentId,
         CancellationToken cancellationToken = default)
@@ -325,6 +332,13 @@ internal sealed class FakeBookKnowledgeFileStore(string storagePath) : IBookKnow
     public Task<string> SaveAsync(Stream content, string storedFileName, CancellationToken cancellationToken = default)
     {
         return Task.FromResult(Path.Combine(storagePath, storedFileName));
+    }
+
+    public List<string> DeletedPaths { get; } = [];
+
+    public void Delete(string storagePath)
+    {
+        DeletedPaths.Add(storagePath);
     }
 }
 
