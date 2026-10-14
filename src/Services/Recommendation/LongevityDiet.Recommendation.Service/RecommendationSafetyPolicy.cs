@@ -5,6 +5,12 @@ public static class RecommendationSafetyPolicy
     public const string Disclaimer =
         "Educational meal planning suggestion based on approved project knowledge and user preferences. It is not medical advice, diagnosis, treatment, disease prediction, or lifespan prediction.";
 
+    public const string DisclaimerVi =
+        "Gợi ý lập kế hoạch bữa ăn mang tính giáo dục, dựa trên kiến thức đã được duyệt của dự án và sở thích của người dùng. Đây không phải lời khuyên y tế, chẩn đoán, điều trị, dự đoán bệnh tật hay dự đoán tuổi thọ.";
+
+    public static string DisclaimerFor(string? language) =>
+        string.Equals(language, "vi", StringComparison.OrdinalIgnoreCase) ? DisclaimerVi : Disclaimer;
+
     private static readonly string[] ForbiddenTerms =
     [
         "diagnosis",
@@ -18,7 +24,15 @@ public static class RecommendationSafetyPolicy
         "lifespan",
         "life span",
         "predict",
-        "prediction"
+        "prediction",
+        "chẩn đoán",
+        "điều trị",
+        "chữa",
+        "bệnh",
+        "tiểu đường",
+        "ung thư",
+        "tuổi thọ",
+        "dự đoán"
     ];
 
     public static IReadOnlyCollection<string> CleanPreferenceTags(

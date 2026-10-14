@@ -34,6 +34,10 @@ public sealed record CreateRecommendationRequest
 
     [Range(1, 14)]
     public int Days { get; init; } = 7;
+
+    // UI language of the user ("en" or "vi"); the generated meal titles follow it.
+    [MaxLength(5)]
+    public string Language { get; init; } = "en";
 }
 
 public sealed record AcceptRecommendationRequest

@@ -21,16 +21,16 @@ public sealed class RecommendationGenerator(
 
         if (!knowledge.HasKnowledge)
         {
-            return BuildFallbackResult(knowledge, safePreferences, count, "No approved knowledge is available yet.");
+            return BuildFallbackResult(knowledge, safePreferences, count, request.Language, "No approved knowledge is available yet.");
         }
 
         if (geminiClient.IsEnabled)
         {
             try
             {
-                var prompt = BuildPrompt(knowledge, safePreferences, count);
+                var prompt = BuildPrompt(knowledge, safePreferences, count, request.Language);
                 var generatedText = await geminiClient.GenerateTextAsync(prompt, cancellationToken);
-                var generatedResult = TryParseGeminiResult(generatedText, count);
+                var generatedResult = TryParseGeminiResult(generatedText, count, request.Language);
                 if (generatedResult is not null)
                 {
                     return generatedResult;
@@ -44,13 +44,14 @@ public sealed class RecommendationGenerator(
             }
         }
 
-        return BuildFallbackResult(knowledge, safePreferences, count);
+        return BuildFallbackResult(knowledge, safePreferences, count, request.Language);
     }
 
     private static string BuildPrompt(
         ApprovedKnowledgeContext knowledge,
         IReadOnlyCollection<string> safePreferences,
-        int count)
+        int count,
+        string? language = null)
     {
         var builder = new StringBuilder();
         builder.AppendLine("Create concise meal title suggestions for the Longevity Diet Platform.");
@@ -60,6 +61,11 @@ public sealed class RecommendationGenerator(
         builder.AppendLine("Return only valid JSON with this shape:");
         builder.AppendLine("""{"suggestedMealTitles":["title 1"],"disclaimer":"educational non-medical disclaimer"}""");
         builder.AppendLine($"Return exactly {count} suggestedMealTitles.");
+        if (string.Equals(language, "vi", StringComparison.OrdinalIgnoreCase))
+        {
+            builder.AppendLine("Write every meal title and the disclaimer in natural Vietnamese (tiếng Việt), keeping the JSON keys in English.");
+        }
+
         builder.AppendLine();
         builder.AppendLine("User preferences:");
         builder.AppendLine(safePreferences.Count == 0 ? "- none supplied" : string.Join(Environment.NewLine, safePreferences.Select(tag => $"- {tag}")));
@@ -95,7 +101,8 @@ public sealed class RecommendationGenerator(
 
     private static RecommendationGenerationResult? TryParseGeminiResult(
         string? generatedText,
-        int count)
+        int count,
+        string? language = null)
     {
         if (string.IsNullOrWhiteSpace(generatedText))
         {
@@ -134,19 +141,22 @@ public sealed class RecommendationGenerator(
 
         return new RecommendationGenerationResult(
             titles,
-            RecommendationSafetyPolicy.Disclaimer);
+            RecommendationSafetyPolicy.DisclaimerFor(language));
     }
 
     private static RecommendationGenerationResult BuildFallbackResult(
         ApprovedKnowledgeContext knowledge,
         IReadOnlyCollection<string> safePreferences,
         int count,
+        string? language,
         string? reason = null)
     {
         var titles = BuildFallbackTitles(knowledge, safePreferences, count);
+        var baseDisclaimer = RecommendationSafetyPolicy.DisclaimerFor(language);
+        var vietnamese = string.Equals(language, "vi", StringComparison.OrdinalIgnoreCase);
         var disclaimer = string.IsNullOrWhiteSpace(reason)
-            ? RecommendationSafetyPolicy.Disclaimer
-            : $"{RecommendationSafetyPolicy.Disclaimer} {reason}";
+            ? baseDisclaimer
+            : $"{baseDisclaimer} {(vietnamese ? "Hiện chưa có kiến thức nào được duyệt." : reason)}";
 
         return new RecommendationGenerationResult(titles, disclaimer);
     }
