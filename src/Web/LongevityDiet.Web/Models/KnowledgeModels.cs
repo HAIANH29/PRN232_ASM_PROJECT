@@ -186,9 +186,11 @@ public sealed class RecipeForm
     public string ReviewedBy { get; set; } = string.Empty;
 
     [Required]
+    [Display(Name = "Ingredient")]
     public Guid IngredientFoodId { get; set; }
 
     [MaxLength(120)]
+    [Display(Name = "Quantity")]
     public string IngredientQuantityText { get; set; } = "1 serving";
 }
 

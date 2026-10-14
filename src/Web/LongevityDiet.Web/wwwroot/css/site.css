@@ -484,3 +484,150 @@ a {
     grid-template-columns: 1fr;
   }
 }
+
+/* Friendlier guidance components */
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.step {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+}
+
+.step strong,
+.step small {
+  display: block;
+}
+
+.step small {
+  color: var(--app-muted);
+}
+
+.step-number {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--app-accent-strong);
+  color: #fff;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.chip {
+  border: 1px solid #aab5a5;
+  background: var(--app-surface-soft);
+  color: var(--app-accent-strong);
+  border-radius: 999px;
+  padding: 2px 12px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.chip:hover {
+  background: #e2eadd;
+}
+
+.pending-card {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.pending-card strong,
+.pending-card small {
+  display: block;
+}
+
+.pending-card small {
+  color: var(--app-muted);
+}
+
+.idea-list {
+  margin: 0 0 16px;
+  padding-left: 1.2rem;
+}
+
+.meal-rows {
+  display: grid;
+  gap: 12px;
+}
+
+.meal-row {
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  background: #fcfcfa;
+}
+
+.meal-row-title {
+  margin-bottom: 10px;
+}
+
+.meal-row-fields {
+  display: grid;
+  grid-template-columns: 170px 150px 1fr;
+  gap: 12px;
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.callout {
+  background: #fff8ea;
+  border: 1px solid #ecd9ae;
+  border-radius: 8px;
+  padding: 12px 14px;
+  color: #6b4e17;
+}
+
+@media (max-width: 768px) {
+  .steps,
+  .meal-row-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Language switch (EN | VI) */
+.lang-switch {
+  display: inline-flex;
+  border: 1px solid #aab5a5;
+  border-radius: 999px;
+  overflow: hidden;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.lang-switch a {
+  padding: 3px 10px;
+  text-decoration: none;
+  color: var(--app-accent-strong);
+  background: var(--app-surface);
+}
+
+.lang-switch a.active {
+  background: var(--app-accent-strong);
+  color: #fff;
+}

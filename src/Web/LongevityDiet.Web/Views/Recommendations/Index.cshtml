@@ -1,57 +1,88 @@
 @model RecommendationsIndexViewModel
 @{
-    ViewData["Title"] = "Recommendations";
+    ViewData["Title"] = T["Meal ideas"];
+    var examples = new[] { "vegetarian", "quick meals", "high fiber", "beans", "soup", "no nuts" };
 }
 
 <section class="page-head">
     <div>
-        <p class="eyebrow">AI-assisted flow</p>
-        <h1>Recommendations</h1>
-        <p class="text-muted mb-0">Request a safe suggestion based on approved knowledge and your preferences, then review before accepting.</p>
+        <p class="eyebrow">@T["Meal ideas"]</p>
+        <h1>@T["Get meal ideas"]</h1>
+        <p class="text-muted mb-0">@T["Tell us what you like and we will suggest meals built from the platform's approved diet knowledge. Nothing is added to your plans until you say so."]</p>
     </div>
+</section>
+
+<section class="steps">
+    <div class="step"><span class="step-number">1</span><div><strong>@T["Ask"]</strong><small>@T["Say how many ideas you want and what you like."]</small></div></div>
+    <div class="step"><span class="step-number">2</span><div><strong>@T["Review"]</strong><small>@T["Read the suggested meals."]</small></div></div>
+    <div class="step"><span class="step-number">3</span><div><strong>@T["Add to a plan"]</strong><small>@T["Pick days and meals, then save as a meal plan."]</small></div></div>
 </section>
 
 <section class="two-pane">
     <form asp-action="Create" method="post" class="section-card form-stack">
         <div class="card-heading">
-            <h2>New request</h2>
+            <h2>@T["What would you like?"]</h2>
         </div>
         <div asp-validation-summary="All" class="text-danger small"></div>
         <div>
             <label asp-for="Form.Days" class="form-label"></label>
             <input asp-for="Form.Days" type="number" min="1" max="14" class="form-control" />
+            <div class="form-text">@T["Each idea is one meal suggestion (1 to 14). You choose the day and time of each one later."]</div>
             <span asp-validation-for="Form.Days" class="text-danger small"></span>
         </div>
         <div>
             <label asp-for="Form.PreferenceTagsText" class="form-label"></label>
-            <input asp-for="Form.PreferenceTagsText" class="form-control" placeholder="plant focused, simple, breakfast" />
+            <input asp-for="Form.PreferenceTagsText" id="preference-tags" class="form-control" placeholder="@T["e.g. vegetarian, quick meals"]" autocomplete="off" />
+            <div class="form-text">@T["Optional. Separate with commas, or tap a suggestion:"]</div>
+            <div class="chip-row" data-chip-target="preference-tags">
+                @foreach (var example in examples)
+                {
+                    <button type="button" class="chip" data-chip="@T[example]">+ @T[example]</button>
+                }
+            </div>
+            <div class="form-text mt-2">
+                @T["This is a meal-planning helper, not medical advice. Preferences about illness, treatment or lifespan are ignored."]
+            </div>
             <span asp-validation-for="Form.PreferenceTagsText" class="text-danger small"></span>
         </div>
-        <button class="btn btn-dark" type="submit">Request recommendation</button>
+        <button class="btn btn-dark" type="submit">@T["Get meal ideas"]</button>
     </form>
 
     <div class="section-card">
         <div class="card-heading">
-            <h2>Request history</h2>
+            <h2>@T["Your previous requests"]</h2>
             <span class="count-pill">@Model.Requests.TotalCount</span>
         </div>
         <div class="item-stack">
             @foreach (var request in Model.Requests.Items)
             {
+                var statusLabel = request.Status switch
+                {
+                    "Pending" => T["Working on it"],
+                    "Completed" => T["Ready to review"],
+                    "Accepted" => T["Added to a plan"],
+                    _ => T[request.Status]
+                };
+                var statusClass = request.Status switch
+                {
+                    "Completed" => "text-bg-success",
+                    "Accepted" => "text-bg-secondary",
+                    _ => "text-bg-warning"
+                };
                 <article class="plan-row">
                     <div>
-                        <div class="item-title">@request.Days day(s) · @string.Join(", ", request.PreferenceTags)</div>
-                        <small>@request.RequestedAtUtc.LocalDateTime.ToString("yyyy-MM-dd HH:mm")</small>
+                        <div class="item-title">@T.F(request.Days == 1 ? "{0} meal idea" : "{0} meal ideas", request.Days)@(request.PreferenceTags.Any() ? " · " + string.Join(", ", request.PreferenceTags) : "")</div>
+                        <small>@request.RequestedAtUtc.LocalDateTime.ToString("dd MMM yyyy, HH:mm", Translator.FormatCulture)</small>
                     </div>
                     <div class="row-actions">
-                        <span class="badge text-bg-light border">@request.Status</span>
-                        <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@request.Id">Review</a>
+                        <span class="badge @statusClass">@statusLabel</span>
+                        <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@request.Id">@T["Open"]</a>
                     </div>
                 </article>
             }
             @if (!Model.Requests.Items.Any())
             {
-                <p class="empty-state">No recommendation requests yet.</p>
+                <p class="empty-state">@T["No requests yet. Ask for your first meal ideas on the left."]</p>
             }
         </div>
     </div>
