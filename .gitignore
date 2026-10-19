@@ -15,3 +15,7 @@ docker-compose.override.yml
 
 # Stitch design export (reference only)
 stitch-export/
+
+# draw.io temporary/backup files
+.$*.dtmp
+.$*.bkp
