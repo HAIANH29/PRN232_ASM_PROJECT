@@ -11,13 +11,13 @@
         <h1>@Model.MealPlan.Name</h1>
         <p class="text-muted mb-0">@T.F("{0} to {1}", Model.MealPlan.StartDate.ToString("yyyy-MM-dd"), Model.MealPlan.EndDate.ToString("yyyy-MM-dd"))</p>
     </div>
-    <a class="btn btn-outline-secondary" asp-action="Index">@T["Back to plans"]</a>
+    <a class="btn btn-outline-secondary" asp-action="Index"><span class="icon" aria-hidden="true">arrow_back</span>@T["Back to plans"]</a>
 </section>
 
 <section class="two-pane">
     <form asp-action="Update" asp-route-id="@Model.MealPlan.Id" method="post" class="section-card form-stack">
         <div class="card-heading">
-            <h2>@T["Edit plan"]</h2>
+            <h2><span class="icon" aria-hidden="true">edit</span>@T["Edit plan"]</h2>
         </div>
         <div asp-validation-summary="All" class="text-danger small"></div>
         <div>
@@ -38,7 +38,7 @@
 
     <form asp-action="AddItem" asp-route-id="@Model.MealPlan.Id" method="post" class="section-card form-stack">
         <div class="card-heading">
-            <h2>@T["Add item"]</h2>
+            <h2><span class="icon" aria-hidden="true">add_circle</span>@T["Add item"]</h2>
         </div>
         <div asp-validation-summary="All" class="text-danger small"></div>
         <div class="form-row">
@@ -91,45 +91,45 @@
 
 <section class="section-card">
     <div class="card-heading">
-        <h2>@T["Scheduled items"]</h2>
+        <h2><span class="icon" aria-hidden="true">event_note</span>@T["Scheduled items"]</h2>
         <span class="count-pill">@Model.MealPlan.Items.Count</span>
     </div>
-    <div class="table-responsive">
-        <table class="table align-middle">
-            <thead>
-                <tr>
-                    <th>@T["Date"]</th>
-                    <th>@T["Slot"]</th>
-                    <th>@T["Food or recipe"]</th>
-                    <th>@T["Reminder"]</th>
-                    <th>@T["Notes"]</th>
-                    <th class="table-actions">@T["Actions"]</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model.MealPlan.Items.OrderBy(item => item.PlannedDate).ThenBy(item => item.MealSlot))
-                {
-                    var catalogName = item.FoodId.HasValue && foodsById.TryGetValue(item.FoodId.Value, out var food)
-                        ? food.Name
-                        : item.RecipeId.HasValue && recipesById.TryGetValue(item.RecipeId.Value, out var recipe)
-                            ? recipe.Name
-                            : T["Catalog item"];
-                    <tr>
-                        <td>@item.PlannedDate.ToString("yyyy-MM-dd")</td>
-                        <td>@T[item.MealSlot]</td>
-                        <td>@T.C(catalogName)</td>
-                        <td>@item.ReminderAtUtc.LocalDateTime.ToString("yyyy-MM-dd HH:mm")</td>
-                        <td>@T.C(item.Notes)</td>
-                        <td class="table-actions">
-                            <form asp-action="DeleteItem" asp-route-id="@Model.MealPlan.Id" asp-route-itemId="@item.Id" method="post">
-                                <button class="btn btn-sm btn-outline-danger" type="submit">@T["Remove"]</button>
-                            </form>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
+    @foreach (var dayGroup in Model.MealPlan.Items.GroupBy(item => item.PlannedDate).OrderBy(group => group.Key))
+    {
+        <div class="day-group">
+            <div class="day-head">
+                <div class="day-badge">
+                    <small>@dayGroup.Key.ToString("ddd", Translator.FormatCulture)</small>
+                    <strong>@dayGroup.Key.Day</strong>
+                </div>
+                <span>@dayGroup.Key.ToString("d MMMM yyyy", Translator.FormatCulture)</span>
+            </div>
+            @foreach (var item in dayGroup.OrderBy(item => item.MealSlot == "Breakfast" ? 0 : item.MealSlot == "Lunch" ? 1 : item.MealSlot == "Dinner" ? 2 : 3))
+            {
+                var catalogName = item.FoodId.HasValue && foodsById.TryGetValue(item.FoodId.Value, out var food)
+                    ? food.Name
+                    : item.RecipeId.HasValue && recipesById.TryGetValue(item.RecipeId.Value, out var recipe)
+                        ? recipe.Name
+                        : T["Catalog item"];
+                <article class="meal-card slot-@item.MealSlot">
+                    <div>
+                        <div class="meal-slot">@T[item.MealSlot]</div>
+                        <div class="meal-name">@T.C(catalogName)</div>
+                        <div class="meal-sub">
+                            <span><span class="icon" aria-hidden="true">notifications</span>@item.ReminderAtUtc.LocalDateTime.ToString("yyyy-MM-dd HH:mm")</span>
+                            @if (!string.IsNullOrWhiteSpace(item.Notes))
+                            {
+                                <span><span class="icon" aria-hidden="true">sticky_note_2</span>@T.C(item.Notes)</span>
+                            }
+                        </div>
+                    </div>
+                    <form asp-action="DeleteItem" asp-route-id="@Model.MealPlan.Id" asp-route-itemId="@item.Id" method="post">
+                        <button class="btn btn-sm btn-outline-danger" type="submit">@T["Remove"]</button>
+                    </form>
+                </article>
+            }
+        </div>
+    }
     @if (!Model.MealPlan.Items.Any())
     {
         <p class="empty-state">@T["Add the first approved food or recipe to this plan."]</p>

@@ -4,7 +4,13 @@
 }
 
 <section class="auth-wrap">
+    <nav class="auth-tabs" aria-label="@T["Account access"]">
+        <a asp-action="Login"><span class="icon" aria-hidden="true">lock</span>@T["Sign in"]</a>
+        <a class="active" asp-action="Register"><span class="icon" aria-hidden="true">person_add</span>@T["Register"]</a>
+    </nav>
+
     <div class="auth-panel">
+        <div class="auth-logo"><span class="icon" aria-hidden="true">eco</span></div>
         <p class="eyebrow">@T["New user"]</p>
         <h1>@T["Create account"]</h1>
         <p class="text-muted">@T["Register a user account for meal planning, recommendations, and tracking."]</p>
@@ -26,7 +32,7 @@
                 <input asp-for="Password" class="form-control" autocomplete="new-password" />
                 <span asp-validation-for="Password" class="text-danger small"></span>
             </div>
-            <button class="btn btn-dark w-100" type="submit">@T["Register"]</button>
+            <button class="btn btn-dark w-100" type="submit">@T["Register"]<span class="icon" aria-hidden="true">arrow_forward</span></button>
         </form>
     </div>
     <aside class="auth-side">

@@ -4,7 +4,13 @@
 }
 
 <section class="auth-wrap">
+    <nav class="auth-tabs" aria-label="@T["Account access"]">
+        <a class="active" asp-action="Login"><span class="icon" aria-hidden="true">lock</span>@T["Sign in"]</a>
+        <a asp-action="Register"><span class="icon" aria-hidden="true">person_add</span>@T["Register"]</a>
+    </nav>
+
     <div class="auth-panel">
+        <div class="auth-logo"><span class="icon" aria-hidden="true">eco</span></div>
         <p class="eyebrow">@T["Account access"]</p>
         <h1>@T["Sign in"]</h1>
         <p class="text-muted">@T["Use a demo User or Admin account to run the browser workflows through the API Gateway."]</p>
@@ -21,7 +27,7 @@
                 <input asp-for="Password" class="form-control" autocomplete="current-password" />
                 <span asp-validation-for="Password" class="text-danger small"></span>
             </div>
-            <button class="btn btn-dark w-100" type="submit">@T["Sign in"]</button>
+            <button class="btn btn-dark w-100" type="submit">@T["Sign in"]<span class="icon" aria-hidden="true">arrow_forward</span></button>
         </form>
     </div>
     <aside class="auth-side">

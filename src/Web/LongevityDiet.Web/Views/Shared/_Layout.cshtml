@@ -1,4 +1,9 @@
 @inject UserSession UserSession
+@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    string NavClass(params string[] controllers) =>
+        "nav-link" + (controllers.Contains(currentController, StringComparer.OrdinalIgnoreCase) ? " active" : "");
+}
 <!DOCTYPE html>
 <html lang="@(Translator.IsVietnamese ? "vi" : "en")">
 <head>
@@ -6,6 +11,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Longevity Diet Platform</title>
     <script type="importmap"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/LongevityDiet.Web.styles.css" asp-append-version="true" />
@@ -14,7 +23,10 @@
     <header>
         <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom app-nav">
             <div class="container-fluid">
-                <a class="navbar-brand fw-semibold" asp-controller="@(UserSession.IsAdmin ? "AdminKnowledge" : "Home")" asp-action="Index">@T["Longevity Diet Platform"]@(UserSession.IsAdmin ? " " + T["Admin"] : "")</a>
+                <a class="navbar-brand" asp-controller="@(UserSession.IsAdmin ? "AdminKnowledge" : "Home")" asp-action="Index">
+                    <span class="brand-mark"><span class="icon" aria-hidden="true">eco</span></span>
+                    <span>@T["Longevity Diet Platform"]@if (UserSession.IsAdmin) { <span class="brand-tag">@T["Admin"]</span> }</span>
+                </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="@T["Toggle navigation"]">
                     <span class="navbar-toggler-icon"></span>
@@ -24,31 +36,31 @@
                         @if (!UserSession.IsAdmin)
                         {
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Home" asp-action="Index">@T["Home"]</a>
+                                <a class="@NavClass("Home")" asp-controller="Home" asp-action="Index">@T["Home"]</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Knowledge" asp-action="Index">@T["Diet Knowledge"]</a>
+                                <a class="@NavClass("Knowledge")" asp-controller="Knowledge" asp-action="Index">@T["Diet Knowledge"]</a>
                             </li>
                         }
                         @if (UserSession.IsSignedIn && !UserSession.IsAdmin)
                         {
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="MealPlans" asp-action="Index">@T["Meal Plans"]</a>
+                                <a class="@NavClass("MealPlans")" asp-controller="MealPlans" asp-action="Index">@T["Meal Plans"]</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Recommendations" asp-action="Index">@T["Meal Ideas"]</a>
+                                <a class="@NavClass("Recommendations")" asp-controller="Recommendations" asp-action="Index">@T["Meal Ideas"]</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Tracking" asp-action="Index">@T["Daily Check-in"]</a>
+                                <a class="@NavClass("Tracking")" asp-controller="Tracking" asp-action="Index">@T["Daily Check-in"]</a>
                             </li>
                         }
                         @if (UserSession.IsAdmin)
                         {
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="AdminKnowledge" asp-action="Index">@T["Managed Knowledge"]</a>
+                                <a class="@NavClass("AdminKnowledge")" asp-controller="AdminKnowledge" asp-action="Index">@T["Managed Knowledge"]</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="AdminBookSources" asp-action="Index">@T["Book Sources"]</a>
+                                <a class="@NavClass("AdminBookSources")" asp-controller="AdminBookSources" asp-action="Index">@T["Book Sources"]</a>
                             </li>
                         }
                     </ul>
@@ -62,9 +74,12 @@
                         </div>
                         @if (UserSession.IsSignedIn)
                         {
-                            <a class="btn btn-sm btn-outline-secondary" asp-controller="Auth" asp-action="Profile">@UserSession.DisplayName</a>
+                            <a class="user-chip" asp-controller="Auth" asp-action="Profile">
+                                <span class="avatar">@(string.IsNullOrWhiteSpace(UserSession.DisplayName) ? "?" : UserSession.DisplayName.Trim()[..1])</span>
+                                @UserSession.DisplayName
+                            </a>
                             <form asp-controller="Auth" asp-action="Logout" method="post">
-                                <button class="btn btn-sm btn-dark" type="submit">@T["Sign out"]</button>
+                                <button class="btn btn-sm btn-outline-secondary" type="submit">@T["Sign out"]</button>
                             </form>
                         }
                         else
@@ -84,9 +99,10 @@
         </main>
     </div>
 
-    <footer class="border-top footer text-muted bg-white">
-        <div class="container-fluid">
-            &copy; 2026 - @T["Longevity Diet Platform"]
+    <footer class="footer">
+        <div class="footer-inner">
+            <span class="footer-brand"><span class="brand-mark"><span class="icon" aria-hidden="true">eco</span></span>@T["Longevity Diet Platform"]</span>
+            <span>&copy; 2026 - @T["Longevity Diet Platform"]</span>
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

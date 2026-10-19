@@ -3,93 +3,104 @@
     ViewData["Title"] = T["Knowledge"];
 }
 
-<section class="page-head">
-    <div>
-        <p class="eyebrow">@T["Approved content"]</p>
-        <h1>@T["Diet knowledge"]</h1>
-        <p class="text-muted mb-0">@T["Search book-derived guidelines, foods, and recipes used by planning and recommendation flows."]</p>
-    </div>
+<section class="search-hero">
+    <p class="eyebrow">@T["Approved content"]</p>
+    <h1 class="mb-1">@T["Diet knowledge"]</h1>
+    <p class="text-muted mb-0">@T["Search book-derived guidelines, foods, and recipes used by planning and recommendation flows."]</p>
+
+    <form method="get" class="filter-bar">
+        <div>
+            <label asp-for="Search" class="form-label">@T["Search"]</label>
+            <input asp-for="Search" class="form-control" placeholder="@T["guideline, food, recipe"]" />
+        </div>
+        <div>
+            <label asp-for="Category" class="form-label">@T["Food category"]</label>
+            <input asp-for="Category" class="form-control" placeholder="@T["legume, grain, vegetable"]" />
+        </div>
+        <div class="filter-actions">
+            <button class="btn btn-dark" type="submit"><span class="icon" aria-hidden="true">search</span>@T["Apply"]</button>
+            <a class="btn btn-outline-secondary" asp-action="Index">@T["Reset"]</a>
+        </div>
+    </form>
 </section>
 
-<form method="get" class="filter-bar">
-    <div>
-        <label asp-for="Search" class="form-label">@T["Search"]</label>
-        <input asp-for="Search" class="form-control" placeholder="@T["guideline, food, recipe"]" />
+<div class="section-title">
+    <h2><span class="icon" aria-hidden="true">menu_book</span>@T["Guidelines"]</h2>
+    <span class="count-pill">@Model.Guidelines.TotalCount</span>
+</div>
+@if (Model.Guidelines.Items.Any())
+{
+    <div class="knowledge-grid">
+        @foreach (var guideline in Model.Guidelines.Items)
+        {
+            <article class="knowledge-card">
+                <div class="knowledge-card-top">
+                    <span class="chip-tag success"><span class="icon" aria-hidden="true">verified</span>@T["Approved"]</span>
+                    <span class="chip-tag">@T["Guideline"]</span>
+                </div>
+                <h3>@T.C(guideline.Title)</h3>
+                <p>@T.C(guideline.Summary)</p>
+                <div class="card-source"><span class="icon" aria-hidden="true">auto_stories</span> @T.C(guideline.SourceChapter) @guideline.SourcePage</div>
+            </article>
+        }
     </div>
-    <div>
-        <label asp-for="Category" class="form-label">@T["Food category"]</label>
-        <input asp-for="Category" class="form-control" placeholder="@T["legume, grain, vegetable"]" />
-    </div>
-    <div class="filter-actions">
-        <button class="btn btn-dark" type="submit">@T["Apply"]</button>
-        <a class="btn btn-outline-secondary" asp-action="Index">@T["Reset"]</a>
-    </div>
-</form>
+}
+else
+{
+    <p class="empty-state">@T["No guidelines found."]</p>
+}
 
-<section class="content-grid three-columns">
-    <div class="section-card">
-        <div class="card-heading">
-            <h2>@T["Guidelines"]</h2>
-            <span class="count-pill">@Model.Guidelines.TotalCount</span>
-        </div>
-        <div class="item-stack">
-            @foreach (var guideline in Model.Guidelines.Items)
-            {
-                <article class="content-item">
-                    <div class="item-title">@T.C(guideline.Title)</div>
-                    <p>@T.C(guideline.Summary)</p>
-                    <small>@T.C(guideline.SourceChapter) @guideline.SourcePage</small>
-                </article>
-            }
-            @if (!Model.Guidelines.Items.Any())
-            {
-                <p class="empty-state">@T["No guidelines found."]</p>
-            }
-        </div>
+<div class="section-title">
+    <h2><span class="icon" aria-hidden="true">nutrition</span>@T["Foods"]</h2>
+    <span class="count-pill">@Model.Foods.TotalCount</span>
+</div>
+@if (Model.Foods.Items.Any())
+{
+    <div class="knowledge-grid">
+        @foreach (var food in Model.Foods.Items)
+        {
+            <article class="knowledge-card">
+                <div class="knowledge-card-top">
+                    <span class="chip-tag success"><span class="icon" aria-hidden="true">verified</span>@T["Approved"]</span>
+                    <span class="chip-tag">@T["Food"]</span>
+                </div>
+                <h3>@T.C(food.Name)</h3>
+                <div><span class="chip-tag neutral">@T.C(food.Category)</span></div>
+                <p>@T.C(food.CompatibilityNotes)</p>
+            </article>
+        }
     </div>
+}
+else
+{
+    <p class="empty-state">@T["No foods found."]</p>
+}
 
-    <div class="section-card">
-        <div class="card-heading">
-            <h2>@T["Foods"]</h2>
-            <span class="count-pill">@Model.Foods.TotalCount</span>
-        </div>
-        <div class="item-stack">
-            @foreach (var food in Model.Foods.Items)
-            {
-                <article class="content-item">
-                    <div class="item-title">@T.C(food.Name)</div>
-                    <span class="badge text-bg-light border">@T.C(food.Category)</span>
-                    <p>@T.C(food.CompatibilityNotes)</p>
-                </article>
-            }
-            @if (!Model.Foods.Items.Any())
-            {
-                <p class="empty-state">@T["No foods found."]</p>
-            }
-        </div>
+<div class="section-title">
+    <h2><span class="icon" aria-hidden="true">skillet</span>@T["Recipes"]</h2>
+    <span class="count-pill">@Model.Recipes.TotalCount</span>
+</div>
+@if (Model.Recipes.Items.Any())
+{
+    <div class="knowledge-grid">
+        @foreach (var recipe in Model.Recipes.Items)
+        {
+            <article class="knowledge-card">
+                <div class="knowledge-card-top">
+                    <span class="chip-tag success"><span class="icon" aria-hidden="true">verified</span>@T["Approved"]</span>
+                    <span class="chip-tag">@T["Recipe"]</span>
+                </div>
+                <h3>@T.C(recipe.Name)</h3>
+                <p>@T.C(recipe.Description)</p>
+                @if (recipe.Ingredients.Any())
+                {
+                    <div class="card-source"><span class="icon" aria-hidden="true">grocery</span> @string.Join(", ", recipe.Ingredients.Select(i => $"{T.Q(i.QuantityText)} {(Translator.IsVietnamese ? T.C(i.FoodName).ToLowerInvariant() : T.C(i.FoodName))}"))</div>
+                }
+            </article>
+        }
     </div>
-
-    <div class="section-card">
-        <div class="card-heading">
-            <h2>@T["Recipes"]</h2>
-            <span class="count-pill">@Model.Recipes.TotalCount</span>
-        </div>
-        <div class="item-stack">
-            @foreach (var recipe in Model.Recipes.Items)
-            {
-                <article class="content-item">
-                    <div class="item-title">@T.C(recipe.Name)</div>
-                    <p>@T.C(recipe.Description)</p>
-                    @if (recipe.Ingredients.Any())
-                    {
-                        <small>@string.Join(", ", recipe.Ingredients.Select(i => $"{T.Q(i.QuantityText)} {(Translator.IsVietnamese ? T.C(i.FoodName).ToLowerInvariant() : T.C(i.FoodName))}"))</small>
-                    }
-                </article>
-            }
-            @if (!Model.Recipes.Items.Any())
-            {
-                <p class="empty-state">@T["No recipes found."]</p>
-            }
-        </div>
-    </div>
-</section>
+}
+else
+{
+    <p class="empty-state">@T["No recipes found."]</p>
+}
