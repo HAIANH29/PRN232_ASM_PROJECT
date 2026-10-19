@@ -9,6 +9,10 @@ public sealed class RecommendationGenerator(
     IGeminiClient geminiClient,
     ILogger<RecommendationGenerator> logger) : IRecommendationGenerator
 {
+    private const int MaxPromptGuidelines = 25;
+    private const int MaxPromptFoods = 40;
+    private const int MaxPromptRecipes = 30;
+
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     public async Task<RecommendationGenerationResult> GenerateAsync(
@@ -28,7 +32,7 @@ public sealed class RecommendationGenerator(
         {
             try
             {
-                var prompt = BuildPrompt(knowledge, safePreferences, count, request.Language);
+                var prompt = BuildPrompt(knowledge, safePreferences, count, request.RequestId, request.Language);
                 var generatedText = await geminiClient.GenerateTextAsync(prompt, cancellationToken);
                 var generatedResult = TryParseGeminiResult(generatedText, count, request.Language);
                 if (generatedResult is not null)
@@ -51,6 +55,7 @@ public sealed class RecommendationGenerator(
         ApprovedKnowledgeContext knowledge,
         IReadOnlyCollection<string> safePreferences,
         int count,
+        Guid requestId,
         string? language = null)
     {
         var builder = new StringBuilder();
@@ -71,21 +76,39 @@ public sealed class RecommendationGenerator(
         builder.AppendLine(safePreferences.Count == 0 ? "- none supplied" : string.Join(Environment.NewLine, safePreferences.Select(tag => $"- {tag}")));
         builder.AppendLine();
         builder.AppendLine("Approved diet guidelines:");
-        foreach (var guideline in knowledge.Guidelines.Take(12))
+        var guidelines = SelectForPrompt(
+            knowledge.Guidelines,
+            safePreferences,
+            requestId,
+            MaxPromptGuidelines,
+            guideline => $"{guideline.Title} {guideline.Summary}");
+        foreach (var guideline in guidelines)
         {
             builder.AppendLine($"- {guideline.Title}: {guideline.Summary} ({FormatSource(guideline.SourceChapter, guideline.SourcePage, guideline.SourceReference)})");
         }
 
         builder.AppendLine();
         builder.AppendLine("Approved foods:");
-        foreach (var food in knowledge.Foods.Take(30))
+        var foods = SelectForPrompt(
+            knowledge.Foods,
+            safePreferences,
+            requestId,
+            MaxPromptFoods,
+            food => $"{food.Name} {food.Category} {food.CompatibilityNotes}");
+        foreach (var food in foods)
         {
             builder.AppendLine($"- {food.Name} [{food.Category}]: {food.CompatibilityNotes} ({FormatSource(food.SourceChapter, food.SourcePage, food.SourceReference)})");
         }
 
         builder.AppendLine();
         builder.AppendLine("Approved recipes:");
-        foreach (var recipe in knowledge.Recipes.Take(30))
+        var recipes = SelectForPrompt(
+            knowledge.Recipes,
+            safePreferences,
+            requestId,
+            MaxPromptRecipes,
+            recipe => $"{recipe.Name} {recipe.Description} {string.Join(' ', recipe.Ingredients.Select(i => i.FoodName))}");
+        foreach (var recipe in recipes)
         {
             var ingredients = recipe.Ingredients.Count == 0
                 ? "ingredients managed in project catalog"
@@ -97,6 +120,45 @@ public sealed class RecommendationGenerator(
         }
 
         return builder.ToString();
+    }
+
+    // Keeps the prompt small: items that mention the user's preferences come first. The remaining
+    // slots are filled from a list that starts at a position derived from the request id, so
+    // requests without matches do not always see the same alphabetical head of the catalog.
+    private static IReadOnlyList<T> SelectForPrompt<T>(
+        IReadOnlyCollection<T> items,
+        IReadOnlyCollection<string> safePreferences,
+        Guid requestId,
+        int limit,
+        Func<T, string> searchableText)
+    {
+        var all = items.ToArray();
+        if (all.Length <= limit)
+        {
+            return all;
+        }
+
+        var terms = safePreferences
+            .SelectMany(tag => tag.Split(
+                [' ', ',', ';', '-'],
+                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            .Where(term => term.Length >= 3)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+        var offset = (int)((uint)requestId.GetHashCode() % (uint)all.Length);
+
+        return all.Skip(offset).Concat(all.Take(offset))
+            .Select((item, index) =>
+            {
+                var text = searchableText(item);
+                var score = terms.Count(term => text.Contains(term, StringComparison.OrdinalIgnoreCase));
+                return (item, index, score);
+            })
+            .OrderByDescending(entry => entry.score)
+            .ThenBy(entry => entry.index)
+            .Take(limit)
+            .Select(entry => entry.item)
+            .ToArray();
     }
 
     private static RecommendationGenerationResult? TryParseGeminiResult(
