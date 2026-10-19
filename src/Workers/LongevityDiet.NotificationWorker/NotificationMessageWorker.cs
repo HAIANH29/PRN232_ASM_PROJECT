@@ -11,6 +11,8 @@ public sealed class NotificationMessageWorker(
     IEmailSender emailSender,
     ILogger<NotificationMessageWorker> logger) : BackgroundService
 {
+    private const string ConfirmedHeader = "x-confirmed";
+
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -78,6 +80,11 @@ public sealed class NotificationMessageWorker(
         CancellationToken stoppingToken)
     {
         await DeclareTopologyAsync(channel, topology, stoppingToken);
+        if (kind == MessageKind.Reminder)
+        {
+            await DeclareDelayQueuesAsync(channel, topology, stoppingToken);
+        }
+
         await channel.BasicQosAsync(0, prefetchCount, false, stoppingToken);
 
         var consumer = new AsyncEventingBasicConsumer(channel);
@@ -137,6 +144,103 @@ public sealed class NotificationMessageWorker(
             cancellationToken: cancellationToken);
     }
 
+    // Reminders are held in TTL "delay" queues that dead-letter back to the reminder queue, so a
+    // pending reminder survives worker restarts. Messages are re-checked each time they come back.
+    private async Task DeclareDelayQueuesAsync(
+        IChannel channel,
+        QueueTopology topology,
+        CancellationToken cancellationToken)
+    {
+        foreach (var (queue, ttl) in new[]
+        {
+            (topology.DelayShortQueue, GetDelaySeconds("ReminderShortDelaySeconds", 30)),
+            (topology.DelayLongQueue, GetDelaySeconds("ReminderLongDelaySeconds", 3600))
+        })
+        {
+            await channel.QueueDeclareAsync(
+                queue,
+                durable: true,
+                exclusive: false,
+                autoDelete: false,
+                arguments: new Dictionary<string, object?>
+                {
+                    ["x-message-ttl"] = ttl * 1000,
+                    ["x-dead-letter-exchange"] = topology.Exchange,
+                    ["x-dead-letter-routing-key"] = topology.RoutingKey
+                },
+                cancellationToken: cancellationToken);
+        }
+    }
+
+    private async Task ProcessReminderAsync(
+        IChannel channel,
+        QueueTopology topology,
+        BasicDeliverEventArgs args,
+        CancellationToken stoppingToken)
+    {
+        var message = JsonSerializer.Deserialize<ReminderRequestedMessage>(args.Body.Span, JsonOptions)
+            ?? throw new InvalidDataException("Reminder message payload is empty or invalid.");
+        ValidateRecipient(message.RecipientEmail);
+
+        var remaining = message.ScheduledForUtc - DateTimeOffset.UtcNow;
+        if (remaining <= TimeSpan.Zero)
+        {
+            await emailSender.SendAsync(
+                new EmailMessage(message.ReminderId, message.RecipientEmail, message.Subject, message.Body, "reminder"),
+                stoppingToken);
+            await channel.BasicAckAsync(args.DeliveryTag, false, stoppingToken);
+
+            logger.LogInformation(
+                "Delivered Reminder message {MessageId} to {RecipientEmail}.",
+                message.ReminderId,
+                message.RecipientEmail);
+            return;
+        }
+
+        if (!IsConfirmed(args))
+        {
+            await emailSender.SendAsync(
+                new EmailMessage(
+                    message.ReminderId,
+                    message.RecipientEmail,
+                    "Meal plan saved - reminder scheduled",
+                    $"{message.Body} We will remind you again at {message.ScheduledForUtc:yyyy-MM-dd HH:mm} UTC.",
+                    "confirmation"),
+                stoppingToken);
+        }
+
+        var longThreshold = TimeSpan.FromSeconds(GetDelaySeconds("ReminderLongDelaySeconds", 3600));
+        var delayQueue = remaining > longThreshold ? topology.DelayLongQueue : topology.DelayShortQueue;
+
+        await PublishCopyAsync(
+            channel,
+            string.Empty,
+            delayQueue,
+            args.Body.ToArray(),
+            0,
+            "scheduled",
+            stoppingToken,
+            confirmed: true);
+        await channel.BasicAckAsync(args.DeliveryTag, false, stoppingToken);
+
+        logger.LogInformation(
+            "Reminder {MessageId} for {RecipientEmail} is scheduled for {ScheduledForUtc:O}; parked in {DelayQueue}.",
+            message.ReminderId,
+            message.RecipientEmail,
+            message.ScheduledForUtc,
+            delayQueue);
+    }
+
+    private int GetDelaySeconds(string key, int fallback)
+    {
+        return Math.Max(1, TryGetInt(configuration[$"{RabbitMqOptions.SectionName}:{key}"], fallback));
+    }
+
+    private static bool IsConfirmed(BasicDeliverEventArgs args)
+    {
+        return args.BasicProperties.Headers?.ContainsKey(ConfirmedHeader) == true;
+    }
+
     private async Task HandleDeliveryAsync(
         IChannel channel,
         QueueTopology topology,
@@ -146,6 +250,12 @@ public sealed class NotificationMessageWorker(
     {
         try
         {
+            if (kind == MessageKind.Reminder)
+            {
+                await ProcessReminderAsync(channel, topology, args, stoppingToken);
+                return;
+            }
+
             var email = BuildEmail(kind, args.Body.Span);
             await emailSender.SendAsync(email, stoppingToken);
             await channel.BasicAckAsync(args.DeliveryTag, false, stoppingToken);
@@ -201,7 +311,8 @@ public sealed class NotificationMessageWorker(
                     args.Body.ToArray(),
                     nextRetryCount,
                     exception.Message,
-                    stoppingToken);
+                    stoppingToken,
+                    IsConfirmed(args));
                 await channel.BasicAckAsync(args.DeliveryTag, false, stoppingToken);
                 return;
             }
@@ -319,7 +430,8 @@ public sealed class NotificationMessageWorker(
         byte[] body,
         int retryCount,
         string error,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        bool confirmed = false)
     {
         var properties = new BasicProperties
         {
@@ -331,6 +443,11 @@ public sealed class NotificationMessageWorker(
                 ["x-last-error"] = error
             }
         };
+
+        if (confirmed)
+        {
+            properties.Headers[ConfirmedHeader] = true;
+        }
 
         await channel.BasicPublishAsync(
             exchange,
@@ -384,6 +501,10 @@ public sealed class NotificationMessageWorker(
         string DeadLetterQueue,
         string DeadLetterRoutingKey)
     {
+        public string DelayShortQueue => $"{Queue}.delay.short";
+
+        public string DelayLongQueue => $"{Queue}.delay.long";
+
         public static QueueTopology Create(
             string exchange,
             string queue,
