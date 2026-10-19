@@ -1522,22 +1522,24 @@ body::before {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  justify-content: flex-start;
 }
 
-.home-hero .btn-dark {
-  color: var(--app-accent-strong);
-  background: #fff;
-  border-color: #fff;
-}
-
+.home-hero .btn-dark,
 .home-hero .btn-outline-secondary {
   color: #fff;
+  background: transparent;
   border-color: rgba(255, 255, 255, 0.6);
 }
 
-.home-hero .btn-outline-secondary:hover {
+/* Both hero buttons look the same; white only appears on hover. */
+.home-hero .btn-dark:hover,
+.home-hero .btn-dark:focus-visible,
+.home-hero .btn-outline-secondary:hover,
+.home-hero .btn-outline-secondary:focus-visible {
   color: var(--app-accent-strong);
   background: #fff;
+  border-color: #fff;
 }
 
 .home-hero-art {
