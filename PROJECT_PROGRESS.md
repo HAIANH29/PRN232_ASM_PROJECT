@@ -72,6 +72,13 @@ Do not mark a feature as complete if it only has placeholders or configuration. 
 
 ## Change Log
 
+### 2026-10-19 — Web UI decoration to fill empty space
+
+- Problem: on wide screens (about 1900px+) the 1280px content column left large empty side margins, and Home had a blank lower half.
+- `wwwroot/css/site.css`: soft gradient/dot-pattern page background; large faint leaf/fruit watermarks in the side margins on screens of 1500px or more; every `.page-head` is now a gradient banner with a leaf watermark.
+- `Views/Home/Index.cshtml`: green gradient hero with floating icon bubbles (CTA buttons for visitors), icon chips on the four module cards, and a "How it works" three-step section. New strings have Vietnamese entries in `Services/Translations.cs`.
+- Verified visually in Chrome (signed in as the demo user): Home, Knowledge, Tracking, MealPlans, Recommendations. Not rechecked: Admin screens, auth pages while signed out, phone width beyond the existing breakpoints. Content is purely decorative; no new medical claims.
+
 ### 2026-10-19 — Switch email provider from Resend to Brevo
 
 - Replaced `ResendEmailSender`/`ResendOptions` with `BrevoEmailSender`/`BrevoOptions` in `NotificationWorker` (`POST https://api.brevo.com/v3/smtp/email`, `api-key` header, JSON `sender`/`to`/`subject`/`textContent`). `IEmailSender` is unchanged. Brevo has no idempotency header, so the old `Idempotency-Key` was dropped; a retried confirmation mail could rarely be sent twice.
