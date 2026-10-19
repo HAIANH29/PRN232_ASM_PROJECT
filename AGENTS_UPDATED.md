@@ -48,7 +48,7 @@ Do NOT:
 
 ### External systems
 - Google Gemini — AI Provider
-- Resend — Email Service
+- Brevo — Email Service
 
 ### Internal containers/services
 - Web Application
@@ -153,7 +153,7 @@ Responsibilities:
 ### Notification Worker
 Responsibilities:
 - Consume notification/reminder messages from RabbitMQ
-- Send email through Resend over HTTPS
+- Send email through Brevo over HTTPS
 - Handle background delivery processing
 
 Do not create a second Reminder Worker. The previous Reminder Worker role is replaced by **Notification Worker**.
@@ -212,7 +212,7 @@ Notification Service -> RabbitMQ:
 RabbitMQ -> Notification Worker:
 - Consume notification/reminder messages
 
-Notification Worker -> Resend:
+Notification Worker -> Brevo:
 - HTTPS
 
 ## 6. Communication Intent
@@ -349,7 +349,7 @@ Docker Compose should eventually include:
 
 External providers are not Docker containers:
 - Google Gemini
-- Resend
+- Brevo
 
 Do not add Kubernetes unless explicitly requested.
 
@@ -366,7 +366,7 @@ Show only:
 - Admin
 - Longevity Diet Platform
 - Google Gemini [AI Provider]
-- Resend [Email Service]
+- Brevo [Email Service]
 
 Do not show internal microservices/databases/RabbitMQ in C0.
 
@@ -384,7 +384,7 @@ Show:
 - RabbitMQ [Message Broker]
 - Notification Worker [.NET Worker Service]
 - Google Gemini [AI Provider]
-- Resend [Email Service]
+- Brevo [Email Service]
 
 Keep relationship labels short:
 - HTTPS
@@ -420,13 +420,13 @@ Keep diagrams simple: correct, sufficient, no unnecessary text.
 3. When a notification is needed, Tracking Service calls Notification Service via gRPC.
 4. Notification Service publishes a notification message to RabbitMQ.
 5. Notification Worker consumes the message.
-6. Notification Worker calls Resend over HTTPS.
-7. Resend sends the email to the user.
+6. Notification Worker calls Brevo over HTTPS.
+7. Brevo sends the email to the user.
 
 ### Meal reminder
 1. Meal Planning Service publishes a reminder message to RabbitMQ.
 2. Notification Worker consumes the reminder message.
-3. Notification Worker sends the reminder email through Resend.
+3. Notification Worker sends the reminder email through Brevo.
 
 ## 16. Coding Workflow
 Always work incrementally.
@@ -476,7 +476,7 @@ When asked to "build the initial skeleton", create structure only:
 - Documentation folders
 
 Do NOT implement all business features in Phase 1.
-Do NOT call real Gemini or Resend in Phase 1 unless explicitly requested.
+Do NOT call real Gemini or Brevo in Phase 1 unless explicitly requested.
 
 ## 18. Source of Truth
 If a later prompt conflicts with this file, ask for clarification before making a major architecture change.

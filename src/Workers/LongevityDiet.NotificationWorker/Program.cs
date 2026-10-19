@@ -3,9 +3,9 @@ using LongevityDiet.NotificationWorker;
 
 var builder = Host.CreateApplicationBuilder(args);
 
-builder.Services.Configure<ResendOptions>(
-    builder.Configuration.GetSection(ResendOptions.SectionName));
-builder.Services.AddHttpClient<IEmailSender, ResendEmailSender>();
+builder.Services.Configure<BrevoOptions>(
+    builder.Configuration.GetSection(BrevoOptions.SectionName));
+builder.Services.AddHttpClient<IEmailSender, BrevoEmailSender>();
 builder.Services.AddHostedService<NotificationMessageWorker>();
 
 var host = builder.Build();

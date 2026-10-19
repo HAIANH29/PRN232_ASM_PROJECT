@@ -8,13 +8,13 @@ namespace LongevityDiet.Core.Tests;
 public sealed class NotificationWorkerTests
 {
     [Fact]
-    public async Task ResendEmailSender_logs_locally_without_http_when_resend_is_not_configured()
+    public async Task BrevoEmailSender_logs_locally_without_http_when_brevo_is_not_configured()
     {
         var handler = new RecordingHttpMessageHandler();
-        var sender = new ResendEmailSender(
+        var sender = new BrevoEmailSender(
             new HttpClient(handler),
-            Options.Create(new ResendOptions { ApiKey = "development-only" }),
-            NullLogger<ResendEmailSender>.Instance);
+            Options.Create(new BrevoOptions { ApiKey = "development-only", FromEmail = "sender@example.com" }),
+            NullLogger<BrevoEmailSender>.Instance);
 
         await sender.SendAsync(new EmailMessage(
             Guid.NewGuid(),
@@ -27,20 +27,20 @@ public sealed class NotificationWorkerTests
     }
 
     [Fact]
-    public async Task ResendEmailSender_sends_configured_request_with_authorization_and_idempotency()
+    public async Task BrevoEmailSender_sends_configured_request_with_api_key()
     {
         var handler = new RecordingHttpMessageHandler();
-        var sender = new ResendEmailSender(
+        var sender = new BrevoEmailSender(
             new HttpClient(handler),
-            Options.Create(new ResendOptions
+            Options.Create(new BrevoOptions
             {
-                BaseUrl = "https://api.resend.test",
-                EmailsEndpoint = "emails",
+                BaseUrl = "https://api.brevo.test",
+                EmailsEndpoint = "smtp/email",
                 ApiKey = "real-key",
                 FromEmail = "sender@example.com",
                 FromName = "Longevity Diet Platform"
             }),
-            NullLogger<ResendEmailSender>.Instance);
+            NullLogger<BrevoEmailSender>.Instance);
         var messageId = Guid.NewGuid();
 
         await sender.SendAsync(new EmailMessage(
@@ -52,9 +52,8 @@ public sealed class NotificationWorkerTests
 
         var request = Assert.Single(handler.Requests);
         Assert.Equal(HttpMethod.Post, request.Method);
-        Assert.Equal("Bearer", request.Headers.Authorization?.Scheme);
-        Assert.Equal("real-key", request.Headers.Authorization?.Parameter);
-        Assert.True(request.Headers.TryGetValues("Idempotency-Key", out var values));
-        Assert.Equal($"reminder/{messageId}", values.Single());
+        Assert.Equal("https://api.brevo.test/smtp/email", request.RequestUri?.ToString());
+        Assert.True(request.Headers.TryGetValues("api-key", out var values));
+        Assert.Equal("real-key", values.Single());
     }
 }
