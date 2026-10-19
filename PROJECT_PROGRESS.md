@@ -78,7 +78,7 @@ Do not mark a feature as complete if it only has placeholders or configuration. 
 - Config: `Resend__*` / `RESEND_*` became `Brevo__*` / `BREVO_*` (`BREVO_BASE_URL`, `BREVO_API_KEY`, `BREVO_FROM_EMAIL`, `BREVO_FROM_NAME`) in `appsettings.json`, `docker-compose.yml`, `.env.example`. `BREVO_FROM_EMAIL` has no default: the log-only fallback stays active when the API key is empty/`development-only` **or** the sender email is empty. The sender must be verified in Brevo.
 - Docs updated to Brevo: `README.md`, `CLAUDE.md`, `AGENTS*.md`, `MASTER_PROMPT*.md`, `PROJECT_SCHEDULE.md`, `docs/c4/C0` + `C1`, `docs/development/Database-Docker-Demo-Setup.md`, `docs/submission/Demo-Script.md`, and `AsignmentDiagram.drawio` (both C0 and C1 nodes). Older change-log entries still say Resend because they describe history.
 - Tests: `NotificationWorkerTests` rewritten for Brevo (fallback without HTTP, request URL and `api-key` header).
-- Verification: solution builds with 0 warnings; 33 tests pass. Real Brevo delivery is NOT verified yet: it needs a Brevo API key and a verified sender in `.env`. The old Resend API key was removed from the local `.env`.
+- Verification: solution builds with 0 warnings; 33 tests pass. Real delivery verified end to end with Docker, a Brevo API key and a verified single sender (free-provider address, so mail may land in Spam): a reminder due in 20s produced a confirmation mail at once and the reminder mail at the due time; the user confirmed receiving both. The key and sender live only in the gitignored `.env`; the old Resend key was removed. Sending to several recipients needs no change (recipient = the signed-in user's email).
 
 ### 2026-10-19 — Scheduled meal reminder emails (confirmation now + reminder at due time)
 
