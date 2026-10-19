@@ -9,10 +9,17 @@
         <h1>@T["Profile"]</h1>
         <p class="text-muted mb-0">@T["Identity data comes from the Identity Service through the API Gateway."]</p>
     </div>
-    <a class="btn btn-outline-secondary" asp-controller="Home" asp-action="Index">@T["Back to dashboard"]</a>
+    <a class="btn btn-outline-secondary" asp-controller="Home" asp-action="Index"><span class="icon" aria-hidden="true">arrow_back</span>@T["Back to dashboard"]</a>
 </section>
 
 <section class="section-card narrow-card">
+    <div class="profile-head">
+        <span class="avatar avatar-lg">@(string.IsNullOrWhiteSpace(Model.DisplayName) ? "?" : Model.DisplayName.Trim()[..1])</span>
+        <div>
+            <strong>@Model.DisplayName</strong>
+            <span>@Model.Email</span>
+        </div>
+    </div>
     <dl class="detail-list">
         <dt>@T["Name"]</dt>
         <dd>@Model.DisplayName</dd>

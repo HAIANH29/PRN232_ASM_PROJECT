@@ -1,6 +1,7 @@
 @model MealPlansIndexViewModel
 @{
     ViewData["Title"] = T["Meal Plans"];
+    var today = DateOnly.FromDateTime(DateTime.Today);
 }
 
 <section class="page-head">
@@ -14,7 +15,7 @@
 <section class="two-pane">
     <form asp-action="Create" method="post" class="section-card form-stack">
         <div class="card-heading">
-            <h2>@T["Create plan"]</h2>
+            <h2><span class="icon" aria-hidden="true">add_circle</span>@T["Create plan"]</h2>
         </div>
         <div asp-validation-summary="All" class="text-danger small"></div>
         <div>
@@ -37,30 +38,39 @@
 
     <div class="section-card">
         <div class="card-heading">
-            <h2>@T["Your plans"]</h2>
+            <h2><span class="icon" aria-hidden="true">calendar_month</span>@T["Your plans"]</h2>
             <span class="count-pill">@Model.MealPlans.TotalCount</span>
         </div>
-        <div class="item-stack">
-            @foreach (var plan in Model.MealPlans.Items)
-            {
-                <article class="plan-row">
-                    <div>
-                        <div class="item-title">@plan.Name</div>
-                        <small>@T.F("{0} to {1} · {2} item(s)", plan.StartDate.ToString("yyyy-MM-dd"), plan.EndDate.ToString("yyyy-MM-dd"), plan.Items.Count)</small>
-                    </div>
-                    <div class="row-actions">
-                        <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@plan.Id">@T["Open"]</a>
-                        <form asp-action="Delete" asp-route-id="@plan.Id" method="post">
-                            <button class="btn btn-sm btn-outline-danger" type="submit">@T["Delete"]</button>
-                        </form>
-                    </div>
-                </article>
-            }
-            @if (!Model.MealPlans.Items.Any())
-            {
-                <p class="empty-state">@T["No meal plans yet."]</p>
-            }
-        </div>
+        @if (Model.MealPlans.Items.Any())
+        {
+            <div class="plan-grid">
+                @foreach (var plan in Model.MealPlans.Items)
+                {
+                    var statusText = today < plan.StartDate ? T["Upcoming"] : today > plan.EndDate ? T["Finished"] : T["Active now"];
+                    var statusClass = today < plan.StartDate ? "info" : today > plan.EndDate ? "neutral" : "success";
+                    <article class="plan-card">
+                        <div class="knowledge-card-top">
+                            <span class="chip-tag @statusClass">@statusText</span>
+                            <span class="chip-tag">@T.F("{0} item(s)", plan.Items.Count)</span>
+                        </div>
+                        <h3>@plan.Name</h3>
+                        <div class="plan-meta">
+                            <span><span class="icon" aria-hidden="true">event</span>@T.F("{0} to {1}", plan.StartDate.ToString("yyyy-MM-dd"), plan.EndDate.ToString("yyyy-MM-dd"))</span>
+                        </div>
+                        <div class="row-actions">
+                            <a class="btn btn-sm btn-dark" asp-action="Details" asp-route-id="@plan.Id">@T["Open"]<span class="icon" aria-hidden="true">arrow_forward</span></a>
+                            <form asp-action="Delete" asp-route-id="@plan.Id" method="post">
+                                <button class="btn btn-sm btn-outline-danger" type="submit">@T["Delete"]</button>
+                            </form>
+                        </div>
+                    </article>
+                }
+            </div>
+        }
+        else
+        {
+            <p class="empty-state">@T["No meal plans yet."]</p>
+        }
     </div>
 </section>
 

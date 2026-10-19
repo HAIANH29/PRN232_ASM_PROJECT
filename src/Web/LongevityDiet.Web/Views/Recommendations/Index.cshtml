@@ -21,7 +21,7 @@
 <section class="two-pane">
     <form asp-action="Create" method="post" class="section-card form-stack">
         <div class="card-heading">
-            <h2>@T["What would you like?"]</h2>
+            <h2><span class="icon" aria-hidden="true">auto_awesome</span>@T["What would you like?"]</h2>
         </div>
         <div asp-validation-summary="All" class="text-danger small"></div>
         <div>
@@ -45,12 +45,12 @@
             </div>
             <span asp-validation-for="Form.PreferenceTagsText" class="text-danger small"></span>
         </div>
-        <button class="btn btn-dark" type="submit">@T["Get meal ideas"]</button>
+        <button class="btn btn-dark" type="submit"><span class="icon" aria-hidden="true">auto_awesome</span>@T["Get meal ideas"]</button>
     </form>
 
     <div class="section-card">
         <div class="card-heading">
-            <h2>@T["Your previous requests"]</h2>
+            <h2><span class="icon" aria-hidden="true">history</span>@T["Your previous requests"]</h2>
             <span class="count-pill">@Model.Requests.TotalCount</span>
         </div>
         <div class="item-stack">
@@ -76,7 +76,7 @@
                     </div>
                     <div class="row-actions">
                         <span class="badge @statusClass">@statusLabel</span>
-                        <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@request.Id">@T["Open"]</a>
+                        <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@request.Id">@T["Open"]<span class="icon" aria-hidden="true">arrow_forward</span></a>
                     </div>
                 </article>
             }

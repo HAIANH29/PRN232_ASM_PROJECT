@@ -12,3 +12,6 @@ obj/
 *.log
 .env
 docker-compose.override.yml
+
+# Stitch design export (reference only)
+stitch-export/

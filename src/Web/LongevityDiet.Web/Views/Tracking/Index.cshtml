@@ -27,6 +27,7 @@
         : item.RecipeId.HasValue && recipesById.TryGetValue(item.RecipeId.Value, out var recipe) ? T.C(recipe.Name)
         : T["Catalog item"];
     var isToday = day == DateOnly.FromDateTime(DateTime.Today);
+    var eatenOfDay = mealsOfDay.Count(entry => trackedByItem.TryGetValue(entry.Item.Id, out var t) && t.IsCompleted);
 }
 
 <section class="page-head">
@@ -51,14 +52,41 @@
         <input id="periodEndDate" name="periodEndDate" type="date" class="form-control" value="@Model.Form.PeriodEndDate.ToString("yyyy-MM-dd")" />
     </div>
     <div class="filter-actions">
-        <button class="btn btn-dark" type="submit">@T["Show"]</button>
+        <button class="btn btn-dark" type="submit"><span class="icon" aria-hidden="true">search</span>@T["Show"]</button>
     </div>
 </form>
+
+<section class="stat-grid cols-3">
+    <div class="stat-card">
+        <div>
+            <span class="stat-label">@T["Planned"]</span>
+            <span class="stat-value">@mealsOfDay.Count</span>
+            <span class="stat-sub">@(isToday ? T["Today's meals"] : day.ToString("d MMM", Translator.FormatCulture))</span>
+        </div>
+        <span class="stat-icon"><span class="icon" aria-hidden="true">restaurant</span></span>
+    </div>
+    <div class="stat-card">
+        <div>
+            <span class="stat-label">@T["Eaten"]</span>
+            <span class="stat-value">@eatenOfDay<small class="text-muted fs-6"> / @mealsOfDay.Count</small></span>
+            <span class="stat-sub">@(isToday ? T["Today's meals"] : day.ToString("d MMM", Translator.FormatCulture))</span>
+        </div>
+        <span class="stat-icon"><span class="icon" aria-hidden="true">task_alt</span></span>
+    </div>
+    <div class="stat-card">
+        <div>
+            <span class="stat-label">@T["Completion rate"]</span>
+            <span class="stat-value">@completionRate.ToString("0", CultureInfo.InvariantCulture)%</span>
+            <span class="stat-sub">@T.F("{0} of {1}", completedTotal, plannedTotal)</span>
+        </div>
+        <div class="ring" style="--value: @completionRate.ToString("0.##", CultureInfo.InvariantCulture)"><span>@completionRate.ToString("0", CultureInfo.InvariantCulture)%</span></div>
+    </div>
+</section>
 
 <section class="two-pane">
     <div class="section-card">
         <div class="card-heading">
-            <h2>@T["Meals planned for this day"]</h2>
+            <h2><span class="icon" aria-hidden="true">restaurant</span>@T["Meals planned for this day"]</h2>
             <span class="count-pill">@mealsOfDay.Count</span>
         </div>
         @if (mealsOfDay.Count == 0)
@@ -75,10 +103,11 @@
                 @foreach (var entry in mealsOfDay)
                 {
                     var done = trackedByItem.TryGetValue(entry.Item.Id, out var tracked) && tracked.IsCompleted;
-                    <article class="plan-row">
+                    <article class="meal-card slot-@entry.Item.MealSlot @(done ? "done" : "")">
                         <div>
-                            <div class="item-title">@T[entry.Item.MealSlot]: @NameOf(entry.Item)</div>
-                            <small>@T.F("From plan \"{0}\"", entry.Plan.Name)</small>
+                            <div class="meal-slot">@T[entry.Item.MealSlot]</div>
+                            <div class="meal-name">@NameOf(entry.Item)</div>
+                            <div class="meal-sub"><span><span class="icon" aria-hidden="true">event_note</span>@T.F("From plan \"{0}\"", entry.Plan.Name)</span></div>
                         </div>
                         <form asp-action="SetMeal" method="post" class="inline-form">
                             <input type="hidden" name="Form.TrackingDate" value="@day.ToString("yyyy-MM-dd")" />
@@ -88,12 +117,12 @@
                             <input type="hidden" name="Form.IsCompleted" value="@((!done).ToString().ToLowerInvariant())" />
                             @if (done)
                             {
-                                <span class="badge text-bg-success me-2">@T["Eaten"]</span>
+                                <span class="badge text-bg-success me-2"><span class="icon" aria-hidden="true">check</span>@T["Eaten"]</span>
                                 <button class="btn btn-sm btn-outline-secondary" type="submit">@T["Undo"]</button>
                             }
                             else
                             {
-                                <button class="btn btn-sm btn-dark" type="submit">@T["Mark as eaten"]</button>
+                                <button class="btn btn-sm btn-dark" type="submit"><span class="icon" aria-hidden="true">check_circle</span>@T["Mark as eaten"]</button>
                             }
                         </form>
                     </article>
@@ -104,7 +133,7 @@
 
     <form asp-action="SaveDaily" method="post" class="section-card form-stack">
         <div class="card-heading">
-            <h2>@T["Note for the day"]</h2>
+            <h2><span class="icon" aria-hidden="true">edit_note</span>@T["Note for the day"]</h2>
         </div>
         <input asp-for="Form.TrackingDate" type="hidden" />
         <input asp-for="Form.PeriodStartDate" type="hidden" />
@@ -120,7 +149,7 @@
 
 <section class="section-card mt-3">
     <div class="card-heading">
-        <h2>@T["Your progress"]</h2>
+        <h2><span class="icon" aria-hidden="true">monitoring</span>@T["Your progress"]</h2>
         <span class="badge text-bg-light border">@Model.Form.PeriodStartDate.ToString("d MMM", Translator.FormatCulture) - @Model.Form.PeriodEndDate.ToString("d MMM yyyy", Translator.FormatCulture)</span>
     </div>
     @if (plannedTotal == 0)

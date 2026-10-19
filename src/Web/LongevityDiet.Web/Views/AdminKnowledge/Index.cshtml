@@ -10,14 +10,38 @@
         <p class="text-muted mb-0">@T["Create, review, activate, and deactivate the approved data used by user-facing services."]</p>
     </div>
     <div class="head-actions">
-        <a class="btn btn-outline-secondary" asp-controller="AdminBookSources" asp-action="Index">@T["Book sources"]</a>
+        <a class="btn btn-outline-secondary" asp-controller="AdminBookSources" asp-action="Index"><span class="icon" aria-hidden="true">library_books</span>@T["Book sources"]</a>
+    </div>
+</section>
+
+<section class="stat-grid cols-3">
+    <div class="stat-card">
+        <div>
+            <span class="stat-label">@T["Guidelines"]</span>
+            <span class="stat-value">@Model.Guidelines.TotalCount</span>
+        </div>
+        <span class="stat-icon"><span class="icon" aria-hidden="true">menu_book</span></span>
+    </div>
+    <div class="stat-card">
+        <div>
+            <span class="stat-label">@T["Foods"]</span>
+            <span class="stat-value">@Model.Foods.TotalCount</span>
+        </div>
+        <span class="stat-icon"><span class="icon" aria-hidden="true">nutrition</span></span>
+    </div>
+    <div class="stat-card">
+        <div>
+            <span class="stat-label">@T["Recipes"]</span>
+            <span class="stat-value">@Model.Recipes.TotalCount</span>
+        </div>
+        <span class="stat-icon"><span class="icon" aria-hidden="true">skillet</span></span>
     </div>
 </section>
 
 <section class="content-grid three-columns">
     <form asp-action="CreateGuideline" method="post" class="section-card form-stack">
         <div class="card-heading">
-            <h2>@T["New guideline"]</h2>
+            <h2><span class="icon" aria-hidden="true">menu_book</span>@T["New guideline"]</h2>
         </div>
         <div asp-validation-summary="ModelOnly" class="text-danger small"></div>
         <div>
@@ -58,7 +82,7 @@
 
     <form asp-action="CreateFood" method="post" class="section-card form-stack">
         <div class="card-heading">
-            <h2>@T["New food"]</h2>
+            <h2><span class="icon" aria-hidden="true">nutrition</span>@T["New food"]</h2>
         </div>
         <div asp-validation-summary="ModelOnly" class="text-danger small"></div>
         <div>
@@ -99,7 +123,7 @@
 
     <form asp-action="CreateRecipe" method="post" class="section-card form-stack">
         <div class="card-heading">
-            <h2>@T["New recipe"]</h2>
+            <h2><span class="icon" aria-hidden="true">skillet</span>@T["New recipe"]</h2>
         </div>
         <div asp-validation-summary="ModelOnly" class="text-danger small"></div>
         <div>

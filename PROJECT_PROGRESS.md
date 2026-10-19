@@ -72,6 +72,22 @@ Do not mark a feature as complete if it only has placeholders or configuration. 
 
 ## Change Log
 
+### 2026-10-19 — Align `AsignmentDiagram.drawio` with the code; remove UI disclaimer
+
+- Diagram: removed the Meal Planning -> Notification Service gRPC arrow (only Tracking calls gRPC; Meal Planning publishes reminders straight to RabbitMQ). Added Recommendation -> RabbitMQ (publish result), RabbitMQ -> Meal Planning (consume), Recommendation -> Diet Knowledge (HTTP, public APIs) and Diet Knowledge -> Gemini (HTTPS, Admin candidate extraction). Arrow routing was set by hand; review layout in draw.io.
+- Web: removed the "education and meal planning only" disclaimer band/note (`_Layout`, Home) and its VI translation. The disclaimer remains in project docs/scope; the no-medical-advice rule still applies to code.
+- Verification: diagram XML parses; Web builds with 0 warnings.
+
+### 2026-10-19 — Apply Stitch visual design to the Web UI
+
+- Visual language taken from the Google Stitch export (kept locally in `stitch-export/`, now gitignored): green `#2e7d5b` palette, Plus Jakarta Sans + Inter fonts, Material Symbols icons (loaded from Google Fonts; system fonts are the offline fallback), rounded cards, chips, stat cards.
+- Structure unchanged: still Razor + Bootstrap 5, same controllers, view models, tag helpers and `@T[...]`. `wwwroot/css/site.css` was rewritten on the new tokens and keeps every existing class name, so views that have no Stitch design (Home, Admin Edit forms) pick up the theme automatically.
+- Converted (markup restyled on real data): `_Layout` (brand mark, active nav pill, avatar chip, disclaimer band, footer), `_Alerts`, Auth Login/Register (tabs + centered card)/Profile, Knowledge (search hero + card grid with Approved/type chips), MealPlans Index (plan cards with Upcoming/Active now/Finished chip derived from dates) and Details (items grouped by day as meal cards), Recommendations Index/Details, Tracking (stat cards + progress ring from real counts, meal cards), AdminBookSources Index/Details, AdminKnowledge Index (stat cards), Shared/Error.
+- Deliberately NOT taken from Stitch: invented clinical content (macro ratios, biomarkers, "Longevity Index", fasting windows, Google/Apple sign-in, avatars/"Elena Vance", admin sidebar), because the app is educational only and has no backend for them.
+- New Vietnamese strings added to `Services/Translations.cs`.
+- Verification: `dotnet build` 0 warnings / 0 errors (Razor views compile); `dotnet test` 33 passed; Web started alone and `/`, `/Auth/Login`, `/Auth/Register` returned 200 (data pages return 500 without the Gateway, as before).
+- Remaining TODO: no visual check of the data-backed screens yet (run `docker compose up -d --build` and click through as User and Admin, EN and VI); Home and Admin Edit forms were not redesigned; fonts/icons need internet access.
+
 ### 2026-10-14 — English/Vietnamese language switch (guests, members, admins)
 
 - Added an `EN | VI` switch in the top bar for everyone (guest, member, admin). `LanguageController.Set` stores the choice in a cookie (UI language only; date/number parsing stays en-US so forms keep working) and redirects to a local URL only.

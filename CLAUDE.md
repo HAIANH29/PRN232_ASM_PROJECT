@@ -31,6 +31,9 @@ Educational diet planning/tracking microservices app based on the book *The Long
 - **Database per service** (PostgreSQL: IdentityDb, DietKnowledgeDb, MealPlanningDb, TrackingDb). No cross-DB reads or FKs; cross-service references are bare IDs (e.g. Tracking stores `MealPlanItemId`). Each service applies its own EF migrations at startup. Recommendation and Notification stay stateless.
 - **Auth**: JWT Bearer issued by Identity, shared `Jwt__SigningKey` across services; roles `User`/`Admin`. Users only see their own meal plans/tracking.
 
+- **Web i18n**: the MVC UI has an English/Vietnamese switch (`LanguageController`, `Services/Translations.cs`, `Translator.cs`, `ContentTranslations.cs`). New user-facing strings need entries in both languages; the selected language is also passed to Recommendation so Gemini answers in that language.
+- **Repo-local caches**: `.dotnet/` and `.nuget/` (from `DOTNET_CLI_HOME`) are gitignored — ignore them when searching.
+
 ### Cross-service flows (span multiple projects)
 - **AI recommendation**: MealPlanning publishes `RecommendationRequest` → Recommendation.Service (builds context from DietKnowledge *public* APIs, i.e. active `Approved` content only; Gemini or safe local fallback) → publishes `RecommendationResult` → MealPlanning consumes/stores it; user must accept before it becomes a plan.
 - **Progress notification**: Tracking → gRPC → Notification.Grpc → RabbitMQ `notification.messages` → NotificationWorker → Resend.
