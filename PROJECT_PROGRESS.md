@@ -72,6 +72,12 @@ Do not mark a feature as complete if it only has placeholders or configuration. 
 
 ## Change Log
 
+### 2026-10-19 — Scheduled meal reminder emails (confirmation now + reminder at due time)
+
+- `NotificationWorker` now honours `ReminderRequestedMessage.ScheduledForUtc`. On first delivery of a future reminder it sends a "Meal plan saved - reminder scheduled" confirmation email (Resend category `confirmation`, idempotent by reminder id), then parks the message in a TTL delay queue (`reminder.requests.delay.long`, 1h, used while more than 1h remains; `reminder.requests.delay.short`, 30s otherwise). Delay queues dead-letter back to the reminder exchange, so pending reminders survive worker restarts. When due (or already past) the real reminder email is sent. Retry copies keep the `x-confirmed` header so the confirmation is not repeated.
+- New optional settings: `RabbitMq__ReminderShortDelaySeconds` (30), `RabbitMq__ReminderLongDelaySeconds` (3600). Accuracy is about the short delay.
+- Verification: worker builds with 0 warnings; end-to-end with Docker + real Resend key (set locally in the gitignored `.env`): published a reminder due in 75s through the RabbitMQ API; confirmation email sent immediately, message re-parked in the short delay queue, reminder email sent at the due time (both HTTP 200 from Resend). Meal Planning was not changed. Resend free sandbox sender (`onboarding@resend.dev`) only delivers to the Resend account owner's email.
+
 ### 2026-10-19 — Align `AsignmentDiagram.drawio` with the code; remove UI disclaimer
 
 - Diagram: removed the Meal Planning -> Notification Service gRPC arrow (only Tracking calls gRPC; Meal Planning publishes reminders straight to RabbitMQ). Added Recommendation -> RabbitMQ (publish result), RabbitMQ -> Meal Planning (consume), Recommendation -> Diet Knowledge (HTTP, public APIs) and Diet Knowledge -> Gemini (HTTPS, Admin candidate extraction). Arrow routing was set by hand; review layout in draw.io.
