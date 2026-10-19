@@ -71,6 +71,85 @@ public sealed class RecommendationServiceTests
     }
 
     [Fact]
+    public async Task GenerateAsync_puts_guidelines_that_match_preferences_in_the_prompt_even_when_there_are_many()
+    {
+        var guidelines = Enumerable.Range(1, 60)
+            .Select(index => new ApprovedDietGuideline(
+                Guid.NewGuid(),
+                $"Guideline {index:00} about general eating",
+                "A general eating principle.",
+                "Chapter 1",
+                index.ToString(),
+                "team source"))
+            .Append(new ApprovedDietGuideline(
+                Guid.NewGuid(),
+                "Zesty chickpea habit",
+                "Include chickpeas in several meals each week.",
+                "Chapter 3",
+                "99",
+                "team source"))
+            .ToArray();
+        var gemini = new FakeGeminiClient
+        {
+            IsEnabled = true,
+            Response = """{"suggestedMealTitles":["Chickpea bowl"],"disclaimer":"ignored"}"""
+        };
+        var generator = new RecommendationGenerator(
+            new FakeApprovedKnowledgeClient(new ApprovedKnowledgeContext(guidelines, [], [])),
+            gemini,
+            NullLogger<RecommendationGenerator>.Instance);
+
+        await generator.GenerateAsync(new RecommendationRequestMessage(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            ["chickpeas"],
+            Days: 1,
+            DateTimeOffset.UtcNow));
+
+        Assert.NotNull(gemini.CapturedPrompt);
+        Assert.Contains("Zesty chickpea habit", gemini.CapturedPrompt, StringComparison.Ordinal);
+        Assert.Equal(25, gemini.CapturedPrompt.Split('\n').Count(line => line.StartsWith("- Guideline ", StringComparison.Ordinal)
+            || line.StartsWith("- Zesty", StringComparison.Ordinal)));
+    }
+
+    [Fact]
+    public async Task GenerateAsync_varies_the_guideline_sample_between_requests_without_preferences()
+    {
+        var guidelines = Enumerable.Range(1, 60)
+            .Select(index => new ApprovedDietGuideline(
+                Guid.NewGuid(),
+                $"Guideline {index:00}",
+                "A general eating principle.",
+                "Chapter 1",
+                index.ToString(),
+                "team source"))
+            .ToArray();
+
+        async Task<string> PromptFor(Guid requestId)
+        {
+            var gemini = new FakeGeminiClient
+            {
+                IsEnabled = true,
+                Response = """{"suggestedMealTitles":["Meal"],"disclaimer":"ignored"}"""
+            };
+            var generator = new RecommendationGenerator(
+                new FakeApprovedKnowledgeClient(new ApprovedKnowledgeContext(guidelines, [], [])),
+                gemini,
+                NullLogger<RecommendationGenerator>.Instance);
+            await generator.GenerateAsync(new RecommendationRequestMessage(
+                requestId, Guid.NewGuid(), [], Days: 1, DateTimeOffset.UtcNow));
+            return gemini.CapturedPrompt!;
+        }
+
+        var first = await PromptFor(Guid.Parse("00000000-0000-0000-0000-000000000001"));
+        var repeat = await PromptFor(Guid.Parse("00000000-0000-0000-0000-000000000001"));
+        var other = await PromptFor(Guid.Parse("00000000-0000-0000-0000-000000000002"));
+
+        Assert.Equal(first, repeat);
+        Assert.NotEqual(first, other);
+    }
+
+    [Fact]
     public async Task GenerateAsync_asks_gemini_for_vietnamese_and_returns_vietnamese_disclaimer_when_requested()
     {
         var context = new ApprovedKnowledgeContext(

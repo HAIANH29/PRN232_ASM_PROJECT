@@ -13,7 +13,7 @@ public sealed class HttpApprovedKnowledgeClient(
         CancellationToken cancellationToken = default)
     {
         var guidelines = await GetItemsAsync<DietGuidelineResponse>(
-            "/api/diet-guidelines?pageNumber=1&pageSize=50&sortBy=title&sortDirection=asc",
+            "/api/diet-guidelines?pageNumber=1&pageSize=100&sortBy=title&sortDirection=asc",
             "diet guidelines",
             cancellationToken);
         var foods = await GetItemsAsync<FoodResponse>(
