@@ -6,12 +6,12 @@ flowchart LR
     Admin[Admin]
     Platform[Longevity Diet Platform]
     Gemini[Google Gemini\nAI Provider]
-    Resend[Resend\nEmail Service]
+    Brevo[Brevo\nEmail Service]
 
     User -->|HTTPS| Platform
     Admin -->|HTTPS| Platform
     Platform -->|HTTPS| Gemini
-    Platform -->|HTTPS| Resend
+    Platform -->|HTTPS| Brevo
 ```
 
 The platform is educational and planning-focused. It does not provide diagnosis, treatment, disease prediction, lifespan prediction, or medical advice.

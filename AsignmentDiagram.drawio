@@ -193,7 +193,7 @@
         <mxCell id="i52QDQEKYud7CcwnrblZ-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="NotificationWorker&lt;div&gt;&lt;pre dir=&quot;ltr&quot;&gt;&lt;code&gt;[.NET Worker Service]&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="60" width="150" x="730" y="645" as="geometry" />
         </mxCell>
-        <mxCell id="i52QDQEKYud7CcwnrblZ-10" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Resend&lt;div&gt;[Email service]&lt;/div&gt;" vertex="1">
+        <mxCell id="i52QDQEKYud7CcwnrblZ-10" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Brevo&lt;div&gt;[Email service]&lt;/div&gt;" vertex="1">
           <mxGeometry height="60" width="120" x="960" y="645" as="geometry" />
         </mxCell>
         <mxCell id="i52QDQEKYud7CcwnrblZ-17" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;font style=&quot;font-size: 17px;&quot;&gt;Longevity Diet Platform&lt;/font&gt;" vertex="1">
@@ -236,7 +236,7 @@
         <mxCell id="7Tg4kSNw_7Q41DC-K8IJ-10" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Longevity Diet Platform&lt;div&gt;[System]&lt;/div&gt;" vertex="1">
           <mxGeometry height="60" width="227.5" x="250" y="1021" as="geometry" />
         </mxCell>
-        <mxCell id="7Tg4kSNw_7Q41DC-K8IJ-11" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Resend&lt;div&gt;[Email Service]&lt;/div&gt;" vertex="1">
+        <mxCell id="7Tg4kSNw_7Q41DC-K8IJ-11" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Brevo&lt;div&gt;[Email Service]&lt;/div&gt;" vertex="1">
           <mxGeometry height="60" width="120" x="580" y="1021" as="geometry" />
         </mxCell>
         <mxCell id="7Tg4kSNw_7Q41DC-K8IJ-15" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="HTTPS" vertex="1">

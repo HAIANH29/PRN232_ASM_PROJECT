@@ -28,7 +28,7 @@ This file is the shared progress tracker for the project. Every human or AI agen
 - Updated Recommendation Service to use RabbitMQ request/result messages with approved Diet Knowledge context, Google Gemini client configuration, and safe disabled-mode fallback.
 - Added Notification Service as the required internal gRPC service for `Tracking Service -> Notification Service`.
 - Replaced the old Reminder Worker role with `NotificationWorker`.
-- Added Notification Worker placeholder for notification/reminder messages and future Resend delivery.
+- Added Notification Worker placeholder for notification/reminder messages and future Brevo delivery.
 - Updated C4, ERD, physical database docs, README, `.env.example`, and instruction files to match the updated architecture.
 - Added `PROJECT_PROGRESS.md` and `PROJECT_SCHEDULE.md` to track current status and the path to a submission-ready product.
 - Implemented Identity Service register/login/profile/admin-check APIs with DTO validation, password hashing, JWT issuing, role seed data, demo admin seed, authorization policy, repository persistence, and the initial Identity EF Core migration.
@@ -40,7 +40,7 @@ This file is the shared progress tracker for the project. Every human or AI agen
 - Implemented Tracking Service daily tracking, meal completion/not-completion tracking, progress summary calculation, ownership checks, startup migration, and the initial Tracking EF Core migration.
 - Implemented the real Tracking Service -> Notification Service gRPC progress notification flow.
 - Updated Notification Service to publish accepted progress notification messages to RabbitMQ.
-- Implemented Notification Worker reminder and notification consumers, durable RabbitMQ topology declarations, retry handling, dead-letter queues, Resend sender abstraction, and development log fallback delivery.
+- Implemented Notification Worker reminder and notification consumers, durable RabbitMQ topology declarations, retry handling, dead-letter queues, Brevo sender abstraction, and development log fallback delivery.
 - Implemented Recommendation Service RabbitMQ consumer, approved-knowledge REST context loading, safe prompt builder, Gemini client abstraction, disabled-mode fallback recommendations, retry/dead-letter handling, and result publishing back to RabbitMQ.
 - Finalized API Gateway YARP routes for Identity, Diet Knowledge, Meal Planning, and Tracking, with internal Recommendation/Notification services kept unrouted.
 - Implemented Web Application screens for login/register/profile, diet knowledge browsing, admin content management, meal planning, tracking/progress, and recommendation request/review/accept flows.
@@ -71,6 +71,14 @@ Each update should include:
 Do not mark a feature as complete if it only has placeholders or configuration. Call it a scaffold until the real behavior exists and has been verified.
 
 ## Change Log
+
+### 2026-10-19 — Switch email provider from Resend to Brevo
+
+- Replaced `ResendEmailSender`/`ResendOptions` with `BrevoEmailSender`/`BrevoOptions` in `NotificationWorker` (`POST https://api.brevo.com/v3/smtp/email`, `api-key` header, JSON `sender`/`to`/`subject`/`textContent`). `IEmailSender` is unchanged. Brevo has no idempotency header, so the old `Idempotency-Key` was dropped; a retried confirmation mail could rarely be sent twice.
+- Config: `Resend__*` / `RESEND_*` became `Brevo__*` / `BREVO_*` (`BREVO_BASE_URL`, `BREVO_API_KEY`, `BREVO_FROM_EMAIL`, `BREVO_FROM_NAME`) in `appsettings.json`, `docker-compose.yml`, `.env.example`. `BREVO_FROM_EMAIL` has no default: the log-only fallback stays active when the API key is empty/`development-only` **or** the sender email is empty. The sender must be verified in Brevo.
+- Docs updated to Brevo: `README.md`, `CLAUDE.md`, `AGENTS*.md`, `MASTER_PROMPT*.md`, `PROJECT_SCHEDULE.md`, `docs/c4/C0` + `C1`, `docs/development/Database-Docker-Demo-Setup.md`, `docs/submission/Demo-Script.md`, and `AsignmentDiagram.drawio` (both C0 and C1 nodes). Older change-log entries still say Resend because they describe history.
+- Tests: `NotificationWorkerTests` rewritten for Brevo (fallback without HTTP, request URL and `api-key` header).
+- Verification: solution builds with 0 warnings; 33 tests pass. Real Brevo delivery is NOT verified yet: it needs a Brevo API key and a verified sender in `.env`. The old Resend API key was removed from the local `.env`.
 
 ### 2026-10-19 — Scheduled meal reminder emails (confirmation now + reminder at due time)
 

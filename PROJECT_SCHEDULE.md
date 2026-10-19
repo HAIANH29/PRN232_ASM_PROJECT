@@ -27,7 +27,7 @@ What is already in code:
 - RabbitMQ message contract/configuration skeletons exist.
 - Recommendation Service consumes RabbitMQ recommendation requests, builds context from active `Approved` Diet Knowledge data, applies safety guardrails, uses safe fallback recommendations when Gemini is disabled, and publishes recommendation results.
 - Notification Service exists as a gRPC service skeleton.
-- Notification Worker consumes RabbitMQ reminder/notification messages and sends through Resend or logs email payloads in development fallback mode.
+- Notification Worker consumes RabbitMQ reminder/notification messages and sends through Brevo or logs email payloads in development fallback mode.
 - Architecture docs exist and match the updated microservice diagram.
 - Identity Service now supports register/login/profile/admin-check, password hashing, JWT generation, role seeding, demo admin seeding, and the initial Identity EF Core migration.
 - Diet Knowledge Service now supports book-knowledge review metadata, JSON seed data, public browsing/search/filter/sort/pagination for active approved content, admin CRUD, activation/deactivation, and Diet Knowledge EF Core migrations.
@@ -35,7 +35,7 @@ What is already in code:
 - Meal Planning Service now supports authenticated meal plan CRUD, meal plan item scheduling, ownership checks, Diet Knowledge validation through REST, RabbitMQ reminder publishing, recommendation request publishing, recommendation result consumption/storage, recommendation accept flow, and the initial Meal Planning EF Core migration.
 - Tracking Service now supports authenticated daily tracking, meal completion/not-completion tracking, progress summary calculation, ownership checks, Tracking EF Core migration, and the real Tracking -> Notification Service gRPC flow.
 - Notification Service now accepts progress notification gRPC requests and publishes notification messages to RabbitMQ.
-- Notification Worker now declares durable reminder/notification queues, dead-letter queues, retry handling, Resend sender abstraction, and local log fallback delivery.
+- Notification Worker now declares durable reminder/notification queues, dead-letter queues, retry handling, Brevo sender abstraction, and local log fallback delivery.
 - Web Application now supports the main User and Admin browser flows through the API Gateway.
 - Milestone 9 Docker/database demo setup now includes health-checked PostgreSQL/RabbitMQ startup, demo admin/user seed accounts, approved local demo Diet Knowledge seed data, and clean-machine setup documentation.
 
@@ -44,7 +44,7 @@ What is not yet product-ready:
 - Uploaded PDF chunks and generated candidates still require Admin/team review before they should be approved for demos.
 - Search/filter/sort/pagination are implemented for Diet Knowledge and Meal Planning; Tracking supports date-filtered paged history.
 - RabbitMQ publish/consume behavior exists for Meal Planning reminders/recommendations, Recommendation Service processing/results, Notification Service notifications, and Notification Worker delivery.
-- Gemini integration has a configurable HTTP client abstraction with safe disabled-mode fallback; real Gemini and Resend delivery need configured API keys for production/demo external calls.
+- Gemini integration has a configurable HTTP client abstraction with safe disabled-mode fallback; real Gemini and Brevo delivery need configured API keys for production/demo external calls.
 - Automated core tests and the final submission/demo package are now present.
 
 ## Definition Of 100% Complete
@@ -60,7 +60,7 @@ The project is submission-ready only when all of these are true:
 - Meal Planning supports create/update/delete meal plans, meal items, scheduling, ownership checks, and reminder publishing.
 - Tracking supports meal completion, daily tracking, progress summaries, ownership checks, and gRPC notification trigger.
 - Recommendation flow works through RabbitMQ request/result messages and follows AI safety scope.
-- Notification flow works through gRPC, RabbitMQ, Notification Worker, and Resend placeholder or configured email delivery.
+- Notification flow works through gRPC, RabbitMQ, Notification Worker, and Brevo placeholder or configured email delivery.
 - PostgreSQL database-per-service rule is preserved.
 - EF Core migrations exist for all four persistent services.
 - Web Application supports the main User and Admin flows through the API Gateway.
@@ -244,13 +244,13 @@ Code/work to do:
 - [x] Implement notification consumer in Notification Worker.
 - [x] Implement retry/logging strategy.
 - [x] Add dead-letter queue if time allows.
-- [x] Implement Resend email sender abstraction.
-- [x] Keep a development fallback that logs email payloads when Resend is not configured.
+- [x] Implement Brevo email sender abstraction.
+- [x] Keep a development fallback that logs email payloads when Brevo is not configured.
 
 Verification:
 - [x] Scheduling a meal eventually reaches Notification Worker.
 - [x] Tracking progress notification eventually reaches Notification Worker.
-- [x] Worker builds and contains logged fallback delivery when Resend is not configured.
+- [x] Worker builds and contains logged fallback delivery when Brevo is not configured.
 - [x] RabbitMQ Management UI shows expected queues/exchanges.
 - [x] `dotnet build LongevityDietPlatform.sln`
 - [x] `dotnet test LongevityDietPlatform.sln`
@@ -489,7 +489,7 @@ This minimum path is enough to demonstrate the required PRN232 architecture and 
 | Docker Compose | Full stack Docker startup, health checks, and demo seed smoke verified through Milestone 9 | Add final demo script/checklist |
 | C4 docs | Existing | Keep synchronized with implementation |
 | Web Application | Main User/Admin browser flows implemented through the API Gateway | Add final demo script and automated UI/API smoke tests if time allows |
-| External providers | Resend sender abstraction with log fallback exists; Gemini client abstraction with disabled-mode fallback exists | Configure real Resend/Gemini keys only for demo/production if needed |
+| External providers | Brevo sender abstraction with log fallback exists; Gemini client abstraction with disabled-mode fallback exists | Configure real Brevo/Gemini keys only for demo/production if needed |
 | Admin PDF ingestion | Implemented and smoke-tested in Diet Knowledge/Web as an Admin-only flow | Team must verify real book candidates before approval; add final demo script |
 | Tests | Core automated tests added for Identity, Diet Knowledge, book ingestion, Meal Planning, Tracking, Recommendation, Notification Worker, and API authorization boundaries | Keep extending coverage if new behavior is added |
 
@@ -573,7 +573,7 @@ Note: schedule support is represented on `MealPlanItem` rather than a separate t
 
 - [x] Reminder consumer.
 - [x] Notification consumer.
-- [x] Resend email sender abstraction.
+- [x] Brevo email sender abstraction.
 - [x] Development logging fallback.
 - [x] Retry/error handling.
 - [x] Dead-letter queues.

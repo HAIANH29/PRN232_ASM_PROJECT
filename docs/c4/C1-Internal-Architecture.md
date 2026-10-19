@@ -21,7 +21,7 @@ flowchart LR
     MealDb[(MealPlanningDb\nPostgreSQL)]
     TrackingDb[(TrackingDb\nPostgreSQL)]
     Gemini[Google Gemini\nAI Provider]
-    Resend[Resend\nEmail Service]
+    Brevo[Brevo\nEmail Service]
 
     User -->|HTTPS| Web
     Admin -->|HTTPS| Web
@@ -47,7 +47,7 @@ flowchart LR
     Tracking -->|gRPC| Notification
     Notification -->|Publish| Rabbit
     Rabbit -->|Consume| Worker
-    Worker -->|HTTPS| Resend
+    Worker -->|HTTPS| Brevo
 ```
 
 Recommendation Service and Notification Service are stateless in the current scope and do not own databases. Diet Knowledge Service may call Gemini only for Admin book-source candidate extraction; public user and recommendation flows still rely on approved Diet Knowledge content.

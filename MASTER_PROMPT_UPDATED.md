@@ -28,7 +28,7 @@ Create a .NET solution ready for:
 - Swagger/OpenAPI
 - gRPC
 - Google Gemini integration placeholder
-- Resend integration placeholder
+- Brevo integration placeholder
 
 ## Required communication design
 
@@ -64,7 +64,7 @@ Notification Service:
 
 Notification Worker:
 - consumes notification/reminder messages
-- calls Resend later over HTTPS
+- calls Brevo later over HTTPS
 
 Do not create a separate Reminder Worker. Use only:
 `Notification Worker [.NET Worker Service]`
@@ -139,7 +139,7 @@ Keep C0 simple:
 - Admin
 - Longevity Diet Platform
 - Google Gemini [AI Provider]
-- Resend [Email Service]
+- Brevo [Email Service]
 
 Do not show internal services/databases/RabbitMQ in C0.
 
@@ -157,7 +157,7 @@ Show:
 - RabbitMQ [Message Broker]
 - Notification Worker [.NET Worker Service]
 - Google Gemini [AI Provider]
-- Resend [Email Service]
+- Brevo [Email Service]
 
 Communication labels should stay short:
 - HTTPS
