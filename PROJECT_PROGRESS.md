@@ -72,6 +72,12 @@ Do not mark a feature as complete if it only has placeholders or configuration. 
 
 ## Change Log
 
+### 2026-10-19 — Fix invisible "Sign in" button in the Home hero
+
+- The hero's secondary button inherited the white `.btn-outline-secondary` background while its text is white, so the label vanished; the button group was also right-aligned. The hero now uses a transparent background for that button and left-aligns the group.
+- Follow-up: both hero buttons look the same (transparent with a white outline) and turn white only on hover or keyboard focus.
+- Verification: checked in the browser while signed out; the "Sign in" label is visible and both buttons sit on the left.
+
 ### 2026-10-19 — Recommendation prompt picks relevant guidelines instead of the alphabetical head
 
 - Problem: Recommendation.Service fetched 50 guidelines sorted by title and sent only the first 12 to Gemini, so with 88 approved guidelines the AI always saw the same A-Z head of the catalog.
