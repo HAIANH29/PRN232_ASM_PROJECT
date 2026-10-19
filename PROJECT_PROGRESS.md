@@ -72,6 +72,13 @@ Do not mark a feature as complete if it only has placeholders or configuration. 
 
 ## Change Log
 
+### 2026-10-19 — Recommendation prompt picks relevant guidelines instead of the alphabetical head
+
+- Problem: Recommendation.Service fetched 50 guidelines sorted by title and sent only the first 12 to Gemini, so with 88 approved guidelines the AI always saw the same A-Z head of the catalog.
+- Now it fetches up to 100 per type and sends up to 25 guidelines, 40 foods and 30 recipes. When there are more items than slots, items whose text mentions the user's preference words come first; the remaining slots start at a position derived from the request id (stable for one request, different between requests).
+- Verification: build 0 warnings, 48 automated tests pass (2 new: preference match beyond the first slots, per-request variation).
+- Note: preference matching is plain substring matching, so Vietnamese preferences do not match English knowledge text and fall back to the rotating sample.
+
 ### 2026-10-19 — Candidate review without page reloads
 
 - Approve, Reject, Approve all and the new Reject placeholders buttons on the book source page are submitted with `fetch` (`wwwroot/js/book-candidates.js`): a single card updates in place, bulk actions re-render only the header and the candidate list, and results show as a toast. The MVC actions answer JSON when the request carries `X-Requested-With: fetch` and keep the redirect plus flash message otherwise, so the page still works without JavaScript.
