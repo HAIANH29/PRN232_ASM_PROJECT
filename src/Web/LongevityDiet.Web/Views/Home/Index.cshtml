@@ -3,48 +3,80 @@
     ViewData["Title"] = T["Home"];
 }
 
-<section class="page-head">
-    <div>
+<section class="home-hero">
+    <div class="home-hero-text">
         <p class="eyebrow">@T["Longevity Diet Platform"]</p>
         @if (UserSession.IsSignedIn)
         {
             <h1>@T.F("Welcome back, {0}", UserSession.DisplayName)</h1>
-            <p class="text-muted mb-0">@T["Plan your meals, get ideas, and check them off as you go. Here is where to start."]</p>
+            <p class="hero-lead">@T["Plan your meals, get ideas, and check them off as you go. Here is where to start."]</p>
         }
         else
         {
             <h1>@T["Plan simple, plant-forward meals"]</h1>
-            <p class="text-muted mb-0">@T["Browse diet knowledge inspired by"] <em>@T["The Longevity Diet"]</em>@T[", build a meal plan, get meal ideas, and track your week. Create a free account to begin."]</p>
+            <p class="hero-lead">@T["Browse diet knowledge inspired by"] <em>@T["The Longevity Diet"]</em>@T[", build a meal plan, get meal ideas, and track your week. Create a free account to begin."]</p>
+            <div class="head-actions">
+                <a class="btn btn-dark" asp-controller="Auth" asp-action="Register">@T["Create account"]</a>
+                <a class="btn btn-outline-secondary" asp-controller="Auth" asp-action="Login">@T["Sign in"]</a>
+            </div>
         }
     </div>
-    <div class="head-actions">
-        @if (!UserSession.IsSignedIn)
-        {
-            <a class="btn btn-dark" asp-controller="Auth" asp-action="Register">@T["Create account"]</a>
-            <a class="btn btn-outline-secondary" asp-controller="Auth" asp-action="Login">@T["Sign in"]</a>
-        }
+    <div class="home-hero-art" aria-hidden="true">
+        <span class="art-bubble art-bubble-1"><span class="icon">eco</span></span>
+        <span class="art-bubble art-bubble-2"><span class="icon">nutrition</span></span>
+        <span class="art-bubble art-bubble-3"><span class="icon">restaurant</span></span>
+        <span class="art-bubble art-bubble-4"><span class="icon">spa</span></span>
+        <span class="art-bubble art-bubble-5"><span class="icon">local_florist</span></span>
     </div>
 </section>
 
 <section class="dashboard-grid">
     <a class="module-card" asp-controller="Knowledge" asp-action="Index">
+        <span class="module-icon"><span class="icon" aria-hidden="true">menu_book</span></span>
         <span class="module-kicker">@T["Learn"]</span>
         <strong>@T["Browse diet knowledge"]</strong>
         <small>@T["Read guidelines, foods and recipes the team has reviewed and approved."]</small>
     </a>
     <a class="module-card" asp-controller="MealPlans" asp-action="Index">
+        <span class="module-icon"><span class="icon" aria-hidden="true">calendar_month</span></span>
         <span class="module-kicker">@T["Plan"]</span>
         <strong>@T["Build a meal plan"]</strong>
         <small>@T["Choose a date range, then add breakfast, lunch, dinner or snacks. Optional reminders by email."]</small>
     </a>
     <a class="module-card" asp-controller="Recommendations" asp-action="Index">
+        <span class="module-icon"><span class="icon" aria-hidden="true">lightbulb</span></span>
         <span class="module-kicker">@T["Get ideas"]</span>
         <strong>@T["Get meal ideas"]</strong>
         <small>@T["Tell us what you like and receive suggestions, then turn the ones you want into a plan."]</small>
     </a>
     <a class="module-card" asp-controller="Tracking" asp-action="Index">
+        <span class="module-icon"><span class="icon" aria-hidden="true">task_alt</span></span>
         <span class="module-kicker">@T["Track"]</span>
         <strong>@T["Daily check-in"]</strong>
         <small>@T["Mark meals as eaten and see how much of your plan you completed."]</small>
     </a>
+</section>
+
+<section class="home-steps">
+    <div class="home-steps-head">
+        <p class="eyebrow">@T["How it works"]</p>
+        <h2>@T["From reading to your plate in three steps"]</h2>
+    </div>
+    <ol class="steps-list">
+        <li>
+            <span class="step-num">1</span>
+            <strong>@T["Read"]</strong>
+            <small>@T["Start with the approved guidelines, foods and recipes."]</small>
+        </li>
+        <li>
+            <span class="step-num">2</span>
+            <strong>@T["Plan"]</strong>
+            <small>@T["Turn what you learned into a week of simple meals."]</small>
+        </li>
+        <li>
+            <span class="step-num">3</span>
+            <strong>@T["Check in"]</strong>
+            <small>@T["Tick off meals each day and watch your progress grow."]</small>
+        </li>
+    </ol>
 </section>
