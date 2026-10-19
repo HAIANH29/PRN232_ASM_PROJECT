@@ -106,6 +106,19 @@ public sealed class BookSourcesController(IBookKnowledgeIngestionService ingesti
             HttpContext.TraceIdentifier));
     }
 
+    [HttpGet("{id:guid}/candidates/progress")]
+    public async Task<ActionResult<ApiResponse<KnowledgeGenerationProgressResponse>>> GetGenerationProgress(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var result = await ingestionService.GetGenerationProgressAsync(id, cancellationToken);
+
+        return Ok(ApiResponse<KnowledgeGenerationProgressResponse>.Success(
+            result.ToResponse(),
+            "Candidate generation progress loaded.",
+            HttpContext.TraceIdentifier));
+    }
+
     [HttpPost("{id:guid}/candidates/generate")]
     public async Task<ActionResult<ApiResponse<IReadOnlyCollection<KnowledgeCandidateResponse>>>> GenerateCandidates(
         Guid id,
@@ -118,6 +131,36 @@ public sealed class BookSourcesController(IBookKnowledgeIngestionService ingesti
         return Ok(ApiResponse<IReadOnlyCollection<KnowledgeCandidateResponse>>.Success(
             result.Select(item => item.ToResponse()).ToArray(),
             "Knowledge candidates generated for admin review.",
+            HttpContext.TraceIdentifier));
+    }
+
+    [HttpPost("{id:guid}/candidates/approve-all")]
+    public async Task<ActionResult<ApiResponse<ApproveAllCandidatesResponse>>> ApproveAllCandidates(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var result = await ingestionService.ApproveAllCandidatesAsync(
+            new ApproveAllKnowledgeCandidatesCommand(id, CurrentUserName()),
+            cancellationToken);
+
+        return Ok(ApiResponse<ApproveAllCandidatesResponse>.Success(
+            new ApproveAllCandidatesResponse(result.Approved, result.LeftForManualReview, result.Failed),
+            "Safe knowledge candidates approved.",
+            HttpContext.TraceIdentifier));
+    }
+
+    [HttpPost("{id:guid}/candidates/reject-placeholders")]
+    public async Task<ActionResult<ApiResponse<RejectPlaceholdersResponse>>> RejectPlaceholders(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var rejected = await ingestionService.RejectPlaceholderCandidatesAsync(
+            new RejectPlaceholderCandidatesCommand(id, CurrentUserName()),
+            cancellationToken);
+
+        return Ok(ApiResponse<RejectPlaceholdersResponse>.Success(
+            new RejectPlaceholdersResponse(rejected),
+            "Placeholder candidates rejected.",
             HttpContext.TraceIdentifier));
     }
 

@@ -80,3 +80,27 @@ public sealed record KnowledgeCandidateDraft(
 public sealed record BookPageText(
     int PageNumber,
     string Text);
+
+public sealed record KnowledgeCandidateGenerationResult(
+    IReadOnlyCollection<KnowledgeCandidateDraft> Drafts,
+    IReadOnlyCollection<Guid> ProcessedChunkIds);
+
+public sealed record KnowledgeGenerationProgressModel(
+    int TotalChunks,
+    int RelevantChunks,
+    int ProcessedChunks,
+    int RemainingChunks,
+    int SkippedChunks);
+
+public sealed record ApproveAllKnowledgeCandidatesCommand(
+    Guid DocumentId,
+    string ReviewedBy);
+
+public sealed record ApproveAllKnowledgeCandidatesResultModel(
+    int Approved,
+    int LeftForManualReview,
+    int Failed);
+
+public sealed record RejectPlaceholderCandidatesCommand(
+    Guid DocumentId,
+    string ReviewedBy);

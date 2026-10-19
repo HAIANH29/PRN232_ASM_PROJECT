@@ -10,5 +10,5 @@ public sealed class BookKnowledgeIngestionOptions
 
     public int ChunkOverlapCharacters { get; set; } = 200;
 
-    public int MaxChunksPerGeneration { get; set; } = 8;
+    public int MaxChunksPerGeneration { get; set; } = 24;
 }

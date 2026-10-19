@@ -102,6 +102,7 @@ Initial migration exists: `InitialIdentitySchema`.
   - `CharacterCount`
   - `TokenEstimate`
   - `CreatedAtUtc`
+  - `CandidatesGeneratedAtUtc` (null until the chunk was analyzed for candidates; lets Admin continue a book batch by batch)
 - `KnowledgeCandidates`
   - `Id`
   - `DocumentId`

@@ -44,6 +44,18 @@ public sealed record KnowledgeCandidateResponse(
     DateTimeOffset? ReviewedAtUtc,
     Guid? ApprovedKnowledgeId);
 
+public sealed record KnowledgeGenerationProgressResponse(
+    int TotalChunks,
+    int RelevantChunks,
+    int ProcessedChunks,
+    int RemainingChunks,
+    int SkippedChunks);
+
+public sealed record ApproveAllCandidatesResponse(
+    int Approved,
+    int LeftForManualReview,
+    int Failed);
+
 public sealed class BookSourceUploadForm
 {
     [Required]
@@ -67,4 +79,8 @@ public sealed class AdminBookSourceDetailsViewModel
 
     public IReadOnlyCollection<KnowledgeCandidateResponse> Candidates { get; set; } =
         Array.Empty<KnowledgeCandidateResponse>();
+
+    public KnowledgeGenerationProgressResponse Progress { get; set; } = new(0, 0, 0, 0, 0);
 }
+
+public sealed record RejectPlaceholdersResponse(int Rejected);

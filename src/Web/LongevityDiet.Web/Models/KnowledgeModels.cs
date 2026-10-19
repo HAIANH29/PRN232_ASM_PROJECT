@@ -74,6 +74,9 @@ public sealed class KnowledgeIndexViewModel
 
 public sealed class AdminKnowledgeViewModel
 {
+    // Approved (default), NeedsReview or all.
+    public string ReviewFilter { get; set; } = "Approved";
+
     public PagedResponse<DietGuidelineResponse> Guidelines { get; set; } = KnowledgeIndexViewModel.Empty<DietGuidelineResponse>();
 
     public PagedResponse<FoodResponse> Foods { get; set; } = KnowledgeIndexViewModel.Empty<FoodResponse>();

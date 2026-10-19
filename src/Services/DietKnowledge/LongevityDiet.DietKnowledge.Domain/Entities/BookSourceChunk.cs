@@ -20,5 +20,8 @@ public sealed class BookSourceChunk
 
     public DateTimeOffset CreatedAtUtc { get; set; } = DateTimeOffset.UtcNow;
 
+    // Set once the chunk has been analyzed for knowledge candidates, even when it yielded none.
+    public DateTimeOffset? CandidatesGeneratedAtUtc { get; set; }
+
     public ICollection<KnowledgeCandidate> Candidates { get; } = new List<KnowledgeCandidate>();
 }

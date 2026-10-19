@@ -14,6 +14,13 @@
     </div>
 </section>
 
+<nav class="d-flex flex-wrap align-items-center gap-2 mb-3" aria-label="@T["Review status"]">
+    <span class="text-muted small">@T["Showing"]</span>
+    <a class="btn btn-sm @(Model.ReviewFilter == "Approved" ? "btn-dark" : "btn-outline-secondary")" asp-action="Index" asp-route-status="Approved">@T["Approved"]</a>
+    <a class="btn btn-sm @(Model.ReviewFilter == "NeedsReview" ? "btn-dark" : "btn-outline-secondary")" asp-action="Index" asp-route-status="NeedsReview">@T["NeedsReview"]</a>
+    <a class="btn btn-sm @(Model.ReviewFilter == "all" ? "btn-dark" : "btn-outline-secondary")" asp-action="Index" asp-route-status="all">@T["All statuses"]</a>
+</nav>
+
 <section class="stat-grid cols-3">
     <div class="stat-card">
         <div>

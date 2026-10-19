@@ -95,6 +95,11 @@ public interface IDietKnowledgeRepository
         IReadOnlyCollection<BookSourceChunk> chunks,
         CancellationToken cancellationToken = default);
 
+    Task MarkChunksCandidatesGeneratedAsync(
+        IReadOnlyCollection<Guid> chunkIds,
+        DateTimeOffset generatedAtUtc,
+        CancellationToken cancellationToken = default);
+
     Task<IReadOnlyCollection<KnowledgeCandidate>> ListKnowledgeCandidatesAsync(
         Guid documentId,
         CancellationToken cancellationToken = default);

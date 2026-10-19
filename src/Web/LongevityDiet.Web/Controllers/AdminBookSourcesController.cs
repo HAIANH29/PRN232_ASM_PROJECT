@@ -120,6 +120,65 @@ public sealed class AdminBookSourcesController(ApiGatewayClient api, UserSession
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ApproveAllCandidates(Guid id, CancellationToken cancellationToken)
+    {
+        var guard = RequireAdmin();
+        if (guard is not null)
+        {
+            return guard;
+        }
+
+        var result = await Api.PostAsync<ApproveAllCandidatesResponse>(
+            $"/diet-knowledge/api/admin/book-sources/{id}/candidates/approve-all",
+            new { },
+            Token,
+            cancellationToken);
+
+        if (result.Succeeded && result.Data is not null)
+        {
+            var message = string.Format(
+                System.Globalization.CultureInfo.CurrentCulture,
+                Translator.Lookup(
+                    "Approved {0} candidates. {1} left for manual review (placeholders or disease wording), {2} could not be approved."),
+                result.Data.Approved,
+                result.Data.LeftForManualReview,
+                result.Data.Failed);
+            return Respond(true, message, id);
+        }
+
+        return Respond(result, "Candidates approved.", id);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RejectPlaceholders(Guid id, CancellationToken cancellationToken)
+    {
+        var guard = RequireAdmin();
+        if (guard is not null)
+        {
+            return guard;
+        }
+
+        var result = await Api.PostAsync<RejectPlaceholdersResponse>(
+            $"/diet-knowledge/api/admin/book-sources/{id}/candidates/reject-placeholders",
+            new { },
+            Token,
+            cancellationToken);
+
+        if (result.Succeeded && result.Data is not null)
+        {
+            var message = string.Format(
+                System.Globalization.CultureInfo.CurrentCulture,
+                Translator.Lookup("Rejected {0} placeholder candidates."),
+                result.Data.Rejected);
+            return Respond(true, message, id);
+        }
+
+        return Respond(result, "Placeholder candidates rejected.", id);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> ApproveCandidate(
         Guid documentId,
         Guid candidateId,
@@ -137,8 +196,7 @@ public sealed class AdminBookSourcesController(ApiGatewayClient api, UserSession
             Token,
             cancellationToken);
 
-        AddResultMessage(result, "Candidate approved into managed knowledge.");
-        return RedirectToAction(nameof(Details), new { id = documentId });
+        return Respond(result, "Candidate approved into managed knowledge.", documentId, result.Data?.Status);
     }
 
     [HttpPost]
@@ -160,7 +218,39 @@ public sealed class AdminBookSourcesController(ApiGatewayClient api, UserSession
             Token,
             cancellationToken);
 
-        AddResultMessage(result, "Candidate rejected.");
+        return Respond(result, "Candidate rejected.", documentId, result.Data?.Status);
+    }
+
+    // Review buttons are submitted with fetch (X-Requested-With: fetch) and get JSON back so the
+    // page does not reload; without that header the classic redirect with a flash message is used.
+    private bool IsFetchRequest => Request.Headers["X-Requested-With"] == "fetch";
+
+    private IActionResult Respond<T>(
+        ApiCallResult<T> result,
+        string successMessage,
+        Guid documentId,
+        string? status = null)
+    {
+        var message = result.Succeeded
+            ? Translator.Lookup(successMessage)
+            : FormatErrors(result.Message, result.Errors);
+        return Respond(result.Succeeded, message, documentId, status);
+    }
+
+    private IActionResult Respond(bool succeeded, string message, Guid documentId, string? status = null)
+    {
+        if (IsFetchRequest)
+        {
+            return Json(new
+            {
+                succeeded,
+                message,
+                status,
+                statusLabel = status is null ? null : Translator.Lookup(status)
+            });
+        }
+
+        TempData[succeeded ? "Success" : "Error"] = message;
         return RedirectToAction(nameof(Details), new { id = documentId });
     }
 
@@ -201,11 +291,17 @@ public sealed class AdminBookSourcesController(ApiGatewayClient api, UserSession
             Token,
             cancellationToken);
 
+        var progress = await Api.GetAsync<KnowledgeGenerationProgressResponse>(
+            $"/diet-knowledge/api/admin/book-sources/{id}/candidates/progress",
+            Token,
+            cancellationToken);
+
         return new AdminBookSourceDetailsViewModel
         {
             Document = document.Data,
             Chunks = chunks.Data ?? Array.Empty<BookSourceChunkResponse>(),
-            Candidates = candidates.Data ?? Array.Empty<KnowledgeCandidateResponse>()
+            Candidates = candidates.Data ?? Array.Empty<KnowledgeCandidateResponse>(),
+            Progress = progress.Data ?? new KnowledgeGenerationProgressResponse(0, 0, 0, 0, 0)
         };
     }
 }
