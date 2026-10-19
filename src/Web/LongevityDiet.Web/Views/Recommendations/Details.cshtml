@@ -16,7 +16,7 @@
             @T.F(Model.Request.Days == 1 ? "{0} meal idea" : "{0} meal ideas", Model.Request.Days)@(Model.Request.PreferenceTags.Any() ? T[" for: "] + string.Join(", ", Model.Request.PreferenceTags) : "")
         </p>
     </div>
-    <a class="btn btn-outline-secondary" asp-action="Index">@T["All requests"]</a>
+    <a class="btn btn-outline-secondary" asp-action="Index"><span class="icon" aria-hidden="true">arrow_back</span>@T["All requests"]</a>
 </section>
 
 @if (isPending)
@@ -32,7 +32,7 @@
 else if (Model.Request.AcceptedMealPlanId.HasValue)
 {
     <section class="section-card">
-        <div class="card-heading"><h2>@T["Already added to a plan"]</h2></div>
+        <div class="card-heading"><h2><span class="icon" aria-hidden="true">check_circle</span>@T["Already added to a plan"]</h2></div>
         <p class="text-muted">@T["You turned these ideas into a meal plan."]</p>
         <ul class="idea-list">
             @foreach (var title in Model.Request.SuggestedMealTitles)
@@ -53,7 +53,7 @@ else
 {
     <form asp-action="Accept" asp-route-id="@Model.Request.Id" method="post" class="section-card form-stack">
         <div class="card-heading">
-            <h2>@T["Choose what goes into your plan"]</h2>
+            <h2><span class="icon" aria-hidden="true">checklist</span>@T["Choose what goes into your plan"]</h2>
         </div>
         <p class="text-muted mb-0">@T["Untick any idea you do not want. For each one, pick the day, the meal, and the matching recipe or food from our catalog so it can be tracked later."]</p>
         <div asp-validation-summary="All" class="text-danger small"></div>
@@ -115,7 +115,7 @@ else
         </div>
 
         <div class="form-actions">
-            <button class="btn btn-dark" type="submit">@T["Create my meal plan"]</button>
+            <button class="btn btn-dark" type="submit"><span class="icon" aria-hidden="true">event_available</span>@T["Create my meal plan"]</button>
             <small class="text-muted">@T["The plan's dates are set from the days you choose above."]</small>
         </div>
     </form>
@@ -123,7 +123,7 @@ else
 
 @if (!string.IsNullOrWhiteSpace(Model.Request.Disclaimer))
 {
-    <p class="note-box mt-3">@T.C(Model.Request.Disclaimer)</p>
+    <div class="callout mt-3"><span class="icon" aria-hidden="true">info</span><span>@T.C(Model.Request.Disclaimer)</span></div>
 }
 
 @section Scripts {

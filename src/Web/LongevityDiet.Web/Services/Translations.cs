@@ -116,7 +116,6 @@ public static class Translations
         ["Track"] = "Theo dõi",
         ["Daily check-in"] = "Điểm danh hằng ngày",
         ["Mark meals as eaten and see how much of your plan you completed."] = "Đánh dấu các bữa đã ăn và xem bạn hoàn thành được bao nhiêu kế hoạch.",
-        ["This app is for education and meal planning only. It does not give medical advice, diagnosis, treatment, or predictions about disease or lifespan."] = "Ứng dụng này chỉ phục vụ mục đích giáo dục và lập kế hoạch bữa ăn. Ứng dụng không đưa ra lời khuyên y tế, chẩn đoán, điều trị hay dự đoán về bệnh tật hoặc tuổi thọ.",
 
         // Auth
         ["Account access"] = "Truy cập tài khoản",
@@ -411,5 +410,16 @@ public static class Translations
         ["Unexpected server error."] = "Máy chủ gặp lỗi không mong muốn.",
         ["The field {0} must be a string or array type with a minimum length of '{1}'."] = "{0} phải dài tối thiểu {1} ký tự.",
         ["The field {0} must be a string with a maximum length of {1}."] = "{0} chỉ được dài tối đa {1} ký tự.",
+
+        // Redesigned UI (plan status chips, knowledge cards, tracking stats, error page)
+        ["Upcoming"] = "Sắp tới",
+        ["Finished"] = "Đã kết thúc",
+        ["Active now"] = "Đang diễn ra",
+        ["Planned"] = "Đã lên kế hoạch",
+        ["Guideline"] = "Nguyên tắc",
+        ["Something went wrong"] = "Đã xảy ra sự cố",
+        ["Error"] = "Lỗi",
+        ["An error occurred while processing your request."] = "Đã xảy ra lỗi khi xử lý yêu cầu của bạn.",
+        ["Request ID"] = "Mã yêu cầu",
     };
 }

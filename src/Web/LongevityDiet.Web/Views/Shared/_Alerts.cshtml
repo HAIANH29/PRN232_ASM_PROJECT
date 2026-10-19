@@ -1,21 +1,24 @@
 @if (TempData["Success"] is string success)
 {
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        @T[success]
+    <div class="site-alert success alert alert-dismissible fade show" role="alert">
+        <span class="icon" aria-hidden="true">check_circle</span>
+        <span class="site-alert-text">@T[success]</span>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="@T["Close"]"></button>
     </div>
 }
 @if (TempData["Warning"] is string warning)
 {
-    <div class="alert alert-warning alert-dismissible fade show" role="alert">
-        @T[warning]
+    <div class="site-alert warning alert alert-dismissible fade show" role="alert">
+        <span class="icon" aria-hidden="true">warning</span>
+        <span class="site-alert-text">@T[warning]</span>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="@T["Close"]"></button>
     </div>
 }
 @if (TempData["Error"] is string error)
 {
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        @T[error]
+    <div class="site-alert error alert alert-dismissible fade show" role="alert">
+        <span class="icon" aria-hidden="true">error</span>
+        <span class="site-alert-text">@T[error]</span>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="@T["Close"]"></button>
     </div>
 }
