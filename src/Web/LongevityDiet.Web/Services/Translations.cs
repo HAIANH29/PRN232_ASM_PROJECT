@@ -421,5 +421,12 @@ public static class Translations
         ["Error"] = "Lỗi",
         ["An error occurred while processing your request."] = "Đã xảy ra lỗi khi xử lý yêu cầu của bạn.",
         ["Request ID"] = "Mã yêu cầu",
+        ["How it works"] = "Cách hoạt động",
+        ["From reading to your plate in three steps"] = "Từ đọc kiến thức đến bữa ăn của bạn chỉ trong ba bước",
+        ["Read"] = "Đọc",
+        ["Check in"] = "Điểm danh",
+        ["Start with the approved guidelines, foods and recipes."] = "Bắt đầu với các nguyên tắc, thực phẩm và công thức đã được duyệt.",
+        ["Turn what you learned into a week of simple meals."] = "Biến những gì bạn học được thành một tuần bữa ăn đơn giản.",
+        ["Tick off meals each day and watch your progress grow."] = "Đánh dấu các bữa ăn mỗi ngày và xem tiến độ của bạn tăng lên.",
     };
 }
