@@ -104,10 +104,10 @@ The Web admin area includes `Book Sources` for uploading a legally obtained PDF 
 | `GEMINI_ENDPOINT` | Gemini API base URL | `https://generativelanguage.googleapis.com` |
 | `GEMINI_API_KEY` | Gemini API key | `development-only` |
 | `GEMINI_MODEL` | Gemini model name | `gemini-2.0-flash` |
-| `RESEND_BASE_URL` | Resend API base URL | `https://api.resend.com` |
-| `RESEND_API_KEY` | Resend API key | `development-only` |
-| `RESEND_FROM_EMAIL` | Sender email for Resend | `onboarding@resend.dev` |
-| `RESEND_FROM_NAME` | Sender name for email payloads | `Longevity Diet Platform` |
+| `BREVO_BASE_URL` | Brevo API base URL | `https://api.brevo.com/v3` |
+| `BREVO_API_KEY` | Brevo API key | `development-only` |
+| `BREVO_FROM_EMAIL` | Sender email; must be a sender or domain verified in Brevo. Empty keeps the log-only fallback | empty |
+| `BREVO_FROM_NAME` | Sender name for email payloads | `Longevity Diet Platform` |
 
 ## Smoke Checks
 

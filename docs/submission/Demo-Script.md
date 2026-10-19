@@ -50,7 +50,7 @@ Explain the main points:
 - Four PostgreSQL databases are owned by four stateful services.
 - Tracking to Notification uses gRPC.
 - Recommendation, reminder, and notification delivery use RabbitMQ.
-- Google Gemini and Resend are external providers with safe local fallbacks.
+- Google Gemini and Brevo are external providers with safe local fallbacks.
 
 ## 3. Gateway And Health Check
 
@@ -135,7 +135,7 @@ Do not upload or distribute an unauthorized full book copy during presentation.
    - Tracking stores daily tracking in `TrackingDb`.
    - Tracking calls Notification Service through gRPC when daily progress is complete.
    - Notification Service publishes a notification message to RabbitMQ.
-   - Notification Worker consumes it and logs/sends email through Resend fallback.
+   - Notification Worker consumes it and logs/sends email through Brevo fallback.
 
 ## 8. RabbitMQ Evidence
 

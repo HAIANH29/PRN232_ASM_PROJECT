@@ -135,10 +135,10 @@ services:
       dockerfile: src/Workers/LongevityDiet.NotificationWorker/Dockerfile
     environment:
       RabbitMq__HostName: rabbitmq
-      Resend__BaseUrl: ${RESEND_BASE_URL:-https://api.resend.com}
-      Resend__ApiKey: ${RESEND_API_KEY:-development-only}
-      Resend__FromEmail: ${RESEND_FROM_EMAIL:-onboarding@resend.dev}
-      Resend__FromName: ${RESEND_FROM_NAME:-Longevity Diet Platform}
+      Brevo__BaseUrl: ${BREVO_BASE_URL:-https://api.brevo.com/v3}
+      Brevo__ApiKey: ${BREVO_API_KEY:-development-only}
+      Brevo__FromEmail: ${BREVO_FROM_EMAIL:-}
+      Brevo__FromName: ${BREVO_FROM_NAME:-Longevity Diet Platform}
     depends_on:
       rabbitmq:
         condition: service_healthy

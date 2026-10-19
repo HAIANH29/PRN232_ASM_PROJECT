@@ -26,7 +26,7 @@ Development conventions:
 - `LongevityDiet.Tracking.Api` - REST API for daily and meal tracking.
 - `LongevityDiet.Recommendation.Service` - internal RabbitMQ recommendation worker with approved-knowledge context, safe fallback behavior, and optional Google Gemini integration.
 - `LongevityDiet.Notification.Grpc` - internal gRPC notification service called by Tracking.
-- `LongevityDiet.NotificationWorker` - worker service for RabbitMQ notification/reminder messages and Resend/logged email delivery.
+- `LongevityDiet.NotificationWorker` - worker service for RabbitMQ notification/reminder messages and Brevo/logged email delivery.
 
 Each REST service is split into:
 
@@ -113,7 +113,7 @@ The current suite covers:
 - Meal Planning validation, reminder publishing, and recommendation request publishing.
 - Tracking progress summary calculation and notification trigger behavior.
 - Recommendation safety filtering and approved-knowledge context behavior.
-- Notification Worker Resend/log fallback behavior.
+- Notification Worker Brevo/log fallback behavior.
 - API authorization boundaries for public, authenticated, and Admin-only endpoints.
 
 Diet Knowledge endpoints:
@@ -184,8 +184,8 @@ Notification Worker:
 - Consumes progress notifications from `notification.messages`.
 - Declares durable RabbitMQ exchanges/queues plus dead-letter exchanges/queues for both flows.
 - Retries failed messages using `RabbitMq__MaxDeliveryAttempts` and `RabbitMq__RetryDelaySeconds`.
-- Sends through Resend when `RESEND_API_KEY` is configured.
-- Logs the expected email payload when `RESEND_API_KEY` is empty or `development-only`, which is the default local fallback.
+- Sends through Brevo (`POST /v3/smtp/email`, `api-key` header) when both `BREVO_API_KEY` and `BREVO_FROM_EMAIL` are configured. The sender must be verified in Brevo (Senders, Domains & Dedicated IPs).
+- Logs the expected email payload when `BREVO_API_KEY` is empty or `development-only`, or `BREVO_FROM_EMAIL` is empty, which is the default local fallback.
 
 Recommendation Service:
 
