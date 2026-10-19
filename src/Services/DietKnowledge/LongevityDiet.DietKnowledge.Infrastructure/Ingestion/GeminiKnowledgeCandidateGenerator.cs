@@ -1,6 +1,8 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using LongevityDiet.DietKnowledge.Application.Abstractions;
 using LongevityDiet.DietKnowledge.Application.Common;
 using LongevityDiet.DietKnowledge.Application.Models;
@@ -16,7 +18,17 @@ public sealed class GeminiKnowledgeCandidateGenerator(
     IOptions<BookKnowledgeIngestionOptions> ingestionOptionsAccessor,
     ILogger<GeminiKnowledgeCandidateGenerator> logger) : IKnowledgeCandidateGenerator
 {
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+    // Several small chunks share one Gemini request, up to this many characters of PDF text.
+    private const int MaxCharactersPerRequest = 6000;
+    private const int MaxCandidatesPerChunk = 2;
+    private const int MaxCandidatesPerRequest = 12;
+    private const int FallbackDraftLimit = 5;
+
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
+    {
+        NumberHandling = JsonNumberHandling.AllowReadingFromString
+    };
+
     private readonly GeminiOptions geminiOptions = geminiOptionsAccessor.Value;
     private readonly BookKnowledgeIngestionOptions ingestionOptions = ingestionOptionsAccessor.Value;
 
@@ -25,71 +37,95 @@ public sealed class GeminiKnowledgeCandidateGenerator(
         !string.IsNullOrWhiteSpace(geminiOptions.ApiKey) &&
         !geminiOptions.ApiKey.Equals("development-only", StringComparison.OrdinalIgnoreCase);
 
-    public async Task<IReadOnlyCollection<KnowledgeCandidateDraft>> GenerateAsync(
+    public async Task<KnowledgeCandidateGenerationResult> GenerateAsync(
         BookSourceDocument document,
         IReadOnlyCollection<BookSourceChunk> chunks,
         CancellationToken cancellationToken = default)
     {
         var selectedChunks = chunks
-            .Where(chunk => !string.IsNullOrWhiteSpace(chunk.Text))
+            .Where(chunk => !string.IsNullOrWhiteSpace(BookChunkRelevance.CleanText(chunk.Text)))
             .OrderBy(chunk => chunk.ChunkIndex)
-            .Take(Math.Clamp(ingestionOptions.MaxChunksPerGeneration, 1, 20))
+            .Take(Math.Clamp(ingestionOptions.MaxChunksPerGeneration, 1, 60))
             .ToArray();
 
         if (selectedChunks.Length == 0)
         {
-            return Array.Empty<KnowledgeCandidateDraft>();
+            return new KnowledgeCandidateGenerationResult([], []);
         }
 
         if (!IsEnabled)
         {
-            return CreateFallbackDrafts(document, selectedChunks);
+            var fallbackChunks = selectedChunks.Take(FallbackDraftLimit).ToArray();
+            return new KnowledgeCandidateGenerationResult(
+                CreateFallbackDrafts(document, fallbackChunks),
+                fallbackChunks.Select(chunk => chunk.Id).ToArray());
         }
 
         var drafts = new List<KnowledgeCandidateDraft>();
-        var fallbackChunks = new List<BookSourceChunk>();
+        var processedChunkIds = new List<Guid>();
         var deadline = DateTime.UtcNow.AddSeconds(Math.Max(1, geminiOptions.TotalBudgetSeconds));
         var consecutiveFailures = 0;
 
-        foreach (var chunk in selectedChunks)
+        foreach (var group in GroupChunks(selectedChunks))
         {
-            // Gemini looks unavailable or the time budget is spent: stop calling it and use local drafts.
+            // Gemini looks unavailable or the time budget is spent: leave the rest pending so the
+            // admin can continue later instead of filling the review queue with placeholders.
             if (consecutiveFailures >= Math.Max(1, geminiOptions.MaxConsecutiveFailures) ||
                 DateTime.UtcNow >= deadline)
             {
-                fallbackChunks.Add(chunk);
-                continue;
+                break;
             }
 
             try
             {
-                var generated = await GenerateWithRetryAsync(document, chunk, deadline, cancellationToken);
+                var generated = await GenerateWithRetryAsync(document, group, deadline, cancellationToken);
                 drafts.AddRange(generated);
+                processedChunkIds.AddRange(group.Select(chunk => chunk.Id));
                 consecutiveFailures = 0;
             }
             catch (Exception exception) when (!cancellationToken.IsCancellationRequested)
             {
                 consecutiveFailures++;
-                fallbackChunks.Add(chunk);
                 logger.LogWarning(
                     exception,
-                    "Gemini failed to generate knowledge candidates for document {DocumentId} chunk {ChunkIndex}; using local fallback.",
+                    "Gemini failed to generate knowledge candidates for document {DocumentId} chunks {FirstChunk}-{LastChunk}; they stay pending.",
                     document.Id,
-                    chunk.ChunkIndex);
+                    group[0].ChunkIndex,
+                    group[^1].ChunkIndex);
             }
         }
 
-        if (fallbackChunks.Count > 0)
+        return new KnowledgeCandidateGenerationResult(drafts, processedChunkIds);
+    }
+
+    private static IEnumerable<IReadOnlyList<BookSourceChunk>> GroupChunks(
+        IReadOnlyCollection<BookSourceChunk> chunks)
+    {
+        var current = new List<BookSourceChunk>();
+        var currentLength = 0;
+        foreach (var chunk in chunks)
         {
-            drafts.AddRange(CreateFallbackDrafts(document, fallbackChunks));
+            var length = Math.Min(BookChunkRelevance.CleanText(chunk.Text).Length, MaxCharactersPerRequest);
+            if (current.Count > 0 && currentLength + length > MaxCharactersPerRequest)
+            {
+                yield return current;
+                current = [];
+                currentLength = 0;
+            }
+
+            current.Add(chunk);
+            currentLength += length;
         }
 
-        return drafts;
+        if (current.Count > 0)
+        {
+            yield return current;
+        }
     }
 
     private async Task<IReadOnlyCollection<KnowledgeCandidateDraft>> GenerateWithRetryAsync(
         BookSourceDocument document,
-        BookSourceChunk chunk,
+        IReadOnlyList<BookSourceChunk> group,
         DateTime deadline,
         CancellationToken cancellationToken)
     {
@@ -103,7 +139,7 @@ public sealed class GeminiKnowledgeCandidateGenerator(
                 budgetCts.CancelAfter(deadline - DateTime.UtcNow > TimeSpan.Zero
                     ? deadline - DateTime.UtcNow
                     : TimeSpan.FromMilliseconds(1));
-                return await GenerateFromChunkAsync(document, chunk, budgetCts.Token);
+                return await GenerateFromChunksAsync(document, group, budgetCts.Token);
             }
             catch (Exception exception) when (
                 attempt < maxAttempts &&
@@ -117,8 +153,9 @@ public sealed class GeminiKnowledgeCandidateGenerator(
                 }
 
                 logger.LogInformation(
-                    "Gemini transient failure on chunk {ChunkIndex} (attempt {Attempt}/{MaxAttempts}); retrying in {Delay}s.",
-                    chunk.ChunkIndex,
+                    "Gemini transient failure on chunks {FirstChunk}-{LastChunk} (attempt {Attempt}/{MaxAttempts}); retrying in {Delay}s.",
+                    group[0].ChunkIndex,
+                    group[^1].ChunkIndex,
                     attempt,
                     maxAttempts,
                     delay.TotalSeconds);
@@ -143,9 +180,9 @@ public sealed class GeminiKnowledgeCandidateGenerator(
         public int StatusCode { get; } = statusCode;
     }
 
-    private async Task<IReadOnlyCollection<KnowledgeCandidateDraft>> GenerateFromChunkAsync(
+    private async Task<IReadOnlyCollection<KnowledgeCandidateDraft>> GenerateFromChunksAsync(
         BookSourceDocument document,
-        BookSourceChunk chunk,
+        IReadOnlyList<BookSourceChunk> group,
         CancellationToken cancellationToken)
     {
         using var request = new HttpRequestMessage(
@@ -158,11 +195,11 @@ public sealed class GeminiKnowledgeCandidateGenerator(
                 [
                     new GeminiContent(
                         "user",
-                        [new GeminiPart(BuildPrompt(document, chunk))])
+                        [new GeminiPart(BuildPrompt(group))])
                 ],
                 new GeminiGenerationConfig(
                     Math.Clamp(geminiOptions.Temperature, 0, 1),
-                    Math.Clamp(geminiOptions.MaxOutputTokens, 128, 2048))),
+                    Math.Clamp(geminiOptions.MaxOutputTokens, 128, 4096))),
             options: JsonOptions);
 
         using var response = await httpClient.SendAsync(request, cancellationToken);
@@ -184,61 +221,77 @@ public sealed class GeminiKnowledgeCandidateGenerator(
 
         if (string.IsNullOrWhiteSpace(text))
         {
-            return Array.Empty<KnowledgeCandidateDraft>();
+            throw new InvalidOperationException("Gemini returned no text for these chunks.");
         }
 
-        var candidates = ParseCandidates(text)
+        // Unparseable output (for example truncated JSON) is a failure so the chunks are retried later.
+        var parsed = ParseCandidates(text)
+            ?? throw new InvalidOperationException("Gemini returned output that is not a JSON array.");
+
+        var chunksByIndex = group.ToDictionary(chunk => chunk.ChunkIndex);
+        var maxCandidates = Math.Min(MaxCandidatesPerRequest, MaxCandidatesPerChunk * group.Count);
+        return parsed
             .Where(candidate => !string.IsNullOrWhiteSpace(candidate.Title) &&
                 !string.IsNullOrWhiteSpace(candidate.Summary))
-            .Take(3)
-            .Select(candidate => new KnowledgeCandidateDraft(
-                chunk.Id,
-                KnowledgeCandidateTypes.IsValid(candidate.CandidateType)
-                    ? KnowledgeCandidateTypes.Normalize(candidate.CandidateType)
-                    : KnowledgeCandidateTypes.DietGuideline,
-                candidate.Title.Trim(),
-                candidate.Summary.Trim(),
-                string.IsNullOrWhiteSpace(candidate.SourceTitle)
-                    ? "The Longevity Diet"
-                    : candidate.SourceTitle.Trim(),
-                string.IsNullOrWhiteSpace(candidate.SourceChapter)
-                    ? "Uploaded PDF review"
-                    : candidate.SourceChapter.Trim(),
-                string.IsNullOrWhiteSpace(candidate.SourcePage)
-                    ? chunk.PageNumber.ToString()
-                    : candidate.SourcePage.Trim(),
-                string.IsNullOrWhiteSpace(candidate.SourceReference)
-                    ? SourceReference(document, chunk)
-                    : candidate.SourceReference.Trim(),
-                "Gemini"))
+            .Where(candidate => !string.Equals(
+                candidate.CandidateType,
+                KnowledgeCandidateTypes.Recipe,
+                StringComparison.OrdinalIgnoreCase))
+            .Take(maxCandidates)
+            .Select(candidate =>
+            {
+                var chunk = candidate.ChunkIndex is { } index && chunksByIndex.TryGetValue(index, out var match)
+                    ? match
+                    : group[0];
+                return new KnowledgeCandidateDraft(
+                    chunk.Id,
+                    KnowledgeCandidateTypes.IsValid(candidate.CandidateType)
+                        ? KnowledgeCandidateTypes.Normalize(candidate.CandidateType!)
+                        : KnowledgeCandidateTypes.DietGuideline,
+                    candidate.Title!.Trim(),
+                    candidate.Summary!.Trim(),
+                    "The Longevity Diet",
+                    string.IsNullOrWhiteSpace(candidate.SourceChapter)
+                        ? "Uploaded PDF review"
+                        : candidate.SourceChapter.Trim(),
+                    chunk.PageNumber.ToString(),
+                    SourceReference(document, chunk),
+                    "Gemini");
+            })
             .ToArray();
-
-        return candidates;
     }
 
-    private static string BuildPrompt(BookSourceDocument document, BookSourceChunk chunk)
+    private static string BuildPrompt(IReadOnlyList<BookSourceChunk> group)
     {
-        return $"""
-            You support an educational class project called Longevity Diet Platform.
-            Convert this uploaded PDF chunk into concise knowledge candidates for admin review.
+        var maxCandidates = Math.Min(MaxCandidatesPerRequest, MaxCandidatesPerChunk * group.Count);
+        var builder = new StringBuilder();
+        builder.AppendLine("You support an educational class project called Longevity Diet Platform.");
+        builder.AppendLine("Convert the PDF excerpts below into concise knowledge candidates for admin review.");
+        builder.AppendLine();
+        builder.AppendLine("Rules:");
+        builder.AppendLine("- Return only a JSON array. Return [] when nothing is suitable.");
+        builder.AppendLine("- Each item shape: candidateType, title, summary, sourceChapter, chunkIndex.");
+        builder.AppendLine("- candidateType is DietGuideline for an eating principle, habit or pattern.");
+        builder.AppendLine("- Use candidateType Food only when the text names ONE specific food with a concrete nutrition note,");
+        builder.AppendLine("  for example a food listed as a source of a vitamin or mineral. For Food, title is only the food name.");
+        builder.AppendLine("- Never use candidateType Recipe.");
+        builder.AppendLine($"- Return at most {maxCandidates} items and at most {MaxCandidatesPerChunk} per excerpt.");
+        builder.AppendLine("- Skip author biography, history, anecdotes, acknowledgments, quotes and anything promotional.");
+        builder.AppendLine("- Write each summary in original words; do not copy long passages.");
+        builder.AppendLine("- No diagnosis, treatment advice, disease prediction, lifespan prediction, or disease-specific medical advice.");
+        builder.AppendLine("  Skip excerpts about treating or preventing a specific disease.");
+        builder.AppendLine("- Keep summaries educational and project-scoped.");
+        builder.AppendLine("- chunkIndex is the chunkIndex number of the excerpt the item comes from.");
+        builder.AppendLine();
+        builder.AppendLine("Excerpts:");
+        foreach (var chunk in group)
+        {
+            builder.AppendLine($"[chunkIndex={chunk.ChunkIndex} page={chunk.PageNumber}]");
+            builder.AppendLine(Truncate(BookChunkRelevance.CleanText(chunk.Text), MaxCharactersPerRequest));
+            builder.AppendLine();
+        }
 
-            Rules:
-            - Return only a JSON array.
-            - Each item shape: candidateType, title, summary, sourceTitle, sourceChapter, sourcePage, sourceReference.
-            - candidateType must be DietGuideline unless the text clearly names a single compatible food.
-            - Write the summary in original words; do not copy long passages.
-            - No diagnosis, treatment advice, disease prediction, lifespan prediction, or disease-specific medical advice.
-            - Keep summaries educational and project-scoped.
-            - Use sourceTitle "The Longevity Diet" unless the text clearly says otherwise.
-            - Use sourcePage "{chunk.PageNumber}" and sourceReference "{SourceReference(document, chunk)}".
-
-            PDF file: {document.OriginalFileName}
-            Page: {chunk.PageNumber}
-            Chunk: {chunk.ChunkIndex}
-
-            Chunk text:
-            {Truncate(chunk.Text, 5000)}
-            """;
+        return builder.ToString();
     }
 
     private static IReadOnlyCollection<KnowledgeCandidateDraft> CreateFallbackDrafts(
@@ -246,7 +299,6 @@ public sealed class GeminiKnowledgeCandidateGenerator(
         IReadOnlyCollection<BookSourceChunk> chunks)
     {
         return chunks
-            .Take(5)
             .Select(chunk => new KnowledgeCandidateDraft(
                 chunk.Id,
                 KnowledgeCandidateTypes.DietGuideline,
@@ -260,22 +312,22 @@ public sealed class GeminiKnowledgeCandidateGenerator(
             .ToArray();
     }
 
-    private static IReadOnlyCollection<GeminiCandidateDraft> ParseCandidates(string text)
+    // Returns null when the text holds no parseable JSON array; an empty array is a valid answer.
+    private static IReadOnlyCollection<GeminiCandidateDraft>? ParseCandidates(string text)
     {
         var json = ExtractJsonArray(text);
         if (string.IsNullOrWhiteSpace(json))
         {
-            return Array.Empty<GeminiCandidateDraft>();
+            return null;
         }
 
         try
         {
-            return JsonSerializer.Deserialize<GeminiCandidateDraft[]>(json, JsonOptions) ??
-                Array.Empty<GeminiCandidateDraft>();
+            return JsonSerializer.Deserialize<GeminiCandidateDraft[]>(json, JsonOptions);
         }
         catch (JsonException)
         {
-            return Array.Empty<GeminiCandidateDraft>();
+            return null;
         }
     }
 
@@ -313,13 +365,11 @@ public sealed class GeminiKnowledgeCandidateGenerator(
     }
 
     private sealed record GeminiCandidateDraft(
-        string CandidateType,
-        string Title,
-        string Summary,
-        string SourceTitle,
-        string SourceChapter,
-        string SourcePage,
-        string SourceReference);
+        string? CandidateType,
+        string? Title,
+        string? Summary,
+        string? SourceChapter,
+        int? ChunkIndex);
 
     private sealed record GeminiGenerateContentRequest(
         IReadOnlyCollection<GeminiContent> Contents,

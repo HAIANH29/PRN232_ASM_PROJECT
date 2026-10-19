@@ -332,6 +332,25 @@ public sealed class DietKnowledgeRepository(DietKnowledgeDbContext dbContext) : 
         await dbContext.BookSourceChunks.AddRangeAsync(chunks, cancellationToken);
     }
 
+    public async Task MarkChunksCandidatesGeneratedAsync(
+        IReadOnlyCollection<Guid> chunkIds,
+        DateTimeOffset generatedAtUtc,
+        CancellationToken cancellationToken = default)
+    {
+        if (chunkIds.Count == 0)
+        {
+            return;
+        }
+
+        var chunks = await dbContext.BookSourceChunks
+            .Where(chunk => chunkIds.Contains(chunk.Id))
+            .ToListAsync(cancellationToken);
+        foreach (var chunk in chunks)
+        {
+            chunk.CandidatesGeneratedAtUtc = generatedAtUtc;
+        }
+    }
+
     public async Task<IReadOnlyCollection<KnowledgeCandidate>> ListKnowledgeCandidatesAsync(
         Guid documentId,
         CancellationToken cancellationToken = default)

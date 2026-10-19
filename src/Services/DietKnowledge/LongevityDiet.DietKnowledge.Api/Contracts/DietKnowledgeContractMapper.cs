@@ -262,6 +262,16 @@ internal static class DietKnowledgeContractMapper
             model.ApprovedKnowledgeId);
     }
 
+    public static KnowledgeGenerationProgressResponse ToResponse(this KnowledgeGenerationProgressModel model)
+    {
+        return new KnowledgeGenerationProgressResponse(
+            model.TotalChunks,
+            model.RelevantChunks,
+            model.ProcessedChunks,
+            model.RemainingChunks,
+            model.SkippedChunks);
+    }
+
     private static RecipeIngredientCommand ToCommand(RecipeIngredientRequest request)
     {
         return new RecipeIngredientCommand(request.FoodId, request.QuantityText);

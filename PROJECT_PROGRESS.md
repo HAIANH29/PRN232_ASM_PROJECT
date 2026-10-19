@@ -72,6 +72,36 @@ Do not mark a feature as complete if it only has placeholders or configuration. 
 
 ## Change Log
 
+### 2026-10-19 — Candidate review without page reloads
+
+- Approve, Reject, Approve all and the new Reject placeholders buttons on the book source page are submitted with `fetch` (`wwwroot/js/book-candidates.js`): a single card updates in place, bulk actions re-render only the header and the candidate list, and results show as a toast. The MVC actions answer JSON when the request carries `X-Requested-With: fetch` and keep the redirect plus flash message otherwise, so the page still works without JavaScript.
+- Added `POST /api/admin/book-sources/{id}/candidates/reject-placeholders` (rejects pending `LocalChunkFallback` drafts) and the matching Admin button (EN/VI).
+- SignalR was considered and dropped: these are client-initiated calls, so push messaging adds a hub and proxy setup without a benefit.
+- Verification: build 0 warnings, 46 automated tests pass (1 new).
+
+### 2026-10-19 — Admin Knowledge lists approved content by default
+
+- The Admin Knowledge page listed guidelines, foods and recipes in every review state together, so unapproved items looked live. It now shows only `Approved` content by default, with filter buttons for `NeedsReview` and all statuses (query `?status=Approved|NeedsReview|all`; the existing `reviewStatus` Admin API filter is reused).
+- Verification: build 0 warnings, 45 automated tests pass.
+
+### 2026-10-19 — Approve all candidates button
+
+- Added `POST /api/admin/book-sources/{id}/candidates/approve-all` and an Admin "Approve all" button (with confirmation, EN/VI) on the book source page.
+- Bulk approval skips `LocalChunkFallback` placeholders and any candidate whose title or summary mentions disease, treatment, cure, diagnosis, prediction, lifespan or the cancer/diabetes-style terms (`BookChunkRelevance.IsSafeForBulkApproval`); those stay `NeedsReview`. Duplicate titles and recipe candidates are counted as failed and the run continues. The result message reports approved / left for manual review / failed.
+- Verification: build 0 warnings, 45 automated tests pass (2 new). The button was rendered but not pressed against the real data.
+
+### 2026-10-19 — Analyze a whole book source batch by batch
+
+- Problem: every "Generate candidates" click re-analyzed the first 8 chunks (pages 1-9 only) and ignored the rest of the 185-page PDF.
+- Added `BookSourceChunks.CandidatesGeneratedAtUtc` (migration `AddChunkCandidatesGeneratedAt`, backfilled from existing candidates). Each click now analyzes the next pending chunks, up to `BookKnowledgeIngestion__MaxChunksPerGeneration` (24), and skips titles that already exist for the document.
+- Added `BookChunkRelevance`: drops "Scan to Download"/Bookey footers and skips boilerplate, quotes, acknowledgments and clinical-treatment chunks (two or more cancer/diabetes/Alzheimer-style terms).
+- Gemini generator now groups several chunks into one request (6000 characters), can return `Food` candidates (never `Recipe`), and fills page/reference from the chunk. Output token default raised to 2048.
+- When Gemini fails (for example HTTP 503) the affected chunks stay pending instead of getting placeholder drafts; placeholders are used only when Gemini is disabled.
+- Added `GET /api/admin/book-sources/{id}/candidates/progress` and an Admin progress bar plus "Generate next batch" button (EN/VI).
+- Verification: build 0 warnings, 43 automated tests pass (10 new). On the uploaded Bookey summary PDF the batches took it from 3/112 to 112/112 relevant chunks (49 chunks skipped) and 113 `NeedsReview` candidates (12 Food, 101 DietGuideline). Nothing is approved automatically.
+- Note: the uploaded PDF is a Bookey summary of the book, not the full text, so coverage is limited by the source. Two candidates mention disease wording ("Low-Protein Diet and Longevity", "Longevity Diet Protein Approach") and should be rejected or reworded at review.
+- TODO: Admin must review the 113 candidates; `gemini-3.1-flash-lite` returned HTTP 503 for a long stretch today (run finished with `gemini-3.5-flash-lite` via a temporary env override, `.env` unchanged).
+
 ### 2026-10-19 — Web UI decoration to fill empty space
 
 - Problem: on wide screens (about 1900px+) the 1280px content column left large empty side margins, and Home had a blank lower half.

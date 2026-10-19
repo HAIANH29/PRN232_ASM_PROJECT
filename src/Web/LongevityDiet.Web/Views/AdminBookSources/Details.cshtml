@@ -3,7 +3,7 @@
     ViewData["Title"] = T["Book Source Details"];
 }
 
-<section class="page-head">
+<section class="page-head" id="book-source-head">
     <div>
         <p class="eyebrow">@T["Book source"]</p>
         <h1>@Model.Document.OriginalFileName</h1>
@@ -12,7 +12,15 @@
     <div class="head-actions">
         <a class="btn btn-outline-secondary" asp-action="Index"><span class="icon" aria-hidden="true">arrow_back</span>@T["Back to sources"]</a>
         <form asp-action="GenerateCandidates" asp-route-id="@Model.Document.Id" method="post" class="inline-form">
-            <button class="btn btn-dark" type="submit" disabled="@(Model.Document.Status != "Chunked")"><span class="icon" aria-hidden="true">auto_awesome</span>@T["Generate candidates"]</button>
+            <button class="btn btn-dark" type="submit" disabled="@(Model.Document.Status != "Chunked" || Model.Progress.RemainingChunks == 0)"><span class="icon" aria-hidden="true">auto_awesome</span>@(Model.Progress.ProcessedChunks == 0 ? T["Generate candidates"] : T["Generate next batch"])</button>
+        </form>
+        <form asp-action="ApproveAllCandidates" asp-route-id="@Model.Document.Id" method="post" class="inline-form" data-fetch="section"
+              onsubmit="return confirm('@T["Approve every pending candidate without disease or treatment wording? Placeholders and flagged items stay for manual review."]');">
+            <button class="btn btn-success" type="submit" disabled="@(!Model.Candidates.Any(candidate => candidate.Status == "NeedsReview"))"><span class="icon" aria-hidden="true">done_all</span>@T["Approve all"]</button>
+        </form>
+        <form asp-action="RejectPlaceholders" asp-route-id="@Model.Document.Id" method="post" class="inline-form" data-fetch="section"
+              onsubmit="return confirm('@T["Reject every placeholder draft that has no real summary?"]');">
+            <button class="btn btn-outline-secondary" type="submit" disabled="@(!Model.Candidates.Any(candidate => candidate.Status == "NeedsReview" && candidate.GeneratedBy == "LocalChunkFallback"))"><span class="icon" aria-hidden="true">delete_sweep</span>@T["Reject placeholders"]</button>
         </form>
         <form asp-action="Delete" asp-route-id="@Model.Document.Id" method="post" class="inline-form"
               onsubmit="return confirm('@T["Delete this book source with its chunks and candidates? Knowledge already approved from it is kept."]');">
@@ -53,11 +61,31 @@
     </div>
 </section>
 
-<section class="section-card mt-3">
+<section class="section-card mt-3" id="candidates-section">
     <div class="card-heading">
         <h2><span class="icon" aria-hidden="true">rule</span>@T["Knowledge candidates"]</h2>
         <span class="count-pill">@Model.Candidates.Count</span>
     </div>
+    @if (Model.Progress.RelevantChunks > 0)
+    {
+        var percent = (int)Math.Round(100.0 * Model.Progress.ProcessedChunks / Model.Progress.RelevantChunks);
+        <div class="mb-3">
+            <div class="progress" role="progressbar" aria-valuenow="@percent" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-bar" style="width: @percent%"></div>
+            </div>
+            <small class="text-muted">
+                @T.F("Analyzed {0} of {1} relevant chunks ({2} skipped as boilerplate or out of scope).", Model.Progress.ProcessedChunks, Model.Progress.RelevantChunks, Model.Progress.SkippedChunks)
+                @if (Model.Progress.RemainingChunks > 0)
+                {
+                    <span>@T["Press the button to analyze the next batch."]</span>
+                }
+                else
+                {
+                    <span>@T["The whole document has been analyzed."]</span>
+                }
+            </small>
+        </div>
+    }
     @if (!Model.Candidates.Any())
     {
         <p class="empty-state">@T["No candidates yet. Generate candidates after the document is chunked."]</p>
@@ -67,25 +95,25 @@
         <div class="item-stack">
             @foreach (var candidate in Model.Candidates)
             {
-                <article class="content-item">
+                <article class="content-item" id="candidate-@candidate.Id">
                     <div class="candidate-head">
                         <div>
                             <div class="item-title">@T.C(candidate.Title)</div>
                             <div class="chip-row">
                                 <span class="chip-tag">@T[candidate.CandidateType]</span>
                                 <span class="chip-tag neutral"><span class="icon" aria-hidden="true">auto_awesome</span>@candidate.GeneratedBy</span>
-                                <span class="chip-tag @(candidate.Status == "NeedsReview" ? "warning" : candidate.Status == "Approved" ? "success" : "danger")">@T[candidate.Status]</span>
+                                <span class="chip-tag js-status-chip @(candidate.Status == "NeedsReview" ? "warning" : candidate.Status == "Approved" ? "success" : "danger")">@T[candidate.Status]</span>
                             </div>
                         </div>
                         @if (candidate.Status == "NeedsReview")
                         {
                             <div class="row-actions">
-                                <form asp-action="ApproveCandidate" method="post" class="inline-form">
+                                <form asp-action="ApproveCandidate" method="post" class="inline-form" data-fetch="item">
                                     <input type="hidden" name="documentId" value="@Model.Document.Id" />
                                     <input type="hidden" name="candidateId" value="@candidate.Id" />
                                     <button class="btn btn-sm btn-dark" type="submit"><span class="icon" aria-hidden="true">check</span>@T["Approve"]</button>
                                 </form>
-                                <form asp-action="RejectCandidate" method="post" class="inline-form">
+                                <form asp-action="RejectCandidate" method="post" class="inline-form" data-fetch="item">
                                     <input type="hidden" name="documentId" value="@Model.Document.Id" />
                                     <input type="hidden" name="candidateId" value="@candidate.Id" />
                                     <button class="btn btn-sm btn-outline-danger" type="submit"><span class="icon" aria-hidden="true">close</span>@T["Reject"]</button>
@@ -123,6 +151,10 @@
         </div>
     }
 </section>
+
+@section Scripts {
+    <script src="~/js/book-candidates.js" asp-append-version="true"></script>
+}
 
 @functions {
     private static string Shorten(string value, int maxLength)

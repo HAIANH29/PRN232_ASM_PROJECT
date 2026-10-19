@@ -32,8 +32,21 @@ public interface IBookKnowledgeIngestionService
         GenerateKnowledgeCandidatesCommand command,
         CancellationToken cancellationToken = default);
 
+    Task<KnowledgeGenerationProgressModel> GetGenerationProgressAsync(
+        Guid documentId,
+        CancellationToken cancellationToken = default);
+
     Task<KnowledgeCandidateModel> ApproveCandidateAsync(
         ApproveKnowledgeCandidateCommand command,
+        CancellationToken cancellationToken = default);
+
+    Task<ApproveAllKnowledgeCandidatesResultModel> ApproveAllCandidatesAsync(
+        ApproveAllKnowledgeCandidatesCommand command,
+        CancellationToken cancellationToken = default);
+
+    // Rejects the pending local placeholder drafts of a document and returns how many were rejected.
+    Task<int> RejectPlaceholderCandidatesAsync(
+        RejectPlaceholderCandidatesCommand command,
         CancellationToken cancellationToken = default);
 
     Task<KnowledgeCandidateModel> RejectCandidateAsync(

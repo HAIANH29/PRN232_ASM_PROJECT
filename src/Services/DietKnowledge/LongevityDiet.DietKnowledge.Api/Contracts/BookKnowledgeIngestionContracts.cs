@@ -54,3 +54,17 @@ public sealed record RejectKnowledgeCandidateRequest
     [MaxLength(500)]
     public string? Reason { get; init; }
 }
+
+public sealed record KnowledgeGenerationProgressResponse(
+    int TotalChunks,
+    int RelevantChunks,
+    int ProcessedChunks,
+    int RemainingChunks,
+    int SkippedChunks);
+
+public sealed record ApproveAllCandidatesResponse(
+    int Approved,
+    int LeftForManualReview,
+    int Failed);
+
+public sealed record RejectPlaceholdersResponse(int Rejected);
