@@ -15,6 +15,9 @@ public sealed class BookKnowledgeIngestionService(
 {
     private const long DefaultMaxUploadBytes = 25 * 1024 * 1024;
 
+    // GeneratedBy value of the empty drafts created when Gemini is disabled.
+    private const string PlaceholderGeneratedBy = "LocalChunkFallback";
+
     public async Task<PagedResult<BookSourceDocumentModel>> ListDocumentsAsync(
         BookSourceDocumentQuery query,
         CancellationToken cancellationToken = default)
@@ -135,22 +138,58 @@ public sealed class BookKnowledgeIngestionService(
             throw new ValidationException("This document has no chunks to analyze.");
         }
 
-        var drafts = await candidateGenerator.GenerateAsync(document, chunks, cancellationToken);
-        var candidates = drafts
+        var pendingChunks = chunks
+            .Where(chunk => chunk.CandidatesGeneratedAtUtc is null &&
+                BookChunkRelevance.IsRelevant(chunk.Text))
+            .ToArray();
+        if (pendingChunks.Length == 0)
+        {
+            throw new ValidationException("Every relevant chunk of this document has already been analyzed.");
+        }
+
+        var generation = await candidateGenerator.GenerateAsync(document, pendingChunks, cancellationToken);
+        var existingTitles = (await repository.ListKnowledgeCandidatesAsync(document.Id, cancellationToken))
+            .Select(candidate => candidate.Title.Trim())
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var candidates = generation.Drafts
             .Where(IsUsableDraft)
             .GroupBy(draft => Clean(draft.Title), StringComparer.OrdinalIgnoreCase)
+            .Where(group => !existingTitles.Contains(group.Key))
             .Select(group => MapDraft(document, group.First()))
             .ToArray();
 
-        if (candidates.Length == 0)
+        if (generation.ProcessedChunkIds.Count == 0 && candidates.Length == 0)
         {
-            throw new ValidationException("No knowledge candidates were generated from this document.");
+            throw new ValidationException(
+                "No knowledge candidates could be generated right now. Try again in a moment.");
         }
 
         await repository.AddKnowledgeCandidatesAsync(candidates, cancellationToken);
+        await repository.MarkChunksCandidatesGeneratedAsync(
+            generation.ProcessedChunkIds,
+            DateTimeOffset.UtcNow,
+            cancellationToken);
         await repository.SaveChangesAsync(cancellationToken);
 
         return candidates.Select(MapCandidate).ToArray();
+    }
+
+    public async Task<KnowledgeGenerationProgressModel> GetGenerationProgressAsync(
+        Guid documentId,
+        CancellationToken cancellationToken = default)
+    {
+        await EnsureDocumentExistsAsync(documentId, cancellationToken);
+        var chunks = await repository.ListBookSourceChunksAsync(documentId, cancellationToken);
+
+        var relevant = chunks.Where(chunk => BookChunkRelevance.IsRelevant(chunk.Text)).ToArray();
+        var processed = relevant.Count(chunk => chunk.CandidatesGeneratedAtUtc is not null);
+
+        return new KnowledgeGenerationProgressModel(
+            chunks.Count,
+            relevant.Length,
+            processed,
+            relevant.Length - processed,
+            chunks.Count - relevant.Length);
     }
 
     public async Task<KnowledgeCandidateModel> ApproveCandidateAsync(
@@ -180,6 +219,70 @@ public sealed class BookKnowledgeIngestionService(
 
         await repository.SaveChangesAsync(cancellationToken);
         return MapCandidate(candidate);
+    }
+
+    public async Task<ApproveAllKnowledgeCandidatesResultModel> ApproveAllCandidatesAsync(
+        ApproveAllKnowledgeCandidatesCommand command,
+        CancellationToken cancellationToken = default)
+    {
+        await EnsureDocumentExistsAsync(command.DocumentId, cancellationToken);
+        var pending = (await repository.ListKnowledgeCandidatesAsync(command.DocumentId, cancellationToken))
+            .Where(candidate => candidate.Status == KnowledgeCandidateStatuses.NeedsReview)
+            .OrderBy(candidate => candidate.CreatedAtUtc)
+            .ToArray();
+
+        var approved = 0;
+        var leftForManualReview = 0;
+        var failed = 0;
+        foreach (var candidate in pending)
+        {
+            // Placeholders and wording about disease or treatment always need a human decision.
+            if (candidate.GeneratedBy == PlaceholderGeneratedBy ||
+                !BookChunkRelevance.IsSafeForBulkApproval(candidate.Title, candidate.Summary))
+            {
+                leftForManualReview++;
+                continue;
+            }
+
+            try
+            {
+                await ApproveCandidateAsync(
+                    new ApproveKnowledgeCandidateCommand(candidate.Id, command.ReviewedBy),
+                    cancellationToken);
+                approved++;
+            }
+            catch (Exception exception) when (
+                exception is ValidationException or InvalidOperationException)
+            {
+                // Duplicate titles and recipe candidates cannot be approved here; keep going.
+                failed++;
+            }
+        }
+
+        return new ApproveAllKnowledgeCandidatesResultModel(approved, leftForManualReview, failed);
+    }
+
+    public async Task<int> RejectPlaceholderCandidatesAsync(
+        RejectPlaceholderCandidatesCommand command,
+        CancellationToken cancellationToken = default)
+    {
+        await EnsureDocumentExistsAsync(command.DocumentId, cancellationToken);
+        var placeholders = (await repository.ListKnowledgeCandidatesAsync(command.DocumentId, cancellationToken))
+            .Where(candidate => candidate.Status == KnowledgeCandidateStatuses.NeedsReview &&
+                candidate.GeneratedBy == PlaceholderGeneratedBy)
+            .ToArray();
+
+        foreach (var placeholder in placeholders)
+        {
+            await RejectCandidateAsync(
+                new RejectKnowledgeCandidateCommand(
+                    placeholder.Id,
+                    command.ReviewedBy,
+                    "Placeholder draft without a real summary."),
+                cancellationToken);
+        }
+
+        return placeholders.Length;
     }
 
     public async Task<KnowledgeCandidateModel> RejectCandidateAsync(

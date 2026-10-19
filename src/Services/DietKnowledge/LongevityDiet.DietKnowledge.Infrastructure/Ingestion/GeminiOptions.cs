@@ -25,5 +25,5 @@ public sealed class GeminiOptions
 
     public double Temperature { get; set; } = 0.15;
 
-    public int MaxOutputTokens { get; set; } = 768;
+    public int MaxOutputTokens { get; set; } = 2048;
 }

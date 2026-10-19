@@ -133,7 +133,10 @@ Diet Knowledge endpoints:
   - `GET /api/admin/book-sources`
   - `GET /api/admin/book-sources/{id}/chunks`
   - `DELETE /api/admin/book-sources/{id}` removes the PDF, its chunks and candidates (approved knowledge is kept)
-  - `POST /api/admin/book-sources/{id}/candidates/generate`
+  - `POST /api/admin/book-sources/{id}/candidates/generate` analyzes the next batch of not-yet-analyzed chunks (call repeatedly until done)
+  - `GET /api/admin/book-sources/{id}/candidates/progress` chunks analyzed / remaining / skipped
+  - `POST /api/admin/book-sources/{id}/candidates/approve-all` approves every pending candidate except placeholders and items with disease/treatment wording
+  - `POST /api/admin/book-sources/{id}/candidates/reject-placeholders` rejects the pending local placeholder drafts
   - `GET /api/admin/book-sources/{id}/candidates`
   - `POST /api/admin/knowledge-candidates/{id}/approve`
   - `POST /api/admin/knowledge-candidates/{id}/reject`

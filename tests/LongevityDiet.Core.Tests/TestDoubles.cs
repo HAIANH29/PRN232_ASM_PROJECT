@@ -282,6 +282,19 @@ internal sealed class InMemoryDietKnowledgeRepository : IDietKnowledgeRepository
         return Task.CompletedTask;
     }
 
+    public Task MarkChunksCandidatesGeneratedAsync(
+        IReadOnlyCollection<Guid> chunkIds,
+        DateTimeOffset generatedAtUtc,
+        CancellationToken cancellationToken = default)
+    {
+        foreach (var chunk in Chunks.Where(chunk => chunkIds.Contains(chunk.Id)))
+        {
+            chunk.CandidatesGeneratedAtUtc = generatedAtUtc;
+        }
+
+        return Task.CompletedTask;
+    }
+
     public Task<IReadOnlyCollection<KnowledgeCandidate>> ListKnowledgeCandidatesAsync(
         Guid documentId,
         CancellationToken cancellationToken = default)
@@ -376,12 +389,20 @@ internal sealed class FakeKnowledgeCandidateGenerator : IKnowledgeCandidateGener
 {
     public IReadOnlyCollection<KnowledgeCandidateDraft> Drafts { get; init; } = [];
 
-    public Task<IReadOnlyCollection<KnowledgeCandidateDraft>> GenerateAsync(
+    // Null means every chunk handed to the generator counts as processed.
+    public IReadOnlyCollection<Guid>? ProcessedChunkIds { get; init; }
+
+    public IReadOnlyCollection<BookSourceChunk> ReceivedChunks { get; private set; } = [];
+
+    public Task<KnowledgeCandidateGenerationResult> GenerateAsync(
         BookSourceDocument document,
         IReadOnlyCollection<BookSourceChunk> chunks,
         CancellationToken cancellationToken = default)
     {
-        return Task.FromResult(Drafts);
+        ReceivedChunks = chunks;
+        return Task.FromResult(new KnowledgeCandidateGenerationResult(
+            Drafts,
+            ProcessedChunkIds ?? chunks.Select(chunk => chunk.Id).ToArray()));
     }
 }
 

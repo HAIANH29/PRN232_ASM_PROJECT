@@ -5,7 +5,9 @@ namespace LongevityDiet.DietKnowledge.Application.Abstractions;
 
 public interface IKnowledgeCandidateGenerator
 {
-    Task<IReadOnlyCollection<KnowledgeCandidateDraft>> GenerateAsync(
+    // Receives only chunks that still need analysis and may handle just the first few of them.
+    // ProcessedChunkIds lists the chunks that were actually analyzed so the caller can mark them done.
+    Task<KnowledgeCandidateGenerationResult> GenerateAsync(
         BookSourceDocument document,
         IReadOnlyCollection<BookSourceChunk> chunks,
         CancellationToken cancellationToken = default);

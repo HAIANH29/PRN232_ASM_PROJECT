@@ -28,6 +28,9 @@ namespace LongevityDiet.DietKnowledge.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<DateTimeOffset?>("CandidatesGeneratedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("CharacterCount")
                         .HasColumnType("integer");
 
