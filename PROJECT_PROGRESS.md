@@ -72,6 +72,12 @@ Do not mark a feature as complete if it only has placeholders or configuration. 
 
 ## Change Log
 
+### 2026-10-26 — Edit meal plan items
+
+- Each scheduled item on the meal plan page now has an Edit button. It loads the item into the item form (heading "Edit item", button "Save item", Cancel link) and saves through the existing `PUT /api/meal-plans/{id}/items/{itemId}` via the new `MealPlansController.UpdateItem`. Vietnamese labels added.
+- The "100% completion rate with 0 meals" item from the QA notes was a misreading: that card shows the period rate (1 of 1 planned meals eaten) and the view already returns 0% when nothing is planned. No change needed.
+- Verification: `docker compose up -d --build web` builds; in the browser editing the note of the QA test item to "qa edited" saved and redirected back with the date, slot, recipe and reminder unchanged. No Web test project exists.
+
 ### 2026-10-26 — Sort control on the member Knowledge page
 
 - Added a "Sort by" dropdown (Name A-Z default, Name Z-A, Newest first, Oldest first) to `/Knowledge`. It applies to guidelines, foods and recipes at once, maps to the existing `sortBy`/`sortDirection` API parameters (title/name or `createdAt`), is kept when moving between pages, and has Vietnamese labels. The filter bar grid is widened only inside `.search-hero` so the Tracking page layout is unchanged.

@@ -62,7 +62,7 @@ public sealed class MealPlansController(ApiGatewayClient api, UserSession sessio
     }
 
     [HttpGet]
-    public async Task<IActionResult> Details(Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> Details(Guid id, Guid? editItem, CancellationToken cancellationToken)
     {
         var guard = RequireMember();
         if (guard is not null)
@@ -74,6 +74,23 @@ public sealed class MealPlansController(ApiGatewayClient api, UserSession sessio
         if (model is null)
         {
             return RedirectToAction(nameof(Index));
+        }
+
+        var item = editItem.HasValue
+            ? model.MealPlan.Items.FirstOrDefault(candidate => candidate.Id == editItem.Value)
+            : null;
+        if (item is not null)
+        {
+            model.EditingItemId = item.Id;
+            model.ItemForm = new MealPlanItemForm
+            {
+                PlannedDate = item.PlannedDate,
+                MealSlot = item.MealSlot,
+                RecipeId = item.RecipeId,
+                FoodId = item.FoodId,
+                Notes = item.Notes,
+                ReminderAtUtc = item.ReminderAtUtc.ToLocalTime()
+            };
         }
 
         return View(model);
@@ -160,6 +177,43 @@ public sealed class MealPlansController(ApiGatewayClient api, UserSession sessio
             Token,
             cancellationToken);
         AddResultMessage(result, "Meal item added.");
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateItem(
+        Guid id,
+        Guid itemId,
+        [Bind(Prefix = "ItemForm")] MealPlanItemForm form,
+        CancellationToken cancellationToken)
+    {
+        var guard = RequireMember();
+        if (guard is not null)
+        {
+            return guard;
+        }
+
+        ValidateCatalogChoice(form.FoodId, form.RecipeId);
+        if (!ModelState.IsValid)
+        {
+            var model = await BuildDetailsModelAsync(id, cancellationToken);
+            if (model is null)
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            model.ItemForm = form;
+            model.EditingItemId = itemId;
+            return View("Details", model);
+        }
+
+        var result = await Api.PutAsync<MealPlanItemResponse>(
+            $"/meal-planning/api/meal-plans/{id}/items/{itemId}",
+            ToItemBody(form),
+            Token,
+            cancellationToken);
+        AddResultMessage(result, "Meal item updated.");
         return RedirectToAction(nameof(Details), new { id });
     }
 

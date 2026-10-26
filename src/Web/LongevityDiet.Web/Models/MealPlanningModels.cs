@@ -46,6 +46,9 @@ public sealed class MealPlanDetailsViewModel
         MealSlot = "Breakfast"
     };
 
+    // Set when the item form edits an existing item instead of adding one.
+    public Guid? EditingItemId { get; set; }
+
     public IReadOnlyCollection<FoodResponse> Foods { get; set; } = Array.Empty<FoodResponse>();
 
     public IReadOnlyCollection<RecipeResponse> Recipes { get; set; } = Array.Empty<RecipeResponse>();
