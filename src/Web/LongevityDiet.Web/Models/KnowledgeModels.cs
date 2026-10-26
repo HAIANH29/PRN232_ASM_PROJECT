@@ -63,6 +63,9 @@ public sealed class KnowledgeIndexViewModel
 
     public string? Category { get; set; }
 
+    // name_asc (default), name_desc, newest or oldest.
+    public string? Sort { get; set; }
+
     public PagedResponse<DietGuidelineResponse> Guidelines { get; set; } = Empty<DietGuidelineResponse>();
 
     public PagedResponse<FoodResponse> Foods { get; set; } = Empty<FoodResponse>();

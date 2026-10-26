@@ -11,6 +11,7 @@ public sealed class KnowledgeController(ApiGatewayClient api, UserSession sessio
     public async Task<IActionResult> Index(
         string? search,
         string? category,
+        string? sort,
         int guidelinePage = 1,
         int foodPage = 1,
         int recipePage = 1,
@@ -24,7 +25,16 @@ public sealed class KnowledgeController(ApiGatewayClient api, UserSession sessio
         var model = new KnowledgeIndexViewModel
         {
             Search = search,
-            Category = category
+            Category = category,
+            Sort = sort
+        };
+
+        var (sortBy, sortDirection) = sort switch
+        {
+            "name_desc" => ("name", "desc"),
+            "newest" => ("createdAt", "desc"),
+            "oldest" => ("createdAt", "asc"),
+            _ => ("name", "asc")
         };
 
         var guidelinePath = ApiGatewayClient.BuildQuery(
@@ -32,23 +42,23 @@ public sealed class KnowledgeController(ApiGatewayClient api, UserSession sessio
             ("pageNumber", Math.Max(1, guidelinePage)),
             ("pageSize", 20),
             ("search", search),
-            ("sortBy", "title"),
-            ("sortDirection", "asc"));
+            ("sortBy", sortBy == "createdAt" ? sortBy : "title"),
+            ("sortDirection", sortDirection));
         var foodPath = ApiGatewayClient.BuildQuery(
             "/diet-knowledge/api/foods",
             ("pageNumber", Math.Max(1, foodPage)),
             ("pageSize", 30),
             ("search", search),
             ("category", category),
-            ("sortBy", "name"),
-            ("sortDirection", "asc"));
+            ("sortBy", sortBy == "createdAt" ? sortBy : "name"),
+            ("sortDirection", sortDirection));
         var recipePath = ApiGatewayClient.BuildQuery(
             "/diet-knowledge/api/recipes",
             ("pageNumber", Math.Max(1, recipePage)),
             ("pageSize", 30),
             ("search", search),
-            ("sortBy", "name"),
-            ("sortDirection", "asc"));
+            ("sortBy", sortBy == "createdAt" ? sortBy : "name"),
+            ("sortDirection", sortDirection));
 
         model.Guidelines = (await Api.GetAsync<PagedResponse<DietGuidelineResponse>>(
             guidelinePath,
