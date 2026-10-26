@@ -1,0 +1,637 @@
+<mxfile host="Electron">
+  <diagram name="Database" id="longevity-db">
+    <mxGraphModel dx="3400" dy="3120" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2400" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=20;fontStyle=1;" value="Longevity Diet Platform - Physical Database (PostgreSQL, database per service)" vertex="1">
+          <mxGeometry height="30" width="900" y="-240" as="geometry" />
+        </mxCell>
+        <mxCell id="dbIdentity" parent="1" style="rounded=1;arcSize=2;whiteSpace=wrap;html=1;verticalAlign=top;align=left;spacingLeft=10;fontStyle=1;fontSize=13;fillColor=#dae8fc;strokeColor=#6c8ebf;opacity=40;dashed=1;" value="IdentityDb (Identity Service) - localhost:5433" vertex="1">
+          <mxGeometry height="870" width="330" as="geometry" />
+        </mxCell>
+        <mxCell id="dbDiet" parent="1" style="rounded=1;arcSize=2;whiteSpace=wrap;html=1;verticalAlign=top;align=left;spacingLeft=10;fontStyle=1;fontSize=13;fillColor=#d5e8d4;strokeColor=#82b366;opacity=40;dashed=1;" value="DietKnowledgeDb (Diet Knowledge Service) - localhost:5434" vertex="1">
+          <mxGeometry height="870" width="1260" x="360" as="geometry" />
+        </mxCell>
+        <mxCell id="dbMeal" parent="1" style="rounded=1;arcSize=2;whiteSpace=wrap;html=1;verticalAlign=top;align=left;spacingLeft=10;fontStyle=1;fontSize=13;fillColor=#fff2cc;strokeColor=#d6b656;opacity=40;dashed=1;" value="MealPlanningDb (Meal Planning Service) - localhost:5435" vertex="1">
+          <mxGeometry height="870" width="330" x="1680" as="geometry" />
+        </mxCell>
+        <mxCell id="dbTrack" parent="1" style="rounded=1;arcSize=2;whiteSpace=wrap;html=1;verticalAlign=top;align=left;spacingLeft=10;fontStyle=1;fontSize=13;fillColor=#e1d5e7;strokeColor=#9673a6;opacity=40;dashed=1;" value="TrackingDb (Tracking Service) - localhost:5436" vertex="1">
+          <mxGeometry height="870" width="330" x="2040" as="geometry" />
+        </mxCell>
+        <mxCell id="adminNote" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;fontStyle=2;fontColor=#c77700;whiteSpace=wrap;" value="Admin-only ingestion/review tables (never exposed by public endpoints or Recommendation context). PDFs are stored on a file volume, not in PostgreSQL." vertex="1">
+          <mxGeometry height="24" width="840" x="390" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Users" parent="1" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;html=1;fillColor=#3b6aa8;strokeColor=#3b6aa8;fontColor=#ffffff;swimlaneFillColor=#ffffff;" value="Users" vertex="1">
+          <mxGeometry height="166" width="240" x="30" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Users_0" parent="t_Users" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="&lt;b&gt;PK&lt;/b&gt;&amp;nbsp;&amp;nbsp;Id" vertex="1">
+          <mxGeometry height="20" width="240" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Users_1" parent="t_Users" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="Email" vertex="1">
+          <mxGeometry height="20" width="240" y="46" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Users_2" parent="t_Users" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="NormalizedEmail" vertex="1">
+          <mxGeometry height="20" width="240" y="66" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Users_3" parent="t_Users" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="DisplayName" vertex="1">
+          <mxGeometry height="20" width="240" y="86" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Users_4" parent="t_Users" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="PasswordHash" vertex="1">
+          <mxGeometry height="20" width="240" y="106" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Users_5" parent="t_Users" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="IsActive" vertex="1">
+          <mxGeometry height="20" width="240" y="126" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Users_6" parent="t_Users" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="CreatedAtUtc" vertex="1">
+          <mxGeometry height="20" width="240" y="146" as="geometry" />
+        </mxCell>
+        <mxCell id="t_UserRoles" parent="1" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;html=1;fillColor=#3b6aa8;strokeColor=#3b6aa8;fontColor=#ffffff;swimlaneFillColor=#ffffff;" value="UserRoles" vertex="1">
+          <mxGeometry height="66" width="240" x="30" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="t_UserRoles_0" parent="t_UserRoles" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="&lt;b&gt;PK, FK&lt;/b&gt;&amp;nbsp;&amp;nbsp;UserId" vertex="1">
+          <mxGeometry height="20" width="240" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="t_UserRoles_1" parent="t_UserRoles" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="&lt;b&gt;PK, FK&lt;/b&gt;&amp;nbsp;&amp;nbsp;RoleId" vertex="1">
+          <mxGeometry height="20" width="240" y="46" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Roles" parent="1" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;html=1;fillColor=#3b6aa8;strokeColor=#3b6aa8;fontColor=#ffffff;swimlaneFillColor=#ffffff;" value="Roles" vertex="1">
+          <mxGeometry height="86" width="240" x="30" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Roles_0" parent="t_Roles" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="&lt;b&gt;PK&lt;/b&gt;&amp;nbsp;&amp;nbsp;Id" vertex="1">
+          <mxGeometry height="20" width="240" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Roles_1" parent="t_Roles" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="Name" vertex="1">
+          <mxGeometry height="20" width="240" y="46" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Roles_2" parent="t_Roles" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="NormalizedName" vertex="1">
+          <mxGeometry height="20" width="240" y="66" as="geometry" />
+        </mxCell>
+        <mxCell id="t_DietGuidelines" parent="1" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;html=1;fillColor=#4f8f3f;strokeColor=#4f8f3f;fontColor=#ffffff;swimlaneFillColor=#ffffff;" value="DietGuidelines" vertex="1">
+          <mxGeometry height="306" width="240" x="390" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="t_DietGuidelines_0" parent="t_DietGuidelines" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="&lt;b&gt;PK&lt;/b&gt;&amp;nbsp;&amp;nbsp;Id" vertex="1">
+          <mxGeometry height="20" width="240" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="t_DietGuidelines_1" parent="t_DietGuidelines" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="Title" vertex="1">
+          <mxGeometry height="20" width="240" y="46" as="geometry" />
+        </mxCell>
+        <mxCell id="t_DietGuidelines_2" parent="t_DietGuidelines" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="Summary" vertex="1">
+          <mxGeometry height="20" width="240" y="66" as="geometry" />
+        </mxCell>
+        <mxCell id="t_DietGuidelines_3" parent="t_DietGuidelines" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="SourceNote" vertex="1">
+          <mxGeometry height="20" width="240" y="86" as="geometry" />
+        </mxCell>
+        <mxCell id="t_DietGuidelines_4" parent="t_DietGuidelines" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="SourceTitle" vertex="1">
+          <mxGeometry height="20" width="240" y="106" as="geometry" />
+        </mxCell>
+        <mxCell id="t_DietGuidelines_5" parent="t_DietGuidelines" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="SourceChapter" vertex="1">
+          <mxGeometry height="20" width="240" y="126" as="geometry" />
+        </mxCell>
+        <mxCell id="t_DietGuidelines_6" parent="t_DietGuidelines" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="SourcePage" vertex="1">
+          <mxGeometry height="20" width="240" y="146" as="geometry" />
+        </mxCell>
+        <mxCell id="t_DietGuidelines_7" parent="t_DietGuidelines" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="SourceReference" vertex="1">
+          <mxGeometry height="20" width="240" y="166" as="geometry" />
+        </mxCell>
+        <mxCell id="t_DietGuidelines_8" parent="t_DietGuidelines" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="ReviewStatus" vertex="1">
+          <mxGeometry height="20" width="240" y="186" as="geometry" />
+        </mxCell>
+        <mxCell id="t_DietGuidelines_9" parent="t_DietGuidelines" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="ReviewedBy" vertex="1">
+          <mxGeometry height="20" width="240" y="206" as="geometry" />
+        </mxCell>
+        <mxCell id="t_DietGuidelines_10" parent="t_DietGuidelines" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="ReviewedAtUtc" vertex="1">
+          <mxGeometry height="20" width="240" y="226" as="geometry" />
+        </mxCell>
+        <mxCell id="t_DietGuidelines_11" parent="t_DietGuidelines" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="IsActive" vertex="1">
+          <mxGeometry height="20" width="240" y="246" as="geometry" />
+        </mxCell>
+        <mxCell id="t_DietGuidelines_12" parent="t_DietGuidelines" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="CreatedAtUtc" vertex="1">
+          <mxGeometry height="20" width="240" y="266" as="geometry" />
+        </mxCell>
+        <mxCell id="t_DietGuidelines_13" parent="t_DietGuidelines" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="UpdatedAtUtc" vertex="1">
+          <mxGeometry height="20" width="240" y="286" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Foods" parent="1" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;html=1;fillColor=#4f8f3f;strokeColor=#4f8f3f;fontColor=#ffffff;swimlaneFillColor=#ffffff;" value="Foods" vertex="1">
+          <mxGeometry height="306" width="240" x="690" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Foods_0" parent="t_Foods" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="&lt;b&gt;PK&lt;/b&gt;&amp;nbsp;&amp;nbsp;Id" vertex="1">
+          <mxGeometry height="20" width="240" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Foods_1" parent="t_Foods" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="Name" vertex="1">
+          <mxGeometry height="20" width="240" y="46" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Foods_2" parent="t_Foods" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="Category" vertex="1">
+          <mxGeometry height="20" width="240" y="66" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Foods_3" parent="t_Foods" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="CompatibilityNotes" vertex="1">
+          <mxGeometry height="20" width="240" y="86" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Foods_4" parent="t_Foods" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="SourceTitle" vertex="1">
+          <mxGeometry height="20" width="240" y="106" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Foods_5" parent="t_Foods" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="SourceChapter" vertex="1">
+          <mxGeometry height="20" width="240" y="126" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Foods_6" parent="t_Foods" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="SourcePage" vertex="1">
+          <mxGeometry height="20" width="240" y="146" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Foods_7" parent="t_Foods" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="SourceReference" vertex="1">
+          <mxGeometry height="20" width="240" y="166" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Foods_8" parent="t_Foods" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="ReviewStatus" vertex="1">
+          <mxGeometry height="20" width="240" y="186" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Foods_9" parent="t_Foods" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="ReviewedBy" vertex="1">
+          <mxGeometry height="20" width="240" y="206" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Foods_10" parent="t_Foods" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="ReviewedAtUtc" vertex="1">
+          <mxGeometry height="20" width="240" y="226" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Foods_11" parent="t_Foods" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="IsActive" vertex="1">
+          <mxGeometry height="20" width="240" y="246" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Foods_12" parent="t_Foods" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="CreatedAtUtc" vertex="1">
+          <mxGeometry height="20" width="240" y="266" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Foods_13" parent="t_Foods" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="UpdatedAtUtc" vertex="1">
+          <mxGeometry height="20" width="240" y="286" as="geometry" />
+        </mxCell>
+        <mxCell id="t_RecipeIngredients" parent="1" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;html=1;fillColor=#4f8f3f;strokeColor=#4f8f3f;fontColor=#ffffff;swimlaneFillColor=#ffffff;" value="RecipeIngredients" vertex="1">
+          <mxGeometry height="106" width="240" x="990" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="t_RecipeIngredients_0" parent="t_RecipeIngredients" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="&lt;b&gt;PK&lt;/b&gt;&amp;nbsp;&amp;nbsp;Id" vertex="1">
+          <mxGeometry height="20" width="240" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="t_RecipeIngredients_1" parent="t_RecipeIngredients" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="&lt;b&gt;FK&lt;/b&gt;&amp;nbsp;&amp;nbsp;RecipeId" vertex="1">
+          <mxGeometry height="20" width="240" y="46" as="geometry" />
+        </mxCell>
+        <mxCell id="t_RecipeIngredients_2" parent="t_RecipeIngredients" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="&lt;b&gt;FK&lt;/b&gt;&amp;nbsp;&amp;nbsp;FoodId" vertex="1">
+          <mxGeometry height="20" width="240" y="66" as="geometry" />
+        </mxCell>
+        <mxCell id="t_RecipeIngredients_3" parent="t_RecipeIngredients" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="QuantityText" vertex="1">
+          <mxGeometry height="20" width="240" y="86" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Recipes" parent="1" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;html=1;fillColor=#4f8f3f;strokeColor=#4f8f3f;fontColor=#ffffff;swimlaneFillColor=#ffffff;" value="Recipes" vertex="1">
+          <mxGeometry height="286" width="240" x="1290" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Recipes_0" parent="t_Recipes" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="&lt;b&gt;PK&lt;/b&gt;&amp;nbsp;&amp;nbsp;Id" vertex="1">
+          <mxGeometry height="20" width="240" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Recipes_1" parent="t_Recipes" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="Name" vertex="1">
+          <mxGeometry height="20" width="240" y="46" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Recipes_2" parent="t_Recipes" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="Description" vertex="1">
+          <mxGeometry height="20" width="240" y="66" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Recipes_3" parent="t_Recipes" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="SourceTitle" vertex="1">
+          <mxGeometry height="20" width="240" y="86" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Recipes_4" parent="t_Recipes" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="SourceChapter" vertex="1">
+          <mxGeometry height="20" width="240" y="106" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Recipes_5" parent="t_Recipes" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="SourcePage" vertex="1">
+          <mxGeometry height="20" width="240" y="126" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Recipes_6" parent="t_Recipes" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="SourceReference" vertex="1">
+          <mxGeometry height="20" width="240" y="146" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Recipes_7" parent="t_Recipes" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="ReviewStatus" vertex="1">
+          <mxGeometry height="20" width="240" y="166" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Recipes_8" parent="t_Recipes" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="ReviewedBy" vertex="1">
+          <mxGeometry height="20" width="240" y="186" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Recipes_9" parent="t_Recipes" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="ReviewedAtUtc" vertex="1">
+          <mxGeometry height="20" width="240" y="206" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Recipes_10" parent="t_Recipes" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="IsActive" vertex="1">
+          <mxGeometry height="20" width="240" y="226" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Recipes_11" parent="t_Recipes" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="CreatedAtUtc" vertex="1">
+          <mxGeometry height="20" width="240" y="246" as="geometry" />
+        </mxCell>
+        <mxCell id="t_Recipes_12" parent="t_Recipes" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="UpdatedAtUtc" vertex="1">
+          <mxGeometry height="20" width="240" y="266" as="geometry" />
+        </mxCell>
+        <mxCell id="t_BookSourceChunks" parent="1" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;html=1;fillColor=#c77700;strokeColor=#c77700;fontColor=#ffffff;swimlaneFillColor=#ffffff;" value="BookSourceChunks" vertex="1">
+          <mxGeometry height="206" width="240" x="390" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="t_BookSourceChunks_0" parent="t_BookSourceChunks" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="&lt;b&gt;PK&lt;/b&gt;&amp;nbsp;&amp;nbsp;Id" vertex="1">
+          <mxGeometry height="20" width="240" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="t_BookSourceChunks_1" parent="t_BookSourceChunks" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="&lt;b&gt;FK&lt;/b&gt;&amp;nbsp;&amp;nbsp;DocumentId" vertex="1">
+          <mxGeometry height="20" width="240" y="46" as="geometry" />
+        </mxCell>
+        <mxCell id="t_BookSourceChunks_2" parent="t_BookSourceChunks" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="ChunkIndex" vertex="1">
+          <mxGeometry height="20" width="240" y="66" as="geometry" />
+        </mxCell>
+        <mxCell id="t_BookSourceChunks_3" parent="t_BookSourceChunks" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="PageNumber" vertex="1">
+          <mxGeometry height="20" width="240" y="86" as="geometry" />
+        </mxCell>
+        <mxCell id="t_BookSourceChunks_4" parent="t_BookSourceChunks" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="Text" vertex="1">
+          <mxGeometry height="20" width="240" y="106" as="geometry" />
+        </mxCell>
+        <mxCell id="t_BookSourceChunks_5" parent="t_BookSourceChunks" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="CharacterCount" vertex="1">
+          <mxGeometry height="20" width="240" y="126" as="geometry" />
+        </mxCell>
+        <mxCell id="t_BookSourceChunks_6" parent="t_BookSourceChunks" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="TokenEstimate" vertex="1">
+          <mxGeometry height="20" width="240" y="146" as="geometry" />
+        </mxCell>
+        <mxCell id="t_BookSourceChunks_7" parent="t_BookSourceChunks" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="CreatedAtUtc" vertex="1">
+          <mxGeometry height="20" width="240" y="166" as="geometry" />
+        </mxCell>
+        <mxCell id="t_BookSourceChunks_8" parent="t_BookSourceChunks" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="CandidatesGeneratedAtUtc" vertex="1">
+          <mxGeometry height="20" width="240" y="186" as="geometry" />
+        </mxCell>
+        <mxCell id="t_BookSourceDocuments" parent="1" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;html=1;fillColor=#c77700;strokeColor=#c77700;fontColor=#ffffff;swimlaneFillColor=#ffffff;" value="BookSourceDocuments" vertex="1">
+          <mxGeometry height="266" width="240" x="690" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="t_BookSourceDocuments_0" parent="t_BookSourceDocuments" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="&lt;b&gt;PK&lt;/b&gt;&amp;nbsp;&amp;nbsp;Id" vertex="1">
+          <mxGeometry height="20" width="240" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="t_BookSourceDocuments_1" parent="t_BookSourceDocuments" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="OriginalFileName" vertex="1">
+          <mxGeometry height="20" width="240" y="46" as="geometry" />
+        </mxCell>
+        <mxCell id="t_BookSourceDocuments_2" parent="t_BookSourceDocuments" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="StoredFileName" vertex="1">
+          <mxGeometry height="20" width="240" y="66" as="geometry" />
+        </mxCell>
+        <mxCell id="t_BookSourceDocuments_3" parent="t_BookSourceDocuments" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="ContentType" vertex="1">
+          <mxGeometry height="20" width="240" y="86" as="geometry" />
+        </mxCell>
+        <mxCell id="t_BookSourceDocuments_4" parent="t_BookSourceDocuments" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="FileSizeBytes" vertex="1">
+          <mxGeometry height="20" width="240" y="106" as="geometry" />
+        </mxCell>
+        <mxCell id="t_BookSourceDocuments_5" parent="t_BookSourceDocuments" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="StoragePath" vertex="1">
+          <mxGeometry height="20" width="240" y="126" as="geometry" />
+        </mxCell>
+        <mxCell id="t_BookSourceDocuments_6" parent="t_BookSourceDocuments" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="Status" vertex="1">
+          <mxGeometry height="20" width="240" y="146" as="geometry" />
+        </mxCell>
+        <mxCell id="t_BookSourceDocuments_7" parent="t_BookSourceDocuments" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="UploadedBy" vertex="1">
+          <mxGeometry height="20" width="240" y="166" as="geometry" />
+        </mxCell>
+        <mxCell id="t_BookSourceDocuments_8" parent="t_BookSourceDocuments" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="UploadedAtUtc" vertex="1">
+          <mxGeometry height="20" width="240" y="186" as="geometry" />
+        </mxCell>
+        <mxCell id="t_BookSourceDocuments_9" parent="t_BookSourceDocuments" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="ProcessedAtUtc" vertex="1">
+          <mxGeometry height="20" width="240" y="206" as="geometry" />
+        </mxCell>
+        <mxCell id="t_BookSourceDocuments_10" parent="t_BookSourceDocuments" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="ChunkCount" vertex="1">
+          <mxGeometry height="20" width="240" y="226" as="geometry" />
+        </mxCell>
+        <mxCell id="t_BookSourceDocuments_11" parent="t_BookSourceDocuments" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="ErrorMessage" vertex="1">
+          <mxGeometry height="20" width="240" y="246" as="geometry" />
+        </mxCell>
+        <mxCell id="t_KnowledgeCandidates" parent="1" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;html=1;fillColor=#c77700;strokeColor=#c77700;fontColor=#ffffff;swimlaneFillColor=#ffffff;" value="KnowledgeCandidates" vertex="1">
+          <mxGeometry height="346" width="240" x="990" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="t_KnowledgeCandidates_0" parent="t_KnowledgeCandidates" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="&lt;b&gt;PK&lt;/b&gt;&amp;nbsp;&amp;nbsp;Id" vertex="1">
+          <mxGeometry height="20" width="240" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="t_KnowledgeCandidates_1" parent="t_KnowledgeCandidates" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="&lt;b&gt;FK&lt;/b&gt;&amp;nbsp;&amp;nbsp;DocumentId" vertex="1">
+          <mxGeometry height="20" width="240" y="46" as="geometry" />
+        </mxCell>
+        <mxCell id="t_KnowledgeCandidates_2" parent="t_KnowledgeCandidates" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="&lt;b&gt;FK&lt;/b&gt;&amp;nbsp;&amp;nbsp;ChunkId" vertex="1">
+          <mxGeometry height="20" width="240" y="66" as="geometry" />
+        </mxCell>
+        <mxCell id="t_KnowledgeCandidates_3" parent="t_KnowledgeCandidates" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="CandidateType" vertex="1">
+          <mxGeometry height="20" width="240" y="86" as="geometry" />
+        </mxCell>
+        <mxCell id="t_KnowledgeCandidates_4" parent="t_KnowledgeCandidates" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="Title" vertex="1">
+          <mxGeometry height="20" width="240" y="106" as="geometry" />
+        </mxCell>
+        <mxCell id="t_KnowledgeCandidates_5" parent="t_KnowledgeCandidates" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="Summary" vertex="1">
+          <mxGeometry height="20" width="240" y="126" as="geometry" />
+        </mxCell>
+        <mxCell id="t_KnowledgeCandidates_6" parent="t_KnowledgeCandidates" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="SourceTitle" vertex="1">
+          <mxGeometry height="20" width="240" y="146" as="geometry" />
+        </mxCell>
+        <mxCell id="t_KnowledgeCandidates_7" parent="t_KnowledgeCandidates" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="SourceChapter" vertex="1">
+          <mxGeometry height="20" width="240" y="166" as="geometry" />
+        </mxCell>
+        <mxCell id="t_KnowledgeCandidates_8" parent="t_KnowledgeCandidates" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="SourcePage" vertex="1">
+          <mxGeometry height="20" width="240" y="186" as="geometry" />
+        </mxCell>
+        <mxCell id="t_KnowledgeCandidates_9" parent="t_KnowledgeCandidates" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="SourceReference" vertex="1">
+          <mxGeometry height="20" width="240" y="206" as="geometry" />
+        </mxCell>
+        <mxCell id="t_KnowledgeCandidates_10" parent="t_KnowledgeCandidates" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="Status" vertex="1">
+          <mxGeometry height="20" width="240" y="226" as="geometry" />
+        </mxCell>
+        <mxCell id="t_KnowledgeCandidates_11" parent="t_KnowledgeCandidates" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="GeneratedBy" vertex="1">
+          <mxGeometry height="20" width="240" y="246" as="geometry" />
+        </mxCell>
+        <mxCell id="t_KnowledgeCandidates_12" parent="t_KnowledgeCandidates" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="CreatedAtUtc" vertex="1">
+          <mxGeometry height="20" width="240" y="266" as="geometry" />
+        </mxCell>
+        <mxCell id="t_KnowledgeCandidates_13" parent="t_KnowledgeCandidates" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="ReviewedBy" vertex="1">
+          <mxGeometry height="20" width="240" y="286" as="geometry" />
+        </mxCell>
+        <mxCell id="t_KnowledgeCandidates_14" parent="t_KnowledgeCandidates" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="ReviewedAtUtc" vertex="1">
+          <mxGeometry height="20" width="240" y="306" as="geometry" />
+        </mxCell>
+        <mxCell id="t_KnowledgeCandidates_15" parent="t_KnowledgeCandidates" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#b85450;" value="&lt;i&gt;ref&lt;/i&gt;&amp;nbsp;&amp;nbsp;&lt;i&gt;ApprovedKnowledgeId&lt;/i&gt;" vertex="1">
+          <mxGeometry height="20" width="240" y="326" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealPlans" parent="1" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;html=1;fillColor=#b8921f;strokeColor=#b8921f;fontColor=#ffffff;swimlaneFillColor=#ffffff;" value="MealPlans" vertex="1">
+          <mxGeometry height="166" width="240" x="1710" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealPlans_0" parent="t_MealPlans" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="&lt;b&gt;PK&lt;/b&gt;&amp;nbsp;&amp;nbsp;Id" vertex="1">
+          <mxGeometry height="20" width="240" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealPlans_1" parent="t_MealPlans" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#b85450;" value="&lt;i&gt;ref&lt;/i&gt;&amp;nbsp;&amp;nbsp;&lt;i&gt;UserId&lt;/i&gt;" vertex="1">
+          <mxGeometry height="20" width="240" y="46" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealPlans_2" parent="t_MealPlans" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="Name" vertex="1">
+          <mxGeometry height="20" width="240" y="66" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealPlans_3" parent="t_MealPlans" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="StartDate" vertex="1">
+          <mxGeometry height="20" width="240" y="86" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealPlans_4" parent="t_MealPlans" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="EndDate" vertex="1">
+          <mxGeometry height="20" width="240" y="106" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealPlans_5" parent="t_MealPlans" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="CreatedAtUtc" vertex="1">
+          <mxGeometry height="20" width="240" y="126" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealPlans_6" parent="t_MealPlans" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="UpdatedAtUtc" vertex="1">
+          <mxGeometry height="20" width="240" y="146" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealPlanItems" parent="1" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;html=1;fillColor=#b8921f;strokeColor=#b8921f;fontColor=#ffffff;swimlaneFillColor=#ffffff;" value="MealPlanItems" vertex="1">
+          <mxGeometry height="226" width="240" x="1710" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealPlanItems_0" parent="t_MealPlanItems" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="&lt;b&gt;PK&lt;/b&gt;&amp;nbsp;&amp;nbsp;Id" vertex="1">
+          <mxGeometry height="20" width="240" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealPlanItems_1" parent="t_MealPlanItems" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="&lt;b&gt;FK&lt;/b&gt;&amp;nbsp;&amp;nbsp;MealPlanId" vertex="1">
+          <mxGeometry height="20" width="240" y="46" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealPlanItems_2" parent="t_MealPlanItems" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="PlannedDate" vertex="1">
+          <mxGeometry height="20" width="240" y="66" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealPlanItems_3" parent="t_MealPlanItems" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="MealSlot" vertex="1">
+          <mxGeometry height="20" width="240" y="86" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealPlanItems_4" parent="t_MealPlanItems" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#b85450;" value="&lt;i&gt;ref&lt;/i&gt;&amp;nbsp;&amp;nbsp;&lt;i&gt;RecipeId&lt;/i&gt;" vertex="1">
+          <mxGeometry height="20" width="240" y="106" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealPlanItems_5" parent="t_MealPlanItems" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#b85450;" value="&lt;i&gt;ref&lt;/i&gt;&amp;nbsp;&amp;nbsp;&lt;i&gt;FoodId&lt;/i&gt;" vertex="1">
+          <mxGeometry height="20" width="240" y="126" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealPlanItems_6" parent="t_MealPlanItems" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="Notes" vertex="1">
+          <mxGeometry height="20" width="240" y="146" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealPlanItems_7" parent="t_MealPlanItems" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="ReminderAtUtc" vertex="1">
+          <mxGeometry height="20" width="240" y="166" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealPlanItems_8" parent="t_MealPlanItems" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="CreatedAtUtc" vertex="1">
+          <mxGeometry height="20" width="240" y="186" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealPlanItems_9" parent="t_MealPlanItems" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="UpdatedAtUtc" vertex="1">
+          <mxGeometry height="20" width="240" y="206" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealRecommendationRequests" parent="1" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;html=1;fillColor=#b8921f;strokeColor=#b8921f;fontColor=#ffffff;swimlaneFillColor=#ffffff;" value="MealRecommendationRequests" vertex="1">
+          <mxGeometry height="246" width="240" x="1710" y="550" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealRecommendationRequests_0" parent="t_MealRecommendationRequests" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="&lt;b&gt;PK&lt;/b&gt;&amp;nbsp;&amp;nbsp;Id" vertex="1">
+          <mxGeometry height="20" width="240" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealRecommendationRequests_1" parent="t_MealRecommendationRequests" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#b85450;" value="&lt;i&gt;ref&lt;/i&gt;&amp;nbsp;&amp;nbsp;&lt;i&gt;UserId&lt;/i&gt;" vertex="1">
+          <mxGeometry height="20" width="240" y="46" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealRecommendationRequests_2" parent="t_MealRecommendationRequests" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="PreferenceTagsJson" vertex="1">
+          <mxGeometry height="20" width="240" y="66" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealRecommendationRequests_3" parent="t_MealRecommendationRequests" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="Days" vertex="1">
+          <mxGeometry height="20" width="240" y="86" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealRecommendationRequests_4" parent="t_MealRecommendationRequests" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="Status" vertex="1">
+          <mxGeometry height="20" width="240" y="106" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealRecommendationRequests_5" parent="t_MealRecommendationRequests" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="SuggestedMealTitlesJson" vertex="1">
+          <mxGeometry height="20" width="240" y="126" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealRecommendationRequests_6" parent="t_MealRecommendationRequests" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="Disclaimer" vertex="1">
+          <mxGeometry height="20" width="240" y="146" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealRecommendationRequests_7" parent="t_MealRecommendationRequests" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#b85450;" value="&lt;i&gt;ref&lt;/i&gt;&amp;nbsp;&amp;nbsp;&lt;i&gt;AcceptedMealPlanId&lt;/i&gt;" vertex="1">
+          <mxGeometry height="20" width="240" y="166" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealRecommendationRequests_8" parent="t_MealRecommendationRequests" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="RequestedAtUtc" vertex="1">
+          <mxGeometry height="20" width="240" y="186" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealRecommendationRequests_9" parent="t_MealRecommendationRequests" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="CompletedAtUtc" vertex="1">
+          <mxGeometry height="20" width="240" y="206" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealRecommendationRequests_10" parent="t_MealRecommendationRequests" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="UpdatedAtUtc" vertex="1">
+          <mxGeometry height="20" width="240" y="226" as="geometry" />
+        </mxCell>
+        <mxCell id="t_DailyTrackings" parent="1" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;html=1;fillColor=#7a4f96;strokeColor=#7a4f96;fontColor=#ffffff;swimlaneFillColor=#ffffff;" value="DailyTrackings" vertex="1">
+          <mxGeometry height="146" width="240" x="2070" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="t_DailyTrackings_0" parent="t_DailyTrackings" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="&lt;b&gt;PK&lt;/b&gt;&amp;nbsp;&amp;nbsp;Id" vertex="1">
+          <mxGeometry height="20" width="240" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="t_DailyTrackings_1" parent="t_DailyTrackings" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#b85450;" value="&lt;i&gt;ref&lt;/i&gt;&amp;nbsp;&amp;nbsp;&lt;i&gt;UserId&lt;/i&gt;" vertex="1">
+          <mxGeometry height="20" width="240" y="46" as="geometry" />
+        </mxCell>
+        <mxCell id="t_DailyTrackings_2" parent="t_DailyTrackings" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="TrackingDate" vertex="1">
+          <mxGeometry height="20" width="240" y="66" as="geometry" />
+        </mxCell>
+        <mxCell id="t_DailyTrackings_3" parent="t_DailyTrackings" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="Notes" vertex="1">
+          <mxGeometry height="20" width="240" y="86" as="geometry" />
+        </mxCell>
+        <mxCell id="t_DailyTrackings_4" parent="t_DailyTrackings" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="CreatedAtUtc" vertex="1">
+          <mxGeometry height="20" width="240" y="106" as="geometry" />
+        </mxCell>
+        <mxCell id="t_DailyTrackings_5" parent="t_DailyTrackings" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="UpdatedAtUtc" vertex="1">
+          <mxGeometry height="20" width="240" y="126" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealTrackings" parent="1" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;html=1;fillColor=#7a4f96;strokeColor=#7a4f96;fontColor=#ffffff;swimlaneFillColor=#ffffff;" value="MealTrackings" vertex="1">
+          <mxGeometry height="166" width="240" x="2070" y="230" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealTrackings_0" parent="t_MealTrackings" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="&lt;b&gt;PK&lt;/b&gt;&amp;nbsp;&amp;nbsp;Id" vertex="1">
+          <mxGeometry height="20" width="240" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealTrackings_1" parent="t_MealTrackings" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="&lt;b&gt;FK&lt;/b&gt;&amp;nbsp;&amp;nbsp;DailyTrackingId" vertex="1">
+          <mxGeometry height="20" width="240" y="46" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealTrackings_2" parent="t_MealTrackings" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#b85450;" value="&lt;i&gt;ref&lt;/i&gt;&amp;nbsp;&amp;nbsp;&lt;i&gt;MealPlanItemId&lt;/i&gt;" vertex="1">
+          <mxGeometry height="20" width="240" y="66" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealTrackings_3" parent="t_MealTrackings" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="IsCompleted" vertex="1">
+          <mxGeometry height="20" width="240" y="86" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealTrackings_4" parent="t_MealTrackings" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="CompletedAtUtc" vertex="1">
+          <mxGeometry height="20" width="240" y="106" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealTrackings_5" parent="t_MealTrackings" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="CreatedAtUtc" vertex="1">
+          <mxGeometry height="20" width="240" y="126" as="geometry" />
+        </mxCell>
+        <mxCell id="t_MealTrackings_6" parent="t_MealTrackings" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="UpdatedAtUtc" vertex="1">
+          <mxGeometry height="20" width="240" y="146" as="geometry" />
+        </mxCell>
+        <mxCell id="t_ProgressSummaries" parent="1" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;html=1;fillColor=#7a4f96;strokeColor=#7a4f96;fontColor=#ffffff;swimlaneFillColor=#ffffff;" value="ProgressSummaries" vertex="1">
+          <mxGeometry height="206" width="240" x="2070" y="430" as="geometry" />
+        </mxCell>
+        <mxCell id="t_ProgressSummaries_0" parent="t_ProgressSummaries" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="&lt;b&gt;PK&lt;/b&gt;&amp;nbsp;&amp;nbsp;Id" vertex="1">
+          <mxGeometry height="20" width="240" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="t_ProgressSummaries_1" parent="t_ProgressSummaries" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#b85450;" value="&lt;i&gt;ref&lt;/i&gt;&amp;nbsp;&amp;nbsp;&lt;i&gt;UserId&lt;/i&gt;" vertex="1">
+          <mxGeometry height="20" width="240" y="46" as="geometry" />
+        </mxCell>
+        <mxCell id="t_ProgressSummaries_2" parent="t_ProgressSummaries" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="PeriodStartDate" vertex="1">
+          <mxGeometry height="20" width="240" y="66" as="geometry" />
+        </mxCell>
+        <mxCell id="t_ProgressSummaries_3" parent="t_ProgressSummaries" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="PeriodEndDate" vertex="1">
+          <mxGeometry height="20" width="240" y="86" as="geometry" />
+        </mxCell>
+        <mxCell id="t_ProgressSummaries_4" parent="t_ProgressSummaries" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="PlannedMeals" vertex="1">
+          <mxGeometry height="20" width="240" y="106" as="geometry" />
+        </mxCell>
+        <mxCell id="t_ProgressSummaries_5" parent="t_ProgressSummaries" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="CompletedMeals" vertex="1">
+          <mxGeometry height="20" width="240" y="126" as="geometry" />
+        </mxCell>
+        <mxCell id="t_ProgressSummaries_6" parent="t_ProgressSummaries" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="CalculatedAtUtc" vertex="1">
+          <mxGeometry height="20" width="240" y="146" as="geometry" />
+        </mxCell>
+        <mxCell id="t_ProgressSummaries_7" parent="t_ProgressSummaries" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#b85450;" value="&lt;i&gt;ref&lt;/i&gt;&amp;nbsp;&amp;nbsp;&lt;i&gt;LastNotificationId&lt;/i&gt;" vertex="1">
+          <mxGeometry height="20" width="240" y="166" as="geometry" />
+        </mxCell>
+        <mxCell id="t_ProgressSummaries_8" parent="t_ProgressSummaries" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;fontSize=11;fontColor=#000000;" value="LastNotificationSentAtUtc" vertex="1">
+          <mxGeometry height="20" width="240" y="186" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="t_UserRoles_0" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;startArrow=ERmany;endArrow=ERmandOne;startFill=0;endFill=0;strokeWidth=1.5;exitX=1;exitY=0.5;entryX=1;entryY=0.5;" target="t_Users_0" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="300" y="306" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="t_UserRoles_1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;startArrow=ERmany;endArrow=ERmandOne;startFill=0;endFill=0;strokeWidth=1.5;exitX=1;exitY=0.5;entryX=1;entryY=0.5;" target="t_Roles_0" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="310" y="326" />
+              <mxPoint x="310" y="416" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="t_RecipeIngredients_1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;startArrow=ERmany;endArrow=ERmandOne;startFill=0;endFill=0;strokeWidth=1.5;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" target="t_Recipes_0" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="t_RecipeIngredients_2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;startArrow=ERmany;endArrow=ERmandOne;startFill=0;endFill=0;strokeWidth=1.5;exitX=0;exitY=0.5;entryX=1;entryY=0.5;" target="t_Foods_0" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="t_BookSourceChunks_1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;startArrow=ERmany;endArrow=ERmandOne;startFill=0;endFill=0;strokeWidth=1.5;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" target="t_BookSourceDocuments_0" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="t_KnowledgeCandidates_1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;startArrow=ERmany;endArrow=ERmandOne;startFill=0;endFill=0;strokeWidth=1.5;exitX=0;exitY=0.5;entryX=1;entryY=0.5;" target="t_BookSourceDocuments_0" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="t_KnowledgeCandidates_2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;startArrow=ERmany;endArrow=ERmandOne;startFill=0;endFill=0;strokeWidth=1.5;exitX=0;exitY=0.5;entryX=0.5;entryY=1;" target="t_BookSourceChunks" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="962" y="496" />
+              <mxPoint x="962" y="810" />
+              <mxPoint x="510" y="810" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="1" source="t_MealPlanItems_1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;startArrow=ERmany;endArrow=ERmandOne;startFill=0;endFill=0;strokeWidth=1.5;exitX=1;exitY=0.5;entryX=1;entryY=0.5;" target="t_MealPlans_0" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1965" y="326" />
+              <mxPoint x="1965" y="86" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="1" source="t_MealRecommendationRequests_7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;strokeColor=#b85450;fontColor=#b85450;fontSize=10;startArrow=none;endArrow=open;endFill=0;strokeWidth=1.5;exitX=1;exitY=0.5;entryX=1;entryY=0.5;" target="t_MealPlans_0" value="accepted plan">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1975" y="726" />
+              <mxPoint x="1975" y="86" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e10" edge="1" parent="1" source="t_MealTrackings_1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;startArrow=ERmany;endArrow=ERmandOne;startFill=0;endFill=0;strokeWidth=1.5;exitX=1;exitY=0.5;entryX=1;entryY=0.5;" target="t_DailyTrackings_0" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2325" y="286" />
+              <mxPoint x="2325" y="86" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="1" source="t_MealTrackings_2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;strokeColor=#b85450;fontColor=#b85450;fontSize=10;startArrow=none;endArrow=open;endFill=0;strokeWidth=1.5;exitX=0;exitY=0.5;entryX=1;entryY=0.5;" target="t_MealPlanItems_0" value="MealPlanItemId">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2010" y="306" />
+              <mxPoint x="2010" y="306" />
+              <mxPoint x="1960" y="306" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e12" edge="1" parent="1" source="t_MealPlans_1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;strokeColor=#b85450;fontColor=#b85450;fontSize=10;startArrow=none;endArrow=open;endFill=0;strokeWidth=1.5;exitX=0;exitY=0.5;entryX=0.15;entryY=0;" target="t_Users" value="UserId">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1630" y="106" />
+              <mxPoint x="1630" y="-30" />
+              <mxPoint x="66" y="-30" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e13" edge="1" parent="1" source="t_MealRecommendationRequests_1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;strokeColor=#b85450;fontColor=#b85450;fontSize=10;startArrow=none;endArrow=open;endFill=0;strokeWidth=1.5;exitX=0;exitY=0.5;entryX=0.3;entryY=0;" target="t_Users" value="UserId">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1640" y="606" />
+              <mxPoint x="1640" y="-50" />
+              <mxPoint x="102" y="-50" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e14" edge="1" parent="1" source="t_DailyTrackings_1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;strokeColor=#b85450;fontColor=#b85450;fontSize=10;startArrow=none;endArrow=open;endFill=0;strokeWidth=1.5;exitX=0;exitY=0.5;entryX=0.6;entryY=0;" target="t_Users" value="UserId">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2000" y="106" />
+              <mxPoint x="2000" y="-110" />
+              <mxPoint x="174" y="-110" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e15" edge="1" parent="1" source="t_ProgressSummaries_1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;strokeColor=#b85450;fontColor=#b85450;fontSize=10;startArrow=none;endArrow=open;endFill=0;strokeWidth=1.5;exitX=0;exitY=0.5;entryX=0.85;entryY=0;" target="t_Users" value="UserId">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2020" y="486" />
+              <mxPoint x="2020" y="-130" />
+              <mxPoint x="234" y="-130" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e16" edge="1" parent="1" source="t_MealPlanItems_4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;strokeColor=#b85450;fontColor=#b85450;fontSize=10;startArrow=none;endArrow=open;endFill=0;strokeWidth=1.5;exitX=0;exitY=0.5;entryX=0.5;entryY=0;" target="t_Recipes" value="RecipeId">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1650" y="386" />
+              <mxPoint x="1650" y="-70" />
+              <mxPoint x="1410" y="-70" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e17" edge="1" parent="1" source="t_MealPlanItems_5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;strokeColor=#b85450;fontColor=#b85450;fontSize=10;startArrow=none;endArrow=open;endFill=0;strokeWidth=1.5;exitX=0;exitY=0.5;entryX=0.5;entryY=0;" target="t_Foods" value="FoodId">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1660" y="406" />
+              <mxPoint x="1660" y="-90" />
+              <mxPoint x="810" y="-90" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="legend" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fontSize=11;fillColor=#f5f5f5;strokeColor=#666666;" value="&lt;b&gt;Legend&lt;/b&gt;&lt;br&gt;PK = primary key, FK = foreign key (same database), &lt;i&gt;ref&lt;/i&gt; = bare ID of another table/service (no foreign key)&lt;br&gt;Solid line with crow&#39;s foot = foreign key. Dashed red line = logical reference, no FK, no cross-database read.&lt;br&gt;Recommendation, Notification (gRPC) and NotificationWorker are stateless: no database." vertex="1">
+          <mxGeometry height="70" width="760" y="-190" as="geometry" />
+        </mxCell>
+        <mxCell id="ktags" parent="1" style="text;html=1;align=left;fontSize=11;fontStyle=2;fontColor=#b85450;whiteSpace=wrap;" value="&lt;i&gt;ApprovedKnowledgeId&lt;/i&gt; in KnowledgeCandidates points to the approved DietGuideline / Food / Recipe id (polymorphic, no FK)." vertex="1">
+          <mxGeometry height="60" width="240" x="990" y="790" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
