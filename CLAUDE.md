@@ -32,7 +32,9 @@ Educational diet planning/tracking microservices app based on the book *The Long
 - **Auth**: JWT Bearer issued by Identity, shared `Jwt__SigningKey` across services; roles `User`/`Admin`. Users only see their own meal plans/tracking.
 
 - **Web i18n**: the MVC UI has an English/Vietnamese switch (`LanguageController`, `Services/Translations.cs`, `Translator.cs`, `ContentTranslations.cs`). New user-facing strings need entries in both languages; the selected language is also passed to Recommendation so Gemini answers in that language.
-- **Repo-local caches**: `.dotnet/` and `.nuget/` (from `DOTNET_CLI_HOME`) are gitignored — ignore them when searching.
+- **Repo-local caches**: `.dotnet/` and `.nuget/` (from `DOTNET_CLI_HOME`) are gitignored — ignore them when searching. So are `.tmp/` and `.env`.
+- **`stitch-export/`** (gitignored) is a reference-only Google Stitch UI design export; the Web UI (`src/Web/LongevityDiet.Web`, `wwwroot/css/site.css`) was restyled from it. Don't edit or depend on it.
+- **Windows host**: no Python available; the shell is PowerShell/Git Bash, so use Unix-style paths in Bash and avoid `find /`.
 
 ### Cross-service flows (span multiple projects)
 - **AI recommendation**: MealPlanning publishes `RecommendationRequest` → Recommendation.Service (builds context from DietKnowledge *public* APIs, i.e. active `Approved` content only; Gemini or safe local fallback) → publishes `RecommendationResult` → MealPlanning consumes/stores it; user must accept before it becomes a plan.

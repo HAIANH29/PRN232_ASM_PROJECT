@@ -72,6 +72,11 @@ Do not mark a feature as complete if it only has placeholders or configuration. 
 
 ## Change Log
 
+### 2026-10-26 — Database diagram (draw.io)
+
+- Added `docs/database/LongevityDiet-Database.drawio`: all tables of the four databases (IdentityDb, DietKnowledgeDb, MealPlanningDb, TrackingDb) with PK/FK markers, in-database foreign keys (crow's foot) and dashed red logical references (`UserId`, `RecipeId`, `FoodId`, `MealPlanItemId`, `AcceptedMealPlanId`, `ApprovedKnowledgeId`) that have no foreign key. Built from `Physical-Database.md` and the `*DbContext` relationships.
+- Verification: exported to PNG with the draw.io desktop CLI and checked the layout. Column types are not shown; regenerate/edit the diagram when the schema changes.
+
 ### 2026-10-19 — Fix invisible "Sign in" button in the Home hero
 
 - The hero's secondary button inherited the white `.btn-outline-secondary` background while its text is white, so the label vanished; the button group was also right-aligned. The hero now uses a transparent background for that button and left-aligns the group.
