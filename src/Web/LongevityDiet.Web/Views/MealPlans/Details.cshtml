@@ -36,9 +36,12 @@
         <button class="btn btn-dark" type="submit">@T["Save plan"]</button>
     </form>
 
-    <form asp-action="AddItem" asp-route-id="@Model.MealPlan.Id" method="post" class="section-card form-stack">
+    @{
+        var editing = Model.EditingItemId.HasValue;
+    }
+    <form asp-action="@(editing ? "UpdateItem" : "AddItem")" asp-route-id="@Model.MealPlan.Id" asp-route-itemId="@Model.EditingItemId" method="post" class="section-card form-stack" id="item-form">
         <div class="card-heading">
-            <h2><span class="icon" aria-hidden="true">add_circle</span>@T["Add item"]</h2>
+            <h2><span class="icon" aria-hidden="true">@(editing ? "edit_note" : "add_circle")</span>@(editing ? T["Edit item"] : T["Add item"])</h2>
         </div>
         <div asp-validation-summary="All" class="text-danger small"></div>
         <div class="form-row">
@@ -85,7 +88,13 @@
             <label asp-for="ItemForm.Notes" class="form-label"></label>
             <textarea asp-for="ItemForm.Notes" class="form-control" rows="3"></textarea>
         </div>
-        <button class="btn btn-dark" type="submit">@T["Add item"]</button>
+        <div class="d-flex gap-2">
+            <button class="btn btn-dark" type="submit">@(editing ? T["Save item"] : T["Add item"])</button>
+            @if (editing)
+            {
+                <a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@Model.MealPlan.Id">@T["Cancel"]</a>
+            }
+        </div>
     </form>
 </section>
 
@@ -123,9 +132,12 @@
                             }
                         </div>
                     </div>
-                    <form asp-action="DeleteItem" asp-route-id="@Model.MealPlan.Id" asp-route-itemId="@item.Id" method="post">
-                        <button class="btn btn-sm btn-outline-danger" type="submit">@T["Remove"]</button>
-                    </form>
+                    <div class="d-flex gap-2">
+                        <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@Model.MealPlan.Id" asp-route-editItem="@item.Id" asp-fragment="item-form">@T["Edit"]</a>
+                        <form asp-action="DeleteItem" asp-route-id="@Model.MealPlan.Id" asp-route-itemId="@item.Id" method="post">
+                            <button class="btn btn-sm btn-outline-danger" type="submit">@T["Remove"]</button>
+                        </form>
+                    </div>
                 </article>
             }
         </div>
