@@ -1122,6 +1122,7 @@ a {
 }
 
 .search-hero .filter-bar {
+  grid-template-columns: minmax(200px, 1fr) minmax(200px, 0.7fr) minmax(160px, 0.5fr) auto;
   margin: 16px 0 0;
 }
 
@@ -1438,6 +1439,7 @@ a {
   .two-columns,
   .three-columns,
   .filter-bar,
+  .search-hero .filter-bar,
   .form-grid,
   .form-row,
   .stat-grid,

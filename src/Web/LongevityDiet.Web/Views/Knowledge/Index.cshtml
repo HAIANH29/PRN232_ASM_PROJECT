@@ -17,6 +17,15 @@
             <label asp-for="Category" class="form-label">@T["Food category"]</label>
             <input asp-for="Category" class="form-control" placeholder="@T["legume, grain, vegetable"]" />
         </div>
+        <div>
+            <label asp-for="Sort" class="form-label">@T["Sort by"]</label>
+            <select asp-for="Sort" class="form-select">
+                <option value="name_asc">@T["Name (A-Z)"]</option>
+                <option value="name_desc">@T["Name (Z-A)"]</option>
+                <option value="newest">@T["Newest first"]</option>
+                <option value="oldest">@T["Oldest first"]</option>
+            </select>
+        </div>
         <div class="filter-actions">
             <button class="btn btn-dark" type="submit"><span class="icon" aria-hidden="true">search</span>@T["Apply"]</button>
             <a class="btn btn-outline-secondary" asp-action="Index">@T["Reset"]</a>

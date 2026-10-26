@@ -72,6 +72,12 @@ Do not mark a feature as complete if it only has placeholders or configuration. 
 
 ## Change Log
 
+### 2026-10-26 — Sort control on the member Knowledge page
+
+- Added a "Sort by" dropdown (Name A-Z default, Name Z-A, Newest first, Oldest first) to `/Knowledge`. It applies to guidelines, foods and recipes at once, maps to the existing `sortBy`/`sortDirection` API parameters (title/name or `createdAt`), is kept when moving between pages, and has Vietnamese labels. The filter bar grid is widened only inside `.search-hero` so the Tracking page layout is unchanged.
+- Verification: `docker compose up -d --build web` builds; in the browser Name (Z-A) lists guidelines from "Weight and Muscle Mass..." downward and Newest first changes the order away from alphabetical. No Web test project exists.
+- Correction to the QA note above: the backend `DELETE` on guidelines/foods/recipes is a soft delete (it only deactivates), so the Admin "Deactivate" button already covers it; no hard delete was added.
+
 ### 2026-10-26 — Pagination for the Knowledge pages
 
 - The member Diet Knowledge page (`/Knowledge`) always requested page 1 (20 guidelines, 30 foods, 30 recipes), so most of the 88 approved guidelines were unreachable; the Admin Knowledge lists had the same limit (25 per list). Each of the three lists now has its own Previous/Next pager (`guidelinePage`, `foodPage`, `recipePage`) that keeps the search, category and status filters. Added the shared `Views/Shared/_Pager.cshtml`, `PagerViewModel`, pager CSS and the Vietnamese strings (Page / Previous / Next).
