@@ -11,7 +11,10 @@ public sealed class KnowledgeController(ApiGatewayClient api, UserSession sessio
     public async Task<IActionResult> Index(
         string? search,
         string? category,
-        CancellationToken cancellationToken)
+        int guidelinePage = 1,
+        int foodPage = 1,
+        int recipePage = 1,
+        CancellationToken cancellationToken = default)
     {
         if (Session.IsAdmin)
         {
@@ -26,14 +29,14 @@ public sealed class KnowledgeController(ApiGatewayClient api, UserSession sessio
 
         var guidelinePath = ApiGatewayClient.BuildQuery(
             "/diet-knowledge/api/diet-guidelines",
-            ("pageNumber", 1),
+            ("pageNumber", Math.Max(1, guidelinePage)),
             ("pageSize", 20),
             ("search", search),
             ("sortBy", "title"),
             ("sortDirection", "asc"));
         var foodPath = ApiGatewayClient.BuildQuery(
             "/diet-knowledge/api/foods",
-            ("pageNumber", 1),
+            ("pageNumber", Math.Max(1, foodPage)),
             ("pageSize", 30),
             ("search", search),
             ("category", category),
@@ -41,7 +44,7 @@ public sealed class KnowledgeController(ApiGatewayClient api, UserSession sessio
             ("sortDirection", "asc"));
         var recipePath = ApiGatewayClient.BuildQuery(
             "/diet-knowledge/api/recipes",
-            ("pageNumber", 1),
+            ("pageNumber", Math.Max(1, recipePage)),
             ("pageSize", 30),
             ("search", search),
             ("sortBy", "name"),

@@ -1745,3 +1745,17 @@ body::before {
   flex-wrap: wrap;
   max-width: 560px;
 }
+
+/* Page navigation under paged lists */
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 16px 0 24px;
+}
+
+.pager-status {
+  color: var(--app-muted);
+  font-size: 0.9rem;
+}

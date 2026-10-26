@@ -1,0 +1,33 @@
+@model PagerViewModel
+@if (Model.TotalPages > 1)
+{
+    string LinkFor(int page)
+    {
+        var values = Context.Request.Query
+            .Where(pair => !string.Equals(pair.Key, Model.PageParam, StringComparison.OrdinalIgnoreCase))
+            .ToDictionary(pair => pair.Key, pair => pair.Value.ToString());
+        values[Model.PageParam] = page.ToString();
+        var query = string.Join("&", values.Select(pair => $"{Uri.EscapeDataString(pair.Key)}={Uri.EscapeDataString(pair.Value)}"));
+        return $"?{query}#{Model.Anchor}";
+    }
+
+    <nav class="pager" aria-label="@T["Page"]">
+        @if (Model.Page > 1)
+        {
+            <a class="btn btn-sm btn-outline-secondary" href="@LinkFor(Model.Page - 1)">@T["Previous"]</a>
+        }
+        else
+        {
+            <span class="btn btn-sm btn-outline-secondary disabled" aria-disabled="true">@T["Previous"]</span>
+        }
+        <span class="pager-status">@T["Page"] @Model.Page / @Model.TotalPages</span>
+        @if (Model.Page < Model.TotalPages)
+        {
+            <a class="btn btn-sm btn-outline-secondary" href="@LinkFor(Model.Page + 1)">@T["Next"]</a>
+        }
+        else
+        {
+            <span class="btn btn-sm btn-outline-secondary disabled" aria-disabled="true">@T["Next"]</span>
+        }
+    </nav>
+}

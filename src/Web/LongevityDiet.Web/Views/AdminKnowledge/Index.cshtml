@@ -186,7 +186,7 @@
 </section>
 
 <section class="section-card">
-    <div class="card-heading">
+    <div class="card-heading" id="guidelines-list">
         <h2>@T["Guidelines"]</h2>
         <span class="count-pill">@Model.Guidelines.TotalCount</span>
     </div>
@@ -221,10 +221,11 @@
             </tbody>
         </table>
     </div>
+    @await Html.PartialAsync("_Pager", PagerViewModel.For(Model.Guidelines, "guidelinePage", "guidelines-list"))
 </section>
 
 <section class="section-card">
-    <div class="card-heading">
+    <div class="card-heading" id="foods-list">
         <h2>@T["Foods"]</h2>
         <span class="count-pill">@Model.Foods.TotalCount</span>
     </div>
@@ -261,10 +262,11 @@
             </tbody>
         </table>
     </div>
+    @await Html.PartialAsync("_Pager", PagerViewModel.For(Model.Foods, "foodPage", "foods-list"))
 </section>
 
 <section class="section-card">
-    <div class="card-heading">
+    <div class="card-heading" id="recipes-list">
         <h2>@T["Recipes"]</h2>
         <span class="count-pill">@Model.Recipes.TotalCount</span>
     </div>
@@ -301,6 +303,7 @@
             </tbody>
         </table>
     </div>
+    @await Html.PartialAsync("_Pager", PagerViewModel.For(Model.Recipes, "recipePage", "recipes-list"))
 </section>
 
 @section Scripts {

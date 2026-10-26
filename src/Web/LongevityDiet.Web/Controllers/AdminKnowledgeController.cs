@@ -8,7 +8,12 @@ public sealed class AdminKnowledgeController(ApiGatewayClient api, UserSession s
     : AppController(api, session)
 {
     [HttpGet]
-    public async Task<IActionResult> Index(string? status, CancellationToken cancellationToken)
+    public async Task<IActionResult> Index(
+        string? status,
+        int guidelinePage = 1,
+        int foodPage = 1,
+        int recipePage = 1,
+        CancellationToken cancellationToken = default)
     {
         var guard = RequireAdmin();
         if (guard is not null)
@@ -16,7 +21,7 @@ public sealed class AdminKnowledgeController(ApiGatewayClient api, UserSession s
             return guard;
         }
 
-        return View(await BuildIndexModelAsync(cancellationToken, status));
+        return View(await BuildIndexModelAsync(cancellationToken, status, guidelinePage, foodPage, recipePage));
     }
 
     [HttpPost]
@@ -288,7 +293,10 @@ public sealed class AdminKnowledgeController(ApiGatewayClient api, UserSession s
 
     private async Task<AdminKnowledgeViewModel> BuildIndexModelAsync(
         CancellationToken cancellationToken,
-        string? status = null)
+        string? status = null,
+        int guidelinePage = 1,
+        int foodPage = 1,
+        int recipePage = 1)
     {
         // Only approved content is listed by default; unapproved items are reviewed from the book sources.
         var reviewFilter = status switch
@@ -300,15 +308,15 @@ public sealed class AdminKnowledgeController(ApiGatewayClient api, UserSession s
         var statusQuery = reviewFilter == "all" ? string.Empty : $"&reviewStatus={reviewFilter}";
 
         var guidelines = await Api.GetAsync<PagedResponse<DietGuidelineResponse>>(
-            $"/diet-knowledge/api/admin/diet-guidelines?pageNumber=1&pageSize=25&includeInactive=true{statusQuery}",
+            $"/diet-knowledge/api/admin/diet-guidelines?pageNumber={Math.Max(1, guidelinePage)}&pageSize=25&includeInactive=true{statusQuery}",
             Token,
             cancellationToken);
         var foods = await Api.GetAsync<PagedResponse<FoodResponse>>(
-            $"/diet-knowledge/api/admin/foods?pageNumber=1&pageSize=25&includeInactive=true{statusQuery}",
+            $"/diet-knowledge/api/admin/foods?pageNumber={Math.Max(1, foodPage)}&pageSize=25&includeInactive=true{statusQuery}",
             Token,
             cancellationToken);
         var recipes = await Api.GetAsync<PagedResponse<RecipeResponse>>(
-            $"/diet-knowledge/api/admin/recipes?pageNumber=1&pageSize=25&includeInactive=true{statusQuery}",
+            $"/diet-knowledge/api/admin/recipes?pageNumber={Math.Max(1, recipePage)}&pageSize=25&includeInactive=true{statusQuery}",
             Token,
             cancellationToken);
 

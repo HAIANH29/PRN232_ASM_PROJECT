@@ -72,6 +72,12 @@ public sealed class KnowledgeIndexViewModel
     public static PagedResponse<T> Empty<T>() => new(Array.Empty<T>(), 1, 20, 0);
 }
 
+public sealed record PagerViewModel(int Page, int TotalPages, string PageParam, string Anchor)
+{
+    public static PagerViewModel For<T>(PagedResponse<T> response, string pageParam, string anchor)
+        => new(response.PageNumber, response.TotalPages, pageParam, anchor);
+}
+
 public sealed class AdminKnowledgeViewModel
 {
     // Approved (default), NeedsReview or all.
