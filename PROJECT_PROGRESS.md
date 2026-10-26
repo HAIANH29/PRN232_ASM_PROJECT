@@ -72,6 +72,12 @@ Do not mark a feature as complete if it only has placeholders or configuration. 
 
 ## Change Log
 
+### 2026-10-26 — Pagination for the Knowledge pages
+
+- The member Diet Knowledge page (`/Knowledge`) always requested page 1 (20 guidelines, 30 foods, 30 recipes), so most of the 88 approved guidelines were unreachable; the Admin Knowledge lists had the same limit (25 per list). Each of the three lists now has its own Previous/Next pager (`guidelinePage`, `foodPage`, `recipePage`) that keeps the search, category and status filters. Added the shared `Views/Shared/_Pager.cshtml`, `PagerViewModel`, pager CSS and the Vietnamese strings (Page / Previous / Next).
+- Verification: `docker compose up -d --build web` builds; in the browser, Admin guidelines show "Page 2 / 4" with 25 rows and the member page shows "Page 2 / 5" with 20 cards. No Web test project exists, so there is no automated test for this.
+- Remaining UI gaps found in the QA pass: no sort control on the Knowledge pages, no Admin delete of guidelines/foods/recipes, no edit for meal plan items, and the Tracking page shows 100% when 0 meals are planned.
+
 ### 2026-10-26 — Database diagram (draw.io)
 
 - Added `docs/database/LongevityDiet-Database.drawio`: all tables of the four databases (IdentityDb, DietKnowledgeDb, MealPlanningDb, TrackingDb) with PK/FK markers, in-database foreign keys (crow's foot) and dashed red logical references (`UserId`, `RecipeId`, `FoodId`, `MealPlanItemId`, `AcceptedMealPlanId`, `ApprovedKnowledgeId`) that have no foreign key. Built from `Physical-Database.md` and the `*DbContext` relationships.

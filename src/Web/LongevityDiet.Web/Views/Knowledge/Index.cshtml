@@ -24,7 +24,7 @@
     </form>
 </section>
 
-<div class="section-title">
+<div class="section-title" id="guidelines">
     <h2><span class="icon" aria-hidden="true">menu_book</span>@T["Guidelines"]</h2>
     <span class="count-pill">@Model.Guidelines.TotalCount</span>
 </div>
@@ -44,13 +44,14 @@
             </article>
         }
     </div>
+    @await Html.PartialAsync("_Pager", PagerViewModel.For(Model.Guidelines, "guidelinePage", "guidelines"))
 }
 else
 {
     <p class="empty-state">@T["No guidelines found."]</p>
 }
 
-<div class="section-title">
+<div class="section-title" id="foods">
     <h2><span class="icon" aria-hidden="true">nutrition</span>@T["Foods"]</h2>
     <span class="count-pill">@Model.Foods.TotalCount</span>
 </div>
@@ -70,13 +71,14 @@ else
             </article>
         }
     </div>
+    @await Html.PartialAsync("_Pager", PagerViewModel.For(Model.Foods, "foodPage", "foods"))
 }
 else
 {
     <p class="empty-state">@T["No foods found."]</p>
 }
 
-<div class="section-title">
+<div class="section-title" id="recipes">
     <h2><span class="icon" aria-hidden="true">skillet</span>@T["Recipes"]</h2>
     <span class="count-pill">@Model.Recipes.TotalCount</span>
 </div>
@@ -99,6 +101,7 @@ else
             </article>
         }
     </div>
+    @await Html.PartialAsync("_Pager", PagerViewModel.For(Model.Recipes, "recipePage", "recipes"))
 }
 else
 {
