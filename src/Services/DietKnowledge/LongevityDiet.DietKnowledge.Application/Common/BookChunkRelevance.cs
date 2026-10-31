@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace LongevityDiet.DietKnowledge.Application.Common;
@@ -28,7 +29,18 @@ public static partial class BookChunkRelevance
         "autoimmune",
         "multiple sclerosis",
         "arthritis",
-        "crohn"
+        "crohn",
+        // Vietnamese
+        "ung thư",
+        "hóa trị",
+        "tiểu đường",
+        "đái tháo đường",
+        "tim mạch",
+        "sa sút trí tuệ",
+        "khối u",
+        "tự miễn",
+        "xơ cứng rải rác",
+        "viêm khớp"
     ];
 
     public static string CleanText(string text)
@@ -55,8 +67,9 @@ public static partial class BookChunkRelevance
             return false;
         }
 
+        var normalized = cleaned.Normalize(NormalizationForm.FormC);
         var medicalHits = MedicalTerms.Count(term =>
-            cleaned.Contains(term, StringComparison.OrdinalIgnoreCase));
+            normalized.Contains(term, StringComparison.OrdinalIgnoreCase));
         return medicalHits < MedicalTermThreshold;
     }
 
@@ -71,12 +84,20 @@ public static partial class BookChunkRelevance
         "diagnos",
         "predict",
         "lifespan",
-        "life span"
+        "life span",
+        // Vietnamese
+        "bệnh",
+        "điều trị",
+        "chữa",
+        "chẩn đoán",
+        "dự đoán",
+        "tiên lượng"
     ];
 
     public static bool IsSafeForBulkApproval(string title, string summary)
     {
-        var text = $"{title} {summary}";
+        // Vietnamese text can arrive decomposed (NFD); compare in composed form so diacritics match.
+        var text = $"{title} {summary}".Normalize(NormalizationForm.FormC);
         return !BulkApprovalBlockedTerms.Any(term =>
             text.Contains(term, StringComparison.OrdinalIgnoreCase));
     }

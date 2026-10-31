@@ -170,6 +170,14 @@ internal sealed class InMemoryDietKnowledgeRepository : IDietKnowledgeRepository
         return Task.FromResult(result);
     }
 
+    public Task<Food?> GetFoodByNameAsync(
+        string name,
+        CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(Foods.FirstOrDefault(food =>
+            string.Equals(food.Name.Trim(), name.Trim(), StringComparison.OrdinalIgnoreCase)));
+    }
+
     public Task<bool> FoodNameExistsAsync(
         string name,
         Guid? excludedId = null,
@@ -319,6 +327,27 @@ internal sealed class InMemoryDietKnowledgeRepository : IDietKnowledgeRepository
     {
         Candidates.AddRange(candidates);
         return Task.CompletedTask;
+    }
+
+    public Task<LongevityDiet.DietKnowledge.Application.Models.DeleteAllKnowledgeResultModel> DeleteAllKnowledgeAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var result = new LongevityDiet.DietKnowledge.Application.Models.DeleteAllKnowledgeResultModel(
+            Guidelines.Count,
+            Foods.Count,
+            Recipes.Count,
+            Candidates.Count(candidate => candidate.ApprovedKnowledgeId is not null));
+
+        foreach (var candidate in Candidates.Where(candidate => candidate.ApprovedKnowledgeId is not null))
+        {
+            candidate.Status = "NeedsReview";
+            candidate.ApprovedKnowledgeId = null;
+        }
+
+        Guidelines.Clear();
+        Foods.Clear();
+        Recipes.Clear();
+        return Task.FromResult(result);
     }
 
     public Task SaveChangesAsync(CancellationToken cancellationToken = default)

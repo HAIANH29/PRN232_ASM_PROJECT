@@ -2,6 +2,7 @@ using System.Reflection;
 using DietAdminFoodsController = LongevityDiet.DietKnowledge.Api.Controllers.AdminFoodsController;
 using DietAdminGuidelinesController = LongevityDiet.DietKnowledge.Api.Controllers.AdminDietGuidelinesController;
 using DietAdminRecipesController = LongevityDiet.DietKnowledge.Api.Controllers.AdminRecipesController;
+using DietAdminKnowledgeController = LongevityDiet.DietKnowledge.Api.Controllers.AdminKnowledgeController;
 using DietBookSourcesController = LongevityDiet.DietKnowledge.Api.Controllers.BookSourcesController;
 using DietFoodsController = LongevityDiet.DietKnowledge.Api.Controllers.FoodsController;
 using DietKnowledgeCandidatesController = LongevityDiet.DietKnowledge.Api.Controllers.KnowledgeCandidatesController;
@@ -21,6 +22,7 @@ public sealed class ApiAuthorizationTests
     [InlineData(typeof(DietAdminGuidelinesController))]
     [InlineData(typeof(DietAdminFoodsController))]
     [InlineData(typeof(DietAdminRecipesController))]
+    [InlineData(typeof(DietAdminKnowledgeController))]
     [InlineData(typeof(DietBookSourcesController))]
     [InlineData(typeof(DietKnowledgeCandidatesController))]
     public void Diet_knowledge_admin_controllers_require_admin_role(Type controllerType)

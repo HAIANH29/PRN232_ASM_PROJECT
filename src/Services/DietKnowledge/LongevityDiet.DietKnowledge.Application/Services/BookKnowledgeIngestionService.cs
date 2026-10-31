@@ -66,7 +66,8 @@ public sealed class BookKnowledgeIngestionService(
         ValidateUpload(command);
 
         var documentId = Guid.NewGuid();
-        var storedFileName = $"{documentId:N}.pdf";
+        var isText = IsTextFile(command.OriginalFileName);
+        var storedFileName = $"{documentId:N}{(isText ? ".txt" : ".pdf")}";
         var storagePath = await fileStore.SaveAsync(
             command.Content,
             storedFileName,
@@ -78,7 +79,7 @@ public sealed class BookKnowledgeIngestionService(
             OriginalFileName = Clean(command.OriginalFileName),
             StoredFileName = storedFileName,
             ContentType = string.IsNullOrWhiteSpace(command.ContentType)
-                ? "application/pdf"
+                ? (isText ? "text/plain" : "application/pdf")
                 : command.ContentType.Trim(),
             FileSizeBytes = command.FileSizeBytes,
             StoragePath = storagePath,
@@ -96,7 +97,7 @@ public sealed class BookKnowledgeIngestionService(
 
             if (chunks.Count == 0)
             {
-                throw new ValidationException("No readable text could be extracted from this PDF.");
+                throw new ValidationException("No readable text could be extracted from this file.");
             }
 
             await repository.AddBookSourceChunksAsync(chunks, cancellationToken);
@@ -254,7 +255,7 @@ public sealed class BookKnowledgeIngestionService(
             catch (Exception exception) when (
                 exception is ValidationException or InvalidOperationException)
             {
-                // Duplicate titles and recipe candidates cannot be approved here; keep going.
+                // Duplicate titles and recipes without ingredients cannot be approved here; keep going.
                 failed++;
             }
         }
@@ -386,8 +387,126 @@ public sealed class BookKnowledgeIngestionService(
             return food.Id;
         }
 
-        throw new ValidationException(
-            "Recipe candidates must be recreated through the recipe admin screen so ingredients are reviewed explicitly.");
+        return await CreateApprovedRecipeAsync(
+            candidate,
+            title,
+            sourceChapter,
+            sourcePage,
+            sourceReference,
+            reviewedBy,
+            cancellationToken);
+    }
+
+    // Ingredients come only from what the book states. A name with no matching Food becomes a
+    // name-only Food that still needs review, so no nutrition note is invented for it.
+    private async Task<Guid> CreateApprovedRecipeAsync(
+        KnowledgeCandidate candidate,
+        string title,
+        string sourceChapter,
+        string sourcePage,
+        string sourceReference,
+        string reviewedBy,
+        CancellationToken cancellationToken)
+    {
+        if (await repository.RecipeNameExistsAsync(title, cancellationToken: cancellationToken))
+        {
+            throw new InvalidOperationException("A recipe with this candidate title already exists.");
+        }
+
+        var ingredients = ParseIngredients(candidate.IngredientsJson);
+        if (ingredients.Count == 0)
+        {
+            throw new ValidationException("This recipe candidate has no ingredients taken from the book.");
+        }
+
+        var recipe = new Recipe
+        {
+            Id = Guid.NewGuid(),
+            Name = title,
+            Description = Clean(candidate.Summary),
+            SourceTitle = CleanOrDefault(candidate.SourceTitle, "The Longevity Diet"),
+            SourceChapter = sourceChapter,
+            SourcePage = sourcePage,
+            SourceReference = sourceReference,
+            ReviewStatus = KnowledgeReviewStatuses.Approved,
+            ReviewedBy = reviewedBy,
+            ReviewedAtUtc = DateTimeOffset.UtcNow,
+            IsActive = true,
+            CreatedAtUtc = DateTimeOffset.UtcNow
+        };
+
+        var usedFoodIds = new HashSet<Guid>();
+        foreach (var ingredient in ingredients)
+        {
+            var food = await repository.GetFoodByNameAsync(ingredient.Name, cancellationToken);
+            if (food is null)
+            {
+                food = new Food
+                {
+                    Id = Guid.NewGuid(),
+                    Name = Truncate(ingredient.Name, 200),
+                    Category = "Book-derived",
+                    CompatibilityNotes = "Ingredient named in an uploaded book recipe; nutrition note not reviewed yet.",
+                    SourceTitle = CleanOrDefault(candidate.SourceTitle, "The Longevity Diet"),
+                    SourceChapter = sourceChapter,
+                    SourcePage = sourcePage,
+                    SourceReference = sourceReference,
+                    ReviewStatus = KnowledgeReviewStatuses.NeedsReview,
+                    IsActive = true,
+                    CreatedAtUtc = DateTimeOffset.UtcNow
+                };
+                await repository.AddFoodAsync(food, cancellationToken);
+            }
+
+            if (usedFoodIds.Add(food.Id))
+            {
+                recipe.Ingredients.Add(new RecipeIngredient
+                {
+                    Id = Guid.NewGuid(),
+                    RecipeId = recipe.Id,
+                    FoodId = food.Id,
+                    QuantityText = Truncate(CleanOptional(ingredient.Quantity), 120)
+                });
+            }
+        }
+
+        await repository.AddRecipeAsync(recipe, cancellationToken);
+        return recipe.Id;
+    }
+
+    private static IReadOnlyList<CandidateIngredient> ParseIngredients(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return [];
+        }
+
+        try
+        {
+            return (System.Text.Json.JsonSerializer.Deserialize<CandidateIngredient[]>(json) ?? [])
+                .Where(ingredient => !string.IsNullOrWhiteSpace(ingredient.Name))
+                .ToArray();
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            return [];
+        }
+    }
+
+    // Keeps the stored JSON inside the column limit by dropping trailing ingredients.
+    private static string SerializeIngredients(IReadOnlyList<CandidateIngredient>? ingredients)
+    {
+        var kept = (ingredients ?? [])
+            .Where(ingredient => !string.IsNullOrWhiteSpace(ingredient.Name))
+            .ToList();
+        var json = System.Text.Json.JsonSerializer.Serialize(kept);
+        while (json.Length > 4000 && kept.Count > 0)
+        {
+            kept.RemoveAt(kept.Count - 1);
+            json = System.Text.Json.JsonSerializer.Serialize(kept);
+        }
+
+        return kept.Count == 0 ? string.Empty : json;
     }
 
     public async Task DeleteDocumentAsync(
@@ -441,6 +560,7 @@ public sealed class BookKnowledgeIngestionService(
             SourceReference = Truncate(CleanOptional(draft.SourceReference), 500),
             Status = KnowledgeCandidateStatuses.NeedsReview,
             GeneratedBy = Truncate(CleanOrDefault(draft.GeneratedBy, "BookKnowledgeIngestion"), 120),
+            IngredientsJson = SerializeIngredients(draft.Ingredients),
             CreatedAtUtc = DateTimeOffset.UtcNow
         };
     }
@@ -481,19 +601,25 @@ public sealed class BookKnowledgeIngestionService(
     {
         if (command.Content.Length == 0 || command.FileSizeBytes == 0)
         {
-            throw new ValidationException("A PDF file is required.");
+            throw new ValidationException("A PDF or TXT file is required.");
         }
 
         if (command.FileSizeBytes > DefaultMaxUploadBytes)
         {
-            throw new ValidationException("PDF uploads are limited to 25 MB.");
+            throw new ValidationException("Uploads are limited to 25 MB.");
         }
 
         var extension = Path.GetExtension(command.OriginalFileName);
-        if (!string.Equals(extension, ".pdf", StringComparison.OrdinalIgnoreCase))
+        if (!string.Equals(extension, ".pdf", StringComparison.OrdinalIgnoreCase) &&
+            !IsTextFile(command.OriginalFileName))
         {
-            throw new ValidationException("Only PDF files can be uploaded.");
+            throw new ValidationException("Only PDF or TXT files can be uploaded.");
         }
+    }
+
+    private static bool IsTextFile(string fileName)
+    {
+        return string.Equals(Path.GetExtension(fileName), ".txt", StringComparison.OrdinalIgnoreCase);
     }
 
     private static BookSourceDocumentModel MapDocument(BookSourceDocument document)

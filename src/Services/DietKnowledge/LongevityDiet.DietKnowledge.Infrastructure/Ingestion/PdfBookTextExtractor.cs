@@ -22,7 +22,7 @@ public sealed class PdfBookTextExtractor : IBookTextExtractor
             cancellationToken);
     }
 
-    private static string Normalize(string text)
+    internal static string Normalize(string text)
     {
         // PDF text can contain NUL/control characters and unpaired surrogates, which PostgreSQL rejects.
         var cleaned = new string(RemoveInvalidCharacters(text ?? string.Empty).ToArray());

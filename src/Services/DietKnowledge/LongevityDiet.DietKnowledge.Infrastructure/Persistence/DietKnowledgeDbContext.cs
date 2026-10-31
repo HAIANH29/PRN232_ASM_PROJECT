@@ -128,6 +128,7 @@ public sealed class DietKnowledgeDbContext(DbContextOptions<DietKnowledgeDbConte
             entity.Property(candidate => candidate.Status).HasMaxLength(40).IsRequired();
             entity.Property(candidate => candidate.GeneratedBy).HasMaxLength(120).IsRequired();
             entity.Property(candidate => candidate.ReviewedBy).HasMaxLength(120).IsRequired();
+            entity.Property(candidate => candidate.IngredientsJson).HasMaxLength(4000).IsRequired();
             entity.Property(candidate => candidate.CreatedAtUtc).IsRequired();
             entity.HasOne(candidate => candidate.Document)
                 .WithMany(document => document.Candidates)

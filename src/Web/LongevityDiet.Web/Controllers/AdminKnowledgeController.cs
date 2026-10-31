@@ -26,6 +26,24 @@ public sealed class AdminKnowledgeController(ApiGatewayClient api, UserSession s
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteAll(CancellationToken cancellationToken)
+    {
+        var guard = RequireAdmin();
+        if (guard is not null)
+        {
+            return guard;
+        }
+
+        var result = await Api.DeleteAsync(
+            "/diet-knowledge/api/admin/knowledge?confirm=true",
+            Token,
+            cancellationToken);
+        AddResultMessage(result, "All knowledge deleted.");
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateGuideline(
         [Bind(Prefix = "Guideline")] GuidelineForm form,
         CancellationToken cancellationToken)

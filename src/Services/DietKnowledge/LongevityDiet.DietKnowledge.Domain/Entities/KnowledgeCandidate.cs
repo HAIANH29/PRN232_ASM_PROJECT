@@ -37,4 +37,7 @@ public sealed class KnowledgeCandidate
     public DateTimeOffset? ReviewedAtUtc { get; set; }
 
     public Guid? ApprovedKnowledgeId { get; set; }
+
+    // Recipe candidates only: ingredients as the book states them, a JSON array of {Name, Quantity}.
+    public string IngredientsJson { get; set; } = string.Empty;
 }
