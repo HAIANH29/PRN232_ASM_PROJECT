@@ -11,7 +11,8 @@ public sealed class BookKnowledgeIngestionService(
     IBookKnowledgeFileStore fileStore,
     IBookTextExtractor textExtractor,
     IBookTextChunker textChunker,
-    IKnowledgeCandidateGenerator candidateGenerator) : IBookKnowledgeIngestionService
+    IKnowledgeCandidateGenerator candidateGenerator,
+    IGenerationProgressTracker? progressTracker = null) : IBookKnowledgeIngestionService
 {
     private const long DefaultMaxUploadBytes = 25 * 1024 * 1024;
 
@@ -148,7 +149,21 @@ public sealed class BookKnowledgeIngestionService(
             throw new ValidationException("Every relevant chunk of this document has already been analyzed.");
         }
 
-        var generation = await candidateGenerator.GenerateAsync(document, pendingChunks, cancellationToken);
+        KnowledgeCandidateGenerationResult generation;
+        progressTracker?.Start(document.Id);
+        try
+        {
+            generation = await candidateGenerator.GenerateAsync(
+                document,
+                pendingChunks,
+                cancellationToken,
+                (processed, total) => progressTracker?.Report(document.Id, processed, total));
+        }
+        finally
+        {
+            progressTracker?.Finish(document.Id);
+        }
+
         var existingTitles = (await repository.ListKnowledgeCandidatesAsync(document.Id, cancellationToken))
             .Select(candidate => candidate.Title.Trim())
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -173,6 +188,11 @@ public sealed class BookKnowledgeIngestionService(
         await repository.SaveChangesAsync(cancellationToken);
 
         return candidates.Select(MapCandidate).ToArray();
+    }
+
+    public GenerationRunProgressModel GetGenerationRunProgress(Guid documentId)
+    {
+        return progressTracker?.Get(documentId) ?? new GenerationRunProgressModel(false, 0, 0);
     }
 
     public async Task<KnowledgeGenerationProgressModel> GetGenerationProgressAsync(

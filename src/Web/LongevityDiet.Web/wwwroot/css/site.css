@@ -1761,3 +1761,91 @@ body::before {
   color: var(--app-muted);
   font-size: 0.9rem;
 }
+
+/* Small popup shown while candidates are being generated: spinning ring + percentage. */
+.run-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(27, 46, 37, 0.35);
+}
+
+.run-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 180px;
+  padding: 22px 28px;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 16px;
+  box-shadow: 0 12px 32px rgba(27, 46, 37, 0.2);
+}
+
+.run-ring {
+  position: relative;
+  width: 96px;
+  height: 96px;
+}
+
+.run-ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.run-track,
+.run-value {
+  fill: none;
+  stroke-width: 6;
+}
+
+.run-track {
+  stroke: var(--app-surface-soft);
+}
+
+.run-value {
+  stroke: var(--app-accent);
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.4s ease;
+}
+
+.run-spinner {
+  position: absolute;
+  inset: -6px;
+  border: 3px solid transparent;
+  border-top-color: var(--app-accent);
+  border-radius: 50%;
+  animation: run-spin 1s linear infinite;
+}
+
+.run-percent {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--app-accent-strong);
+}
+
+.run-label {
+  font-weight: 600;
+}
+
+.run-detail {
+  min-height: 1.2em;
+  font-size: 0.85rem;
+  color: var(--app-muted);
+}
+
+@keyframes run-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

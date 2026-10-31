@@ -129,6 +129,47 @@ public sealed class BookKnowledgeIngestionServiceTests
     }
 
     [Fact]
+    public async Task GenerateCandidatesAsync_reports_run_progress_and_clears_it_when_done()
+    {
+        var repository = new InMemoryDietKnowledgeRepository();
+        var documentId = AddChunkedDocument(repository);
+        AddChunk(repository, documentId, 1, UsefulText);
+        var tracker = new GenerationProgressTracker();
+        var observed = new List<GenerationRunProgressModel>();
+        var generator = new FakeKnowledgeCandidateGenerator { OnGenerate = () => observed.Add(tracker.Get(documentId)) };
+        var service = new BookKnowledgeIngestionService(
+            repository,
+            new FakeBookKnowledgeFileStore("storage"),
+            new FakeBookTextExtractor([]),
+            new FakeBookTextChunker(),
+            generator,
+            tracker);
+
+        await service.GenerateCandidatesAsync(new GenerateKnowledgeCandidatesCommand(documentId, "admin"));
+
+        var during = Assert.Single(observed);
+        Assert.True(during.Running);
+        Assert.False(tracker.Get(documentId).Running);
+        Assert.False(service.GetGenerationRunProgress(documentId).Running);
+    }
+
+    [Fact]
+    public void GenerationProgressTracker_tracks_percent_inputs_per_document()
+    {
+        var tracker = new GenerationProgressTracker();
+        var first = Guid.NewGuid();
+        var second = Guid.NewGuid();
+
+        tracker.Start(first);
+        tracker.Report(first, 6, 24);
+
+        Assert.Equal(new GenerationRunProgressModel(true, 6, 24), tracker.Get(first));
+        Assert.False(tracker.Get(second).Running);
+        tracker.Finish(first);
+        Assert.False(tracker.Get(first).Running);
+    }
+
+    [Fact]
     public async Task GenerateCandidatesAsync_sends_only_pending_relevant_chunks_and_marks_them_processed()
     {
         var repository = new InMemoryDietKnowledgeRepository();
