@@ -114,8 +114,32 @@ public sealed class AdminBookSourcesController(ApiGatewayClient api, UserSession
             Token,
             cancellationToken);
 
-        AddResultMessage(result, "Knowledge candidates generated.");
-        return RedirectToAction(nameof(Details), new { id });
+        return Respond(result, "Knowledge candidates generated.", id);
+    }
+
+    // Polled by the page while a generate request is still running.
+    [HttpGet]
+    public async Task<IActionResult> GenerationStatus(Guid id, CancellationToken cancellationToken)
+    {
+        var guard = RequireAdmin();
+        if (guard is not null)
+        {
+            return guard;
+        }
+
+        var result = await Api.GetAsync<GenerationRunProgressResponse>(
+            $"/diet-knowledge/api/admin/book-sources/{id}/candidates/generate/status",
+            Token,
+            cancellationToken);
+        var run = result.Data;
+
+        return Json(new
+        {
+            running = run?.Running ?? false,
+            processed = run?.ProcessedChunks ?? 0,
+            total = run?.TotalChunks ?? 0,
+            percent = run?.Percent ?? 0
+        });
     }
 
     [HttpPost]

@@ -7,6 +7,7 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddDietKnowledgeApplication(this IServiceCollection services)
     {
+        services.AddSingleton<LongevityDiet.DietKnowledge.Application.Abstractions.IGenerationProgressTracker, GenerationProgressTracker>();
         services.AddScoped<IDietKnowledgeService, DietKnowledgeService>();
         services.AddScoped<IBookKnowledgeIngestionService, BookKnowledgeIngestionService>();
 

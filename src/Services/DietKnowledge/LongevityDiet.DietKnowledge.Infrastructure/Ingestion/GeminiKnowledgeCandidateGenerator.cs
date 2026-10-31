@@ -40,7 +40,8 @@ public sealed class GeminiKnowledgeCandidateGenerator(
     public async Task<KnowledgeCandidateGenerationResult> GenerateAsync(
         BookSourceDocument document,
         IReadOnlyCollection<BookSourceChunk> chunks,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        Action<int, int>? onProgress = null)
     {
         var selectedChunks = chunks
             .Where(chunk => !string.IsNullOrWhiteSpace(BookChunkRelevance.CleanText(chunk.Text)))
@@ -56,6 +57,7 @@ public sealed class GeminiKnowledgeCandidateGenerator(
         if (!IsEnabled)
         {
             var fallbackChunks = selectedChunks.Take(FallbackDraftLimit).ToArray();
+            onProgress?.Invoke(fallbackChunks.Length, fallbackChunks.Length);
             return new KnowledgeCandidateGenerationResult(
                 CreateFallbackDrafts(document, fallbackChunks),
                 fallbackChunks.Select(chunk => chunk.Id).ToArray());
@@ -65,6 +67,7 @@ public sealed class GeminiKnowledgeCandidateGenerator(
         var processedChunkIds = new List<Guid>();
         var deadline = DateTime.UtcNow.AddSeconds(Math.Max(1, geminiOptions.TotalBudgetSeconds));
         var consecutiveFailures = 0;
+        onProgress?.Invoke(0, selectedChunks.Length);
 
         foreach (var group in GroupChunks(selectedChunks))
         {
@@ -81,6 +84,7 @@ public sealed class GeminiKnowledgeCandidateGenerator(
                 var generated = await GenerateWithRetryAsync(document, group, deadline, cancellationToken);
                 drafts.AddRange(generated);
                 processedChunkIds.AddRange(group.Select(chunk => chunk.Id));
+                onProgress?.Invoke(processedChunkIds.Count, selectedChunks.Length);
                 consecutiveFailures = 0;
             }
             catch (Exception exception) when (!cancellationToken.IsCancellationRequested)

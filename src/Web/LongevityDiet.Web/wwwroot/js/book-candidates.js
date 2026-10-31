@@ -82,6 +82,64 @@
         }
     }
 
+    // Generate runs for a while on the server: show a small popup with a spinning ring and the
+    // percentage of this run, polled from the server until the request finishes.
+    function startProgress(form) {
+        var url = form.getAttribute('data-progress-url');
+        if (!url) {
+            return function () {};
+        }
+
+        var radius = 34;
+        var circumference = 2 * Math.PI * radius;
+        var overlay = document.createElement('div');
+        overlay.className = 'run-overlay';
+        overlay.innerHTML =
+            '<div class="run-card" role="status" aria-live="polite">' +
+            '<div class="run-ring">' +
+            '<svg viewBox="0 0 80 80" aria-hidden="true">' +
+            '<circle class="run-track" cx="40" cy="40" r="' + radius + '"></circle>' +
+            '<circle class="run-value" cx="40" cy="40" r="' + radius + '" stroke-dasharray="' + circumference + '" stroke-dashoffset="' + circumference + '"></circle>' +
+            '</svg>' +
+            '<span class="run-spinner"></span>' +
+            '<span class="run-percent">0%</span>' +
+            '</div>' +
+            '<div class="run-label"></div>' +
+            '<div class="run-detail"></div>' +
+            '</div>';
+        overlay.querySelector('.run-label').textContent = form.getAttribute('data-progress-label') || '';
+        document.body.appendChild(overlay);
+
+        var value = overlay.querySelector('.run-value');
+        var percentText = overlay.querySelector('.run-percent');
+        var detail = overlay.querySelector('.run-detail');
+        var stopped = false;
+
+        function render(percent, processed, total) {
+            value.style.strokeDashoffset = circumference * (1 - percent / 100);
+            percentText.textContent = percent + '%';
+            detail.textContent = total > 0 ? processed + ' / ' + total : '';
+        }
+
+        function poll() {
+            fetch(url, { headers: { 'X-Requested-With': 'fetch' } })
+                .then(function (response) { return response.json(); })
+                .then(function (run) {
+                    if (!stopped && run.running) {
+                        render(run.percent, run.processed, run.total);
+                    }
+                })
+                .catch(function () {});
+        }
+
+        var timer = setInterval(poll, 1000);
+        return function () {
+            stopped = true;
+            clearInterval(timer);
+            overlay.remove();
+        };
+    }
+
     document.addEventListener('submit', function (event) {
         var form = event.target;
         var mode = form.getAttribute && form.getAttribute('data-fetch');
@@ -92,6 +150,7 @@
 
         event.preventDefault();
         setBusy(form, true);
+        var stopProgress = startProgress(form);
 
         fetch(form.action, {
             method: 'POST',
@@ -100,6 +159,7 @@
         })
             .then(function (response) { return response.json(); })
             .then(function (result) {
+                stopProgress();
                 showToast(result.message, result.succeeded);
                 if (!result.succeeded) {
                     setBusy(form, false);
@@ -115,6 +175,7 @@
                 return refreshSections();
             })
             .catch(function () {
+                stopProgress();
                 showToast(document.documentElement.lang === 'vi' ? 'Yêu cầu thất bại. Vui lòng thử lại.' : 'The request failed. Please try again.', false);
                 setBusy(form, false);
             });

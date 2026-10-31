@@ -72,6 +72,12 @@ Do not mark a feature as complete if it only has placeholders or configuration. 
 
 ## Change Log
 
+### 2026-10-31 — Live percentage while candidates are generated
+
+- Clicking "Generate candidates / next batch" now opens a small popup with a spinning ring and the percentage (plus `processed/total` chunks) of that click; the popup is built by `book-candidates.js` and removed when the request ends. Diet Knowledge keeps an in-memory `GenerationProgressTracker` (singleton, per document); `GeminiKnowledgeCandidateGenerator` reports after each Gemini group via a new optional `onProgress` callback, and `GET /api/admin/book-sources/{id}/candidates/generate/status` returns `{running, processedChunks, totalChunks, percent}`.
+- Web: the generate form is now a `data-fetch` form (no full reload; result shown as a toast, page sections refreshed) and `book-candidates.js` polls `AdminBookSources/GenerationStatus/{id}` every second while the request runs. Vietnamese label added.
+- Verification: build 0 warnings, 60 tests pass (2 new). Status endpoint answers `running:false` when idle. The live bar was not watched during a real Gemini run; progress moves per Gemini group, so with Gemini off (placeholder drafts) it jumps straight to done.
+
 ### 2026-10-31 — Vietnamese keywords in the medical-content filters
 
 - `BookChunkRelevance` now also screens Vietnamese: chunk filter terms (ung thư, hóa trị, tiểu đường, đái tháo đường, tim mạch, sa sút trí tuệ, khối u, tự miễn, xơ cứng rải rác, viêm khớp) and bulk-approval blocked terms (bệnh, điều trị, chữa, chẩn đoán, dự đoán, tiên lượng). Text is compared in NFC so decomposed (NFD) diacritics still match. "tuổi thọ" is deliberately not blocked: it is the book's whole theme.
