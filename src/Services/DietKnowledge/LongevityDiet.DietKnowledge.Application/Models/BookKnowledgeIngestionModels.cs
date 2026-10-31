@@ -108,3 +108,8 @@ public sealed record ApproveAllKnowledgeCandidatesResultModel(
 public sealed record RejectPlaceholderCandidatesCommand(
     Guid DocumentId,
     string ReviewedBy);
+
+public sealed record GenerationRunProgressModel(
+    bool Running,
+    int ProcessedChunks,
+    int TotalChunks);

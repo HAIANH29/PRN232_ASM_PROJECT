@@ -68,3 +68,9 @@ public sealed record ApproveAllCandidatesResponse(
     int Failed);
 
 public sealed record RejectPlaceholdersResponse(int Rejected);
+
+public sealed record GenerationRunProgressResponse(
+    bool Running,
+    int ProcessedChunks,
+    int TotalChunks,
+    int Percent);

@@ -119,6 +119,21 @@ public sealed class BookSourcesController(IBookKnowledgeIngestionService ingesti
             HttpContext.TraceIdentifier));
     }
 
+    // Live progress of the generate run in flight; polled by the Web page while the POST below is pending.
+    [HttpGet("{id:guid}/candidates/generate/status")]
+    public ActionResult<ApiResponse<GenerationRunProgressResponse>> GetGenerationRunProgress(Guid id)
+    {
+        var run = ingestionService.GetGenerationRunProgress(id);
+        var percent = run.TotalChunks == 0
+            ? 0
+            : (int)Math.Round(100.0 * run.ProcessedChunks / run.TotalChunks);
+
+        return Ok(ApiResponse<GenerationRunProgressResponse>.Success(
+            new GenerationRunProgressResponse(run.Running, run.ProcessedChunks, run.TotalChunks, percent),
+            "Generation run progress loaded.",
+            HttpContext.TraceIdentifier));
+    }
+
     [HttpPost("{id:guid}/candidates/generate")]
     public async Task<ActionResult<ApiResponse<IReadOnlyCollection<KnowledgeCandidateResponse>>>> GenerateCandidates(
         Guid id,

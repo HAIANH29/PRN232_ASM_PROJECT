@@ -339,6 +339,7 @@ public static class Translations
         ["Back to sources"] = "Quay lại các nguồn",
         ["Generate candidates"] = "Tạo mục đề xuất",
         ["Generate next batch"] = "Tạo lô tiếp theo",
+        ["Generating candidates"] = "Đang tạo mục đề xuất",
         ["Approve all"] = "Duyệt tất cả",
         ["Reject placeholders"] = "Từ chối mục giữ chỗ",
         ["Reject every placeholder draft that has no real summary?"] = "Từ chối mọi bản nháp giữ chỗ chưa có tóm tắt thật?",

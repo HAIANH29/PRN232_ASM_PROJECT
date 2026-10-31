@@ -11,7 +11,9 @@
     </div>
     <div class="head-actions">
         <a class="btn btn-outline-secondary" asp-action="Index"><span class="icon" aria-hidden="true">arrow_back</span>@T["Back to sources"]</a>
-        <form asp-action="GenerateCandidates" asp-route-id="@Model.Document.Id" method="post" class="inline-form">
+        <form asp-action="GenerateCandidates" asp-route-id="@Model.Document.Id" method="post" class="inline-form" data-fetch="section"
+              data-progress-url="@Url.Action("GenerationStatus", new { id = Model.Document.Id })"
+              data-progress-label="@T["Generating candidates"]">
             <button class="btn btn-dark" type="submit" disabled="@(Model.Document.Status != "Chunked" || Model.Progress.RemainingChunks == 0)"><span class="icon" aria-hidden="true">auto_awesome</span>@(Model.Progress.ProcessedChunks == 0 ? T["Generate candidates"] : T["Generate next batch"])</button>
         </form>
         <form asp-action="ApproveAllCandidates" asp-route-id="@Model.Document.Id" method="post" class="inline-form" data-fetch="section"

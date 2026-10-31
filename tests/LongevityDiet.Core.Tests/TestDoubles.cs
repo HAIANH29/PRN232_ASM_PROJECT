@@ -423,12 +423,17 @@ internal sealed class FakeKnowledgeCandidateGenerator : IKnowledgeCandidateGener
 
     public IReadOnlyCollection<BookSourceChunk> ReceivedChunks { get; private set; } = [];
 
+    public Action? OnGenerate { get; init; }
+
     public Task<KnowledgeCandidateGenerationResult> GenerateAsync(
         BookSourceDocument document,
         IReadOnlyCollection<BookSourceChunk> chunks,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        Action<int, int>? onProgress = null)
     {
         ReceivedChunks = chunks;
+        OnGenerate?.Invoke();
+        onProgress?.Invoke(chunks.Count, chunks.Count);
         return Task.FromResult(new KnowledgeCandidateGenerationResult(
             Drafts,
             ProcessedChunkIds ?? chunks.Select(chunk => chunk.Id).ToArray()));

@@ -36,6 +36,8 @@ public interface IBookKnowledgeIngestionService
         Guid documentId,
         CancellationToken cancellationToken = default);
 
+    GenerationRunProgressModel GetGenerationRunProgress(Guid documentId);
+
     Task<KnowledgeCandidateModel> ApproveCandidateAsync(
         ApproveKnowledgeCandidateCommand command,
         CancellationToken cancellationToken = default);
