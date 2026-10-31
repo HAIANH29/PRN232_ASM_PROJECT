@@ -230,7 +230,8 @@ public sealed class GeminiKnowledgeCandidateGenerator(
 
         // Unparseable output (for example truncated JSON) is a failure so the chunks are retried later.
         var parsed = ParseCandidates(text)
-            ?? throw new InvalidOperationException("Gemini returned output that is not a JSON array.");
+            ?? throw new InvalidOperationException(
+                $"Gemini returned output that is not a JSON array (finishReason={geminiResponse?.Candidates?.FirstOrDefault()?.FinishReason}): {Truncate(text, 300)}");
 
         var chunksByIndex = group.ToDictionary(chunk => chunk.ChunkIndex);
         var maxCandidates = Math.Min(MaxCandidatesPerRequest, MaxCandidatesPerChunk * group.Count);
@@ -404,14 +405,16 @@ public sealed class GeminiKnowledgeCandidateGenerator(
     }
 
     private sealed record GeminiCandidateDraft(
-        string? CandidateType,
-        string? Title,
-        string? Summary,
-        string? SourceChapter,
+        [property: JsonConverter(typeof(LenientStringConverter))] string? CandidateType,
+        [property: JsonConverter(typeof(LenientStringConverter))] string? Title,
+        [property: JsonConverter(typeof(LenientStringConverter))] string? Summary,
+        [property: JsonConverter(typeof(LenientStringConverter))] string? SourceChapter,
         int? ChunkIndex,
         GeminiIngredientDraft[]? Ingredients = null);
 
-    private sealed record GeminiIngredientDraft(string? Name, string? Quantity);
+    private sealed record GeminiIngredientDraft(
+        [property: JsonConverter(typeof(LenientStringConverter))] string? Name,
+        [property: JsonConverter(typeof(LenientStringConverter))] string? Quantity);
 
     private sealed record GeminiGenerateContentRequest(
         IReadOnlyCollection<GeminiContent> Contents,
@@ -425,7 +428,8 @@ public sealed class GeminiKnowledgeCandidateGenerator(
         IReadOnlyCollection<GeminiCandidate>? Candidates);
 
     private sealed record GeminiCandidate(
-        GeminiContent? Content);
+        GeminiContent? Content,
+        string? FinishReason = null);
 
     private sealed record GeminiContent(
         string Role,
