@@ -72,6 +72,12 @@ Do not mark a feature as complete if it only has placeholders or configuration. 
 
 ## Change Log
 
+### 2026-10-31 — Fix "No knowledge candidates could be generated" with Gemini
+
+- Cause: Gemini sometimes writes `sourceChapter` (and could write an ingredient quantity) as a bare number, e.g. `"sourceChapter": 4`. The candidate record expected strings, so the JSON parse failed and the whole answer was reported as "not a JSON array"; every group failed, nothing was marked processed, and Generate returned "No knowledge candidates could be generated right now". Some groups also hit Gemini HTTP 429 (rate limit) earlier.
+- Fix: new `LenientStringConverter` reads numbers/null as strings for the Gemini draft fields. The "not a JSON array" error now includes `finishReason` and the first 300 characters of the answer, so the next failure is diagnosable from the log.
+- Verification: 61 tests pass (1 new). Real run on the uploaded Vietnamese book after the fix: 56 candidates (46 DietGuideline, 9 Food, 1 Recipe), 52 of 177 chunks analyzed, no Gemini failures in the log.
+
 ### 2026-10-31 — Live percentage while candidates are generated
 
 - Clicking "Generate candidates / next batch" now opens a small popup with a spinning ring and the percentage (plus `processed/total` chunks) of that click; the popup is built by `book-candidates.js` and removed when the request ends. Diet Knowledge keeps an in-memory `GenerationProgressTracker` (singleton, per document); `GeminiKnowledgeCandidateGenerator` reports after each Gemini group via a new optional `onProgress` callback, and `GET /api/admin/book-sources/{id}/candidates/generate/status` returns `{running, processedChunks, totalChunks, percent}`.
