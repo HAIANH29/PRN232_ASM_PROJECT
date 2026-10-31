@@ -37,3 +37,9 @@ public sealed record UpdateDietGuidelineCommand(
     string SourceReference,
     string ReviewStatus,
     string ReviewedBy);
+
+public sealed record DeleteAllKnowledgeResultModel(
+    int GuidelinesDeleted,
+    int FoodsDeleted,
+    int RecipesDeleted,
+    int CandidatesReset);

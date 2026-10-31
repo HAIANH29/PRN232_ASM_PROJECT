@@ -75,7 +75,11 @@ public sealed record KnowledgeCandidateDraft(
     string SourceChapter,
     string SourcePage,
     string SourceReference,
-    string GeneratedBy);
+    string GeneratedBy,
+    IReadOnlyList<CandidateIngredient>? Ingredients = null);
+
+// An ingredient exactly as the book names it, with its quantity text (may be empty).
+public sealed record CandidateIngredient(string Name, string Quantity);
 
 public sealed record BookPageText(
     int PageNumber,

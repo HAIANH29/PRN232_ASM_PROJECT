@@ -87,6 +87,7 @@ public sealed class DietKnowledgeTests
                 ReviewedBy: "Admin")));
     }
 
+[Fact]    public async Task DeleteAllKnowledgeAsync_clears_content_and_returns_approved_candidates_to_review()    {        var repository = new InMemoryDietKnowledgeRepository();        repository.Foods.Add(CreateFood("Beans", "Legume", KnowledgeReviewStatuses.Approved));        repository.Candidates.Add(new KnowledgeCandidate        {            Id = Guid.NewGuid(),            Status = KnowledgeCandidateStatuses.Approved,            ApprovedKnowledgeId = Guid.NewGuid()        });        var service = new DietKnowledgeService(repository);        var result = await service.DeleteAllKnowledgeAsync();        Assert.Equal(1, result.FoodsDeleted);        Assert.Equal(1, result.CandidatesReset);        Assert.Empty(repository.Foods);        Assert.Equal(KnowledgeCandidateStatuses.NeedsReview, repository.Candidates[0].Status);        Assert.Null(repository.Candidates[0].ApprovedKnowledgeId);    }
     private static DietKnowledgeDbContext CreateDietKnowledgeDbContext()
     {
         var options = new DbContextOptionsBuilder<DietKnowledgeDbContext>()

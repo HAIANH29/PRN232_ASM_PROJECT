@@ -78,7 +78,9 @@ public static class DependencyInjection
         services.AddScoped<IDietKnowledgeRepository, DietKnowledgeRepository>();
         services.AddScoped<IDietKnowledgeSeeder, DietKnowledgeSeeder>();
         services.AddScoped<IBookKnowledgeFileStore, BookKnowledgeFileStore>();
-        services.AddScoped<IBookTextExtractor, PdfBookTextExtractor>();
+        services.AddScoped<PdfBookTextExtractor>();
+        services.AddScoped<TextBookTextExtractor>();
+        services.AddScoped<IBookTextExtractor, BookTextExtractor>();
         services.AddScoped<IBookTextChunker, BookTextChunker>();
         services.AddHttpClient<IKnowledgeCandidateGenerator, GeminiKnowledgeCandidateGenerator>(
             (serviceProvider, client) =>

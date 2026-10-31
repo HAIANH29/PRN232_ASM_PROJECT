@@ -7,7 +7,7 @@
     <div>
         <p class="eyebrow">@T["Admin workspace"]</p>
         <h1>@T["Book source ingestion"]</h1>
-        <p class="text-muted mb-0">@T["Upload a legally obtained PDF, extract chunks, and generate review candidates before approving knowledge."]</p>
+        <p class="text-muted mb-0">@T["Upload a legally obtained PDF or TXT file, extract chunks, and generate review candidates before approving knowledge."]</p>
     </div>
     <div class="head-actions">
         <a class="btn btn-outline-secondary" asp-controller="AdminKnowledge" asp-action="Index"><span class="icon" aria-hidden="true">fact_check</span>@T["Managed knowledge"]</a>
@@ -16,13 +16,13 @@
 
 <section class="section-card narrow-card">
     <div class="card-heading">
-        <h2><span class="icon" aria-hidden="true">upload_file</span>@T["Upload book PDF"]</h2>
+        <h2><span class="icon" aria-hidden="true">upload_file</span>@T["Upload book file"]</h2>
     </div>
     <form asp-action="Upload" method="post" enctype="multipart/form-data" class="form-stack">
         <div asp-validation-summary="ModelOnly" class="text-danger small"></div>
         <div class="upload-zone">
-            <label asp-for="Upload.File" class="form-label">@T["PDF file"]</label>
-            <input asp-for="Upload.File" type="file" accept="application/pdf,.pdf" class="form-control" />
+            <label asp-for="Upload.File" class="form-label">@T["PDF or TXT file"]</label>
+            <input asp-for="Upload.File" type="file" accept="application/pdf,text/plain,.pdf,.txt" class="form-control" />
             <span asp-validation-for="Upload.File" class="text-danger small"></span>
         </div>
         <button class="btn btn-dark" type="submit"><span class="icon" aria-hidden="true">upload</span>@T["Upload and chunk"]</button>

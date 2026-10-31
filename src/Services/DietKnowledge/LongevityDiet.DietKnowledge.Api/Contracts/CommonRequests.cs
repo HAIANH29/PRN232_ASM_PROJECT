@@ -25,3 +25,9 @@ public sealed record SetContentActivationRequest
     [Required]
     public bool IsActive { get; init; }
 }
+
+public sealed record DeleteAllKnowledgeResponse(
+    int GuidelinesDeleted,
+    int FoodsDeleted,
+    int RecipesDeleted,
+    int CandidatesReset);

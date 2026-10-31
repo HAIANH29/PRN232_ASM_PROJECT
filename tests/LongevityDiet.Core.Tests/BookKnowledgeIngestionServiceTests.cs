@@ -10,17 +10,35 @@ namespace LongevityDiet.Core.Tests;
 public sealed class BookKnowledgeIngestionServiceTests
 {
     [Fact]
-    public async Task UploadAndChunkAsync_rejects_non_pdf_uploads()
+    public async Task UploadAndChunkAsync_rejects_unsupported_file_types()
     {
         var service = CreateService(new InMemoryDietKnowledgeRepository());
 
         await Assert.ThrowsAsync<ValidationException>(() =>
             service.UploadAndChunkAsync(new UploadBookSourceCommand(
-                OriginalFileName: "book.txt",
-                ContentType: "text/plain",
+                OriginalFileName: "book.docx",
+                ContentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                 FileSizeBytes: 12,
                 Content: new MemoryStream("not a pdf"u8.ToArray()),
                 UploadedBy: "admin@example.com")));
+    }
+
+    [Fact]
+    public async Task UploadAndChunkAsync_accepts_txt_uploads()
+    {
+        var repository = new InMemoryDietKnowledgeRepository();
+        var service = CreateService(repository);
+
+        var result = await service.UploadAndChunkAsync(new UploadBookSourceCommand(
+            OriginalFileName: "book.TXT",
+            ContentType: "",
+            FileSizeBytes: 9,
+            Content: new MemoryStream("some text"u8.ToArray()),
+            UploadedBy: "admin@example.com"));
+
+        Assert.EndsWith(".txt", result.StoredFileName);
+        Assert.Equal("text/plain", result.ContentType);
+        Assert.Equal(BookSourceDocumentStatuses.Chunked, result.Status);
     }
 
     [Fact]
@@ -283,11 +301,13 @@ public sealed class BookKnowledgeIngestionServiceTests
     [InlineData("Chapter 15 Acknowledgments. This chapter reflects on thirty years of the journey in exploring longevity, thanking mentors, collaborators, colleagues and friends along the way.", false)]
     [InlineData("Chapter 7 covers cancer prevention. Fasting before chemotherapy is explored in mice and in patients, with attention to side effects, protection of normal cells and tumor response over time.", false)]
     [InlineData(UsefulText, true)]
+[InlineData("Chương 7 bàn về ung thư. Nhịn ăn trước khi hóa trị được nghiên cứu trên chuột và trên bệnh nhân, với chú ý tới tác dụng phụ, việc bảo vệ tế bào bình thường và đáp ứng của khối u theo thời gian.", false)]    [InlineData("Bữa tối: pasta e vaianeia với đậu hải quân, đậu cô ve và cà rốt thái lát. Cho dầu ô liu vào trộn đều, thêm mùi tây và muối cho vừa ăn rồi thưởng thức cùng salad rau hỗn hợp trộn giấm balsamic.", true)]
     public void BookChunkRelevance_filters_boilerplate_and_out_of_scope_text(string text, bool expected)
     {
         Assert.Equal(expected, BookChunkRelevance.IsRelevant(text));
     }
 
+[Theory]    [InlineData("Phương pháp điều trị", "Mô tả chế độ ăn.", false)]    [InlineData("Ăn nhiều đậu", "Giúp giảm nguy cơ bệnh tim.", false)]    [InlineData("Ăn nhiều đậu", "Đậu đỗ là nguồn cung cấp protein thực vật.", true)]    public void BookChunkRelevance_blocks_vietnamese_disease_wording_from_bulk_approval(        string title,        string summary,        bool expected)    {        Assert.Equal(expected, BookChunkRelevance.IsSafeForBulkApproval(title, summary));        Assert.Equal(            expected,            BookChunkRelevance.IsSafeForBulkApproval(                title.Normalize(System.Text.NormalizationForm.FormD),                summary.Normalize(System.Text.NormalizationForm.FormD)));    }
     [Fact]
     public void BookChunkRelevance_removes_download_boilerplate_from_text()
     {
@@ -386,6 +406,7 @@ public sealed class BookKnowledgeIngestionServiceTests
         Assert.Equal(guideline.Id, result.ApprovedKnowledgeId);
     }
 
+[Fact]    public async Task ApproveCandidateAsync_creates_recipe_reusing_foods_and_adding_book_only_foods_for_review()    {        var repository = new InMemoryDietKnowledgeRepository();        var existingFood = new Food { Id = Guid.NewGuid(), Name = "Cà rốt", ReviewStatus = KnowledgeReviewStatuses.Approved };        repository.Foods.Add(existingFood);        var candidate = RecipeCandidate("[{\"Name\":\"cà rốt\",\"Quantity\":\"2 củ\"},{\"Name\":\"Đậu cô ve\",\"Quantity\":\"150 g\"}]");        repository.Candidates.Add(candidate);        var result = await CreateService(repository).ApproveCandidateAsync(            new ApproveKnowledgeCandidateCommand(candidate.Id, "admin@example.com"));        var recipe = Assert.Single(repository.Recipes);        Assert.Equal(recipe.Id, result.ApprovedKnowledgeId);        Assert.Equal(KnowledgeReviewStatuses.Approved, recipe.ReviewStatus);        Assert.Equal(2, recipe.Ingredients.Count);        Assert.Contains(recipe.Ingredients, i => i.FoodId == existingFood.Id && i.QuantityText == "2 củ");        Assert.Equal(2, repository.Foods.Count);        var created = repository.Foods.Single(food => food.Id != existingFood.Id);        Assert.Equal("Đậu cô ve", created.Name);        Assert.Equal(KnowledgeReviewStatuses.NeedsReview, created.ReviewStatus);    }    [Fact]    public async Task ApproveCandidateAsync_rejects_recipe_without_book_ingredients()    {        var repository = new InMemoryDietKnowledgeRepository();        var candidate = RecipeCandidate("");        repository.Candidates.Add(candidate);        await Assert.ThrowsAsync<ValidationException>(() => CreateService(repository).ApproveCandidateAsync(            new ApproveKnowledgeCandidateCommand(candidate.Id, "admin@example.com")));        Assert.Empty(repository.Recipes);    }    private static KnowledgeCandidate RecipeCandidate(string ingredientsJson)    {        return new KnowledgeCandidate        {            Id = Guid.NewGuid(),            DocumentId = Guid.NewGuid(),            CandidateType = KnowledgeCandidateTypes.Recipe,            Title = "Pasta e vaianeia",            Summary = "Món ăn trong thực đơn của sách.",            SourceTitle = "The Longevity Diet",            SourceChapter = "Thực đơn",            SourcePage = "1",            SourceReference = "",            Status = KnowledgeCandidateStatuses.NeedsReview,            GeneratedBy = "test",            IngredientsJson = ingredientsJson,            CreatedAtUtc = DateTimeOffset.UtcNow        };    }
     private static BookKnowledgeIngestionService CreateService(
         InMemoryDietKnowledgeRepository repository,
         FakeKnowledgeCandidateGenerator? generator = null)

@@ -143,6 +143,16 @@ public sealed class DietKnowledgeRepository(DietKnowledgeDbContext dbContext) : 
             .ToArrayAsync(cancellationToken);
     }
 
+    public Task<Food?> GetFoodByNameAsync(
+        string name,
+        CancellationToken cancellationToken = default)
+    {
+        var normalizedName = name.Trim().ToUpper();
+        return dbContext.Foods.FirstOrDefaultAsync(
+            food => food.Name.ToUpper() == normalizedName,
+            cancellationToken);
+    }
+
     public Task<bool> FoodNameExistsAsync(
         string name,
         Guid? excludedId = null,
@@ -306,6 +316,35 @@ public sealed class DietKnowledgeRepository(DietKnowledgeDbContext dbContext) : 
         CancellationToken cancellationToken = default)
     {
         await dbContext.BookSourceDocuments.AddAsync(document, cancellationToken);
+    }
+
+    public async Task<DeleteAllKnowledgeResultModel> DeleteAllKnowledgeAsync(
+        CancellationToken cancellationToken = default)
+    {
+        // The Npgsql retrying strategy only allows a transaction that runs inside Execute as one retriable unit.
+        var strategy = dbContext.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteAsync(async () =>
+        {
+            await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+
+            var candidatesReset = await dbContext.KnowledgeCandidates
+                .Where(candidate => candidate.ApprovedKnowledgeId != null)
+                .ExecuteUpdateAsync(
+                    setters => setters
+                        .SetProperty(candidate => candidate.Status, KnowledgeCandidateStatuses.NeedsReview)
+                        .SetProperty(candidate => candidate.ApprovedKnowledgeId, (Guid?)null)
+                        .SetProperty(candidate => candidate.ReviewedBy, string.Empty)
+                        .SetProperty(candidate => candidate.ReviewedAtUtc, (DateTimeOffset?)null),
+                    cancellationToken);
+
+            // Ingredients go with their recipe (cascade) and must go before the foods they reference.
+            var recipes = await dbContext.Recipes.ExecuteDeleteAsync(cancellationToken);
+            var foods = await dbContext.Foods.ExecuteDeleteAsync(cancellationToken);
+            var guidelines = await dbContext.DietGuidelines.ExecuteDeleteAsync(cancellationToken);
+
+            await transaction.CommitAsync(cancellationToken);
+            return new DeleteAllKnowledgeResultModel(guidelines, foods, recipes, candidatesReset);
+        });
     }
 
     public void RemoveBookSourceDocument(BookSourceDocument document)
