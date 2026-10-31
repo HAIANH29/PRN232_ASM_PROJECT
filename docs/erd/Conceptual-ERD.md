@@ -186,6 +186,6 @@ Cross-service relationships such as `MealPlan.UserId`, `MealPlanItem.RecipeId`, 
 
 Meal scheduling is represented by `MealPlanItem.PlannedDate`, `MealSlot`, and `ReminderAtUtc` rather than a separate `MealSchedule` table in the current workflow.
 
-Book-source tables are internal to Diet Knowledge review. `KnowledgeCandidate.ApprovedKnowledgeId` stores the created guideline/food identifier after approval but is not modeled as a foreign key because candidates can approve into more than one managed content type.
+Book-source tables are internal to Diet Knowledge review. `KnowledgeCandidate.ApprovedKnowledgeId` stores the created guideline/food identifier after approval but is not modeled as a foreign key because candidates can approve into more than one managed content type. `KnowledgeCandidate.IngredientsJson` holds a Recipe candidate's ingredients (name and quantity exactly as the book states them) until approval turns them into `RecipeIngredient` rows.
 
 Recommendation Service and Notification Service are stateless in the current scope, so they do not appear as database entities.

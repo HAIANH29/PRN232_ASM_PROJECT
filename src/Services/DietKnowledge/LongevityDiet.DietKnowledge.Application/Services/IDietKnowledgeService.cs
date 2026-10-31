@@ -74,4 +74,7 @@ public interface IDietKnowledgeService
         Guid id,
         bool isActive,
         CancellationToken cancellationToken = default);
+
+    Task<DeleteAllKnowledgeResultModel> DeleteAllKnowledgeAsync(
+        CancellationToken cancellationToken = default);
 }

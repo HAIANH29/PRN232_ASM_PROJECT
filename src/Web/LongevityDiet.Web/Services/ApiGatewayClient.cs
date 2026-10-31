@@ -43,7 +43,7 @@ public sealed class ApiGatewayClient(HttpClient httpClient, ILogger<ApiGatewayCl
         using var content = new MultipartFormDataContent();
         using var fileContent = new StreamContent(stream);
         fileContent.Headers.ContentType = new MediaTypeHeaderValue(
-            string.IsNullOrWhiteSpace(file.ContentType) ? "application/pdf" : file.ContentType);
+            string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType);
         content.Add(fileContent, formFieldName, file.FileName);
         request.Content = content;
 

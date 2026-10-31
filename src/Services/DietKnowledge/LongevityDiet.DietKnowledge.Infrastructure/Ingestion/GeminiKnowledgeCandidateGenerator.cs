@@ -233,31 +233,62 @@ public sealed class GeminiKnowledgeCandidateGenerator(
         return parsed
             .Where(candidate => !string.IsNullOrWhiteSpace(candidate.Title) &&
                 !string.IsNullOrWhiteSpace(candidate.Summary))
-            .Where(candidate => !string.Equals(
-                candidate.CandidateType,
-                KnowledgeCandidateTypes.Recipe,
-                StringComparison.OrdinalIgnoreCase))
             .Take(maxCandidates)
             .Select(candidate =>
             {
                 var chunk = candidate.ChunkIndex is { } index && chunksByIndex.TryGetValue(index, out var match)
                     ? match
                     : group[0];
+                var isRecipe = string.Equals(
+                    candidate.CandidateType,
+                    KnowledgeCandidateTypes.Recipe,
+                    StringComparison.OrdinalIgnoreCase);
+                var ingredients = isRecipe ? GroundedIngredients(candidate.Ingredients, chunk) : [];
+                var summary = candidate.Summary!.Trim();
+                if (isRecipe && ingredients.Count > 0)
+                {
+                    summary += " Ingredients: " + string.Join(
+                        "; ",
+                        ingredients.Select(ingredient => string.IsNullOrWhiteSpace(ingredient.Quantity)
+                            ? ingredient.Name
+                            : $"{ingredient.Name} ({ingredient.Quantity})")) + ".";
+                }
+
                 return new KnowledgeCandidateDraft(
                     chunk.Id,
                     KnowledgeCandidateTypes.IsValid(candidate.CandidateType)
                         ? KnowledgeCandidateTypes.Normalize(candidate.CandidateType!)
                         : KnowledgeCandidateTypes.DietGuideline,
                     candidate.Title!.Trim(),
-                    candidate.Summary!.Trim(),
+                    summary,
                     "The Longevity Diet",
                     string.IsNullOrWhiteSpace(candidate.SourceChapter)
                         ? "Uploaded PDF review"
                         : candidate.SourceChapter.Trim(),
                     chunk.PageNumber.ToString(),
                     SourceReference(document, chunk),
-                    "Gemini");
+                    "Gemini",
+                    ingredients);
             })
+            // A recipe with no ingredient found in the excerpt is not grounded in the book; drop it.
+            .Where(draft => !string.Equals(draft.CandidateType, KnowledgeCandidateTypes.Recipe, StringComparison.OrdinalIgnoreCase) ||
+                draft.Ingredients is { Count: > 0 })
+            .ToArray();
+    }
+
+    // Keeps only ingredients whose name appears in the excerpt, so nothing outside the book is added.
+    private static IReadOnlyList<CandidateIngredient> GroundedIngredients(
+        GeminiIngredientDraft[]? ingredients,
+        BookSourceChunk chunk)
+    {
+        var text = BookChunkRelevance.CleanText(chunk.Text);
+        return (ingredients ?? [])
+            .Where(ingredient => !string.IsNullOrWhiteSpace(ingredient.Name) &&
+                text.Contains(ingredient.Name.Trim(), StringComparison.OrdinalIgnoreCase))
+            .GroupBy(ingredient => ingredient.Name!.Trim(), StringComparer.OrdinalIgnoreCase)
+            .Select(group => new CandidateIngredient(
+                group.Key,
+                (group.First().Quantity ?? string.Empty).Trim()))
             .ToArray();
     }
 
@@ -269,12 +300,16 @@ public sealed class GeminiKnowledgeCandidateGenerator(
         builder.AppendLine("Convert the PDF excerpts below into concise knowledge candidates for admin review.");
         builder.AppendLine();
         builder.AppendLine("Rules:");
+        builder.AppendLine("- Use ONLY information stated in the excerpts. Do not add outside knowledge, general nutrition facts,");
+        builder.AppendLine("  examples or assumptions. If the excerpt does not state it, leave it out.");
         builder.AppendLine("- Return only a JSON array. Return [] when nothing is suitable.");
-        builder.AppendLine("- Each item shape: candidateType, title, summary, sourceChapter, chunkIndex.");
+        builder.AppendLine("- Each item shape: candidateType, title, summary, sourceChapter, chunkIndex (Recipe items also: ingredients).");
         builder.AppendLine("- candidateType is DietGuideline for an eating principle, habit or pattern.");
         builder.AppendLine("- Use candidateType Food only when the text names ONE specific food with a concrete nutrition note,");
         builder.AppendLine("  for example a food listed as a source of a vitamin or mineral. For Food, title is only the food name.");
-        builder.AppendLine("- Never use candidateType Recipe.");
+        builder.AppendLine("- Use candidateType Recipe only for a dish the excerpt itself gives with its ingredients. Add an");
+        builder.AppendLine("  ingredients array of {name, quantity}. Copy each ingredient name exactly as written in the excerpt, in the");
+        builder.AppendLine("  same language, and copy its quantity as written (or empty). Never add an ingredient the excerpt does not list.");
         builder.AppendLine($"- Return at most {maxCandidates} items and at most {MaxCandidatesPerChunk} per excerpt.");
         builder.AppendLine("- Skip author biography, history, anecdotes, acknowledgments, quotes and anything promotional.");
         builder.AppendLine("- Write each summary in original words; do not copy long passages.");
@@ -369,7 +404,10 @@ public sealed class GeminiKnowledgeCandidateGenerator(
         string? Title,
         string? Summary,
         string? SourceChapter,
-        int? ChunkIndex);
+        int? ChunkIndex,
+        GeminiIngredientDraft[]? Ingredients = null);
+
+    private sealed record GeminiIngredientDraft(string? Name, string? Quantity);
 
     private sealed record GeminiGenerateContentRequest(
         IReadOnlyCollection<GeminiContent> Contents,

@@ -43,6 +43,10 @@ public interface IDietKnowledgeRepository
         Guid? excludedId = null,
         CancellationToken cancellationToken = default);
 
+    Task<Food?> GetFoodByNameAsync(
+        string name,
+        CancellationToken cancellationToken = default);
+
     Task AddFoodAsync(
         Food food,
         CancellationToken cancellationToken = default);
@@ -110,6 +114,11 @@ public interface IDietKnowledgeRepository
 
     Task AddKnowledgeCandidatesAsync(
         IReadOnlyCollection<KnowledgeCandidate> candidates,
+        CancellationToken cancellationToken = default);
+
+    // Permanently removes every guideline, food and recipe (with ingredients) and sends the
+    // candidates that had been approved back to review. Book sources, chunks and files stay.
+    Task<DeleteAllKnowledgeResultModel> DeleteAllKnowledgeAsync(
         CancellationToken cancellationToken = default);
 
     Task SaveChangesAsync(CancellationToken cancellationToken = default);

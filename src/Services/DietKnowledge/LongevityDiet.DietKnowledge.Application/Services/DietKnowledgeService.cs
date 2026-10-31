@@ -362,6 +362,12 @@ public sealed class DietKnowledgeService(IDietKnowledgeRepository repository) : 
         return await GetRecipeAsync(recipe.Id, includeInactive: true, cancellationToken);
     }
 
+    public Task<DeleteAllKnowledgeResultModel> DeleteAllKnowledgeAsync(
+        CancellationToken cancellationToken = default)
+    {
+        return repository.DeleteAllKnowledgeAsync(cancellationToken);
+    }
+
     public async Task<RecipeModel> SetRecipeActivationAsync(
         Guid id,
         bool isActive,

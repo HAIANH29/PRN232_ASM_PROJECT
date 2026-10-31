@@ -300,6 +300,11 @@ namespace LongevityDiet.DietKnowledge.Infrastructure.Persistence.Migrations
                         .HasMaxLength(120)
                         .HasColumnType("character varying(120)");
 
+                    b.Property<string>("IngredientsJson")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
                     b.Property<DateTimeOffset?>("ReviewedAtUtc")
                         .HasColumnType("timestamp with time zone");
 

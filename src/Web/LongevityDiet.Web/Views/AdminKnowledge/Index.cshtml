@@ -11,6 +11,10 @@
     </div>
     <div class="head-actions">
         <a class="btn btn-outline-secondary" asp-controller="AdminBookSources" asp-action="Index"><span class="icon" aria-hidden="true">library_books</span>@T["Book sources"]</a>
+        <form asp-action="DeleteAll" method="post" class="d-inline"
+              onsubmit="return confirm('@T["Permanently delete ALL guidelines, foods and recipes? Book sources are kept and approved candidates go back to review. This cannot be undone."]');">
+            <button class="btn btn-outline-danger" type="submit"><span class="icon" aria-hidden="true">delete_forever</span>@T["Delete all knowledge"]</button>
+        </form>
     </div>
 </section>
 

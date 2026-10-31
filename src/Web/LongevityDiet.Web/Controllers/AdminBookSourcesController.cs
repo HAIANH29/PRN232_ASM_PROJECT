@@ -33,12 +33,12 @@ public sealed class AdminBookSourcesController(ApiGatewayClient api, UserSession
 
         if (form.File is null || form.File.Length == 0)
         {
-            ModelState.AddModelError("Upload.File", Translator.Lookup("Choose a PDF file."));
+            ModelState.AddModelError("Upload.File", Translator.Lookup("Choose a PDF or TXT file."));
         }
-        else if (!Path.GetExtension(form.File.FileName)
-            .Equals(".pdf", StringComparison.OrdinalIgnoreCase))
+        else if (!new[] { ".pdf", ".txt" }.Contains(
+            Path.GetExtension(form.File.FileName), StringComparer.OrdinalIgnoreCase))
         {
-            ModelState.AddModelError("Upload.File", Translator.Lookup("Only PDF files can be uploaded."));
+            ModelState.AddModelError("Upload.File", Translator.Lookup("Only PDF or TXT files can be uploaded."));
         }
 
         if (!ModelState.IsValid)
@@ -55,7 +55,7 @@ public sealed class AdminBookSourcesController(ApiGatewayClient api, UserSession
             Token,
             cancellationToken);
 
-        AddResultMessage(result, "Book PDF uploaded and chunked.");
+        AddResultMessage(result, "Book file uploaded and chunked.");
         return result.Succeeded && result.Data is not null
             ? RedirectToAction(nameof(Details), new { id = result.Data.Id })
             : RedirectToAction(nameof(Index));

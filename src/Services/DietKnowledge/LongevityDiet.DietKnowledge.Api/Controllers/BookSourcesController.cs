@@ -50,7 +50,7 @@ public sealed class BookSourcesController(IBookKnowledgeIngestionService ingesti
         if (file is null || file.Length == 0)
         {
             return BadRequest(ApiResponse<object?>.Failure(
-                [new ApiError("Validation.Invalid", "A PDF file is required.", "file")],
+                [new ApiError("Validation.Invalid", "A PDF or TXT file is required.", "file")],
                 "Validation failed.",
                 HttpContext.TraceIdentifier));
         }

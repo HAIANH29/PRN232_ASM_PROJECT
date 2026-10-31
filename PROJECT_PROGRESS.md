@@ -72,6 +72,30 @@ Do not mark a feature as complete if it only has placeholders or configuration. 
 
 ## Change Log
 
+### 2026-10-31 — Vietnamese keywords in the medical-content filters
+
+- `BookChunkRelevance` now also screens Vietnamese: chunk filter terms (ung thư, hóa trị, tiểu đường, đái tháo đường, tim mạch, sa sút trí tuệ, khối u, tự miễn, xơ cứng rải rác, viêm khớp) and bulk-approval blocked terms (bệnh, điều trị, chữa, chẩn đoán, dự đoán, tiên lượng). Text is compared in NFC so decomposed (NFD) diacritics still match. "tuổi thọ" is deliberately not blocked: it is the book's whole theme.
+- Effect on the uploaded Vietnamese book (SQL estimate): about 73 of 177 chunks hit two or more chunk-filter terms and would be skipped; the 14-day menu chunks (154-166) are unaffected. Chunks already analyzed are not re-filtered.
+- Verification: build 0 warnings, 58 tests pass (5 new). Docker `diet-knowledge-service` rebuilt.
+
+### 2026-10-31 — Recipe candidates from the uploaded book, grounded in its text
+
+- Gemini may now return `Recipe` candidates with an `ingredients` array. The prompt says to use ONLY what the excerpt states (no outside knowledge) and to copy ingredient names/quantities as written. The generator keeps only ingredients whose name appears in the excerpt and drops a recipe with none left. Ingredients are also appended to the candidate summary so the admin sees them while reviewing.
+- New column `KnowledgeCandidates.IngredientsJson` (migration `AddCandidateIngredients`, applied at startup). Approving a Recipe candidate creates the `Recipe` and its `RecipeIngredient` rows: an ingredient matching an existing Food by name (case-insensitive) is reused; otherwise a name-only Food is created with `ReviewStatus = NeedsReview` (no nutrition note invented). A recipe candidate with no ingredients is refused. "Approve all" can now approve recipes too.
+- Verification: build 0 warnings, 53 tests pass (2 new). Not run against Gemini or the Docker database yet: chunks 154-166 of the uploaded book (the 14-day menu) are already marked analyzed, so Generate will skip them until their `CandidatesGeneratedAtUtc` is cleared or the document is re-uploaded.
+- Known gap (fixed below): `BookChunkRelevance` medical-term filters were English-only.
+
+### 2026-10-31 — Admin "delete all knowledge" endpoint
+
+- Added `DELETE /api/admin/knowledge?confirm=true` (Admin only; via gateway `/diet-knowledge/api/admin/knowledge`). It permanently deletes every guideline, food and recipe (ingredients cascade) in one transaction, and resets candidates that had been approved back to `NeedsReview` (clears `ApprovedKnowledgeId`). Book sources, chunks and stored files are kept. Without `confirm=true` it returns `400`. Returns the counts deleted/reset.
+- Web: red "Delete all knowledge" button with a confirm dialog on the Admin Knowledge page (`AdminKnowledgeController.DeleteAll`), Vietnamese labels added.
+- Verification: build 0 warnings, 51 tests pass (2 new). Docker smoke: no token `401`, User `403`, Admin without confirm `400`. The actual delete (`ExecuteDelete`/`ExecuteUpdate`, not supported by EF InMemory) was NOT run against the dev database to avoid wiping its data.
+
+### 2026-10-31 — Admin book source upload accepts .txt
+
+- Admin Book Sources upload now accepts `.txt` as well as `.pdf` (25 MB limit unchanged). `BookTextExtractor` picks `PdfBookTextExtractor` or the new `TextBookTextExtractor` by stored file extension; a text file is read as one page (page 1) and chunked by size. Stored name/content type follow the type; validation messages and Vietnamese translations updated.
+- Verification: build 0 warnings, 49 tests pass (1 changed, 1 new). Not yet tried against the running Docker stack; text files have no real page numbers, so candidate sources show "page 1".
+
 ### 2026-10-26 — Edit meal plan items
 
 - Each scheduled item on the meal plan page now has an Edit button. It loads the item into the item form (heading "Edit item", button "Save item", Cancel link) and saves through the existing `PUT /api/meal-plans/{id}/items/{itemId}` via the new `MealPlansController.UpdateItem`. Vietnamese labels added.

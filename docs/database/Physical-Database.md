@@ -125,7 +125,7 @@ Owned by `Diet Knowledge Service`.
 
 Migrations exist: `InitialDietKnowledgeSchema`, `AddBookKnowledgeReviewMetadata`, `AddBookSourceIngestion`.
 
-`BookSourceDocument`, `BookSourceChunk`, and `KnowledgeCandidate` are Admin-only ingestion/review tables. Public Diet Knowledge endpoints and Recommendation context do not expose or consume raw chunk text directly.
+`BookSourceDocument`, `BookSourceChunk`, and `KnowledgeCandidate` are Admin-only ingestion/review tables. Public Diet Knowledge endpoints and Recommendation context do not expose or consume raw chunk text directly. `KnowledgeCandidates.IngredientsJson` (varchar 4000, default empty) stores Recipe candidate ingredients as a JSON array of `{Name, Quantity}`.
 
 Uploaded PDF binaries are stored in a Docker/local file volume. PostgreSQL stores metadata, extracted chunks, and review candidates only.
 
