@@ -153,6 +153,28 @@ public sealed class BookKnowledgeIngestionServiceTests
         Assert.False(service.GetGenerationRunProgress(documentId).Running);
     }
 
+    private sealed record LenientSample(
+        [property: System.Text.Json.Serialization.JsonConverter(typeof(LongevityDiet.DietKnowledge.Infrastructure.Ingestion.LenientStringConverter))]
+        string? SourceChapter,
+        [property: System.Text.Json.Serialization.JsonConverter(typeof(LongevityDiet.DietKnowledge.Infrastructure.Ingestion.LenientStringConverter))]
+        string? Quantity);
+
+    [Fact]
+    public void LenientStringConverter_reads_numbers_and_nulls_as_strings()
+    {
+        var sample = System.Text.Json.JsonSerializer.Deserialize<LenientSample>(
+            "{\"sourceChapter\": 4, \"quantity\": 2.5}",
+            new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        var withNull = System.Text.Json.JsonSerializer.Deserialize<LenientSample>(
+            "{\"sourceChapter\": \"Chương 4\", \"quantity\": null}",
+            new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+        Assert.Equal("4", sample!.SourceChapter);
+        Assert.Equal("2.5", sample.Quantity);
+        Assert.Equal("Chương 4", withNull!.SourceChapter);
+        Assert.Null(withNull.Quantity);
+    }
+
     [Fact]
     public void GenerationProgressTracker_tracks_percent_inputs_per_document()
     {
