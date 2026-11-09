@@ -68,7 +68,11 @@ Do NOT:
 - MealPlanningDb — PostgreSQL
 - TrackingDb — PostgreSQL
 
+- VectorDb — PostgreSQL with pgvector, separate container. Owned by Diet Knowledge Service; holds embeddings of active `Approved` knowledge only, referenced by bare IDs. Other services use it only through the Diet Knowledge search API.
+
 Recommendation Service and Notification Service are stateless in the current scope and do not require their own databases.
+
+Revised database design (from lecturer feedback; documented in `docs/database/Physical-Database.md`, `docs/erd/Conceptual-ERD.md` and `LongevityDiet-Database.drawio`, implemented in code): Module 1 User, Module 2 Diet (adds Category, RecipeStep, NutritionFact; Food is the lecturer's "Ingredient"), Module 3 Diet Regimen (DietRegimen, DietRegimenGuideline, DietRegimenMeal, in Diet Knowledge Service), Module 4 Meal Plan, Module 5 UserDietTracking (Tracking Service), plus the separate VectorDb. No new microservice is added.
 
 ## 4. Service Responsibilities
 

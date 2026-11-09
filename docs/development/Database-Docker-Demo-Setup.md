@@ -39,6 +39,7 @@ Each stateful service owns and initializes only its own database:
 | Diet Knowledge Service | `DietKnowledgeDb` | Applies EF Core migrations, seeds book-review data, optionally seeds approved local demo knowledge, and stores Admin PDF ingestion metadata/chunks/candidates |
 | Meal Planning Service | `MealPlanningDb` | Applies EF Core migrations |
 | Tracking Service | `TrackingDb` | Applies EF Core migrations |
+| Diet Knowledge Service | `VectorDb` (separate pgvector container, `localhost:5437`) | Applies its own EF Core migrations (creates the `vector` extension), then indexes active `Approved` knowledge once after startup; unchanged items are skipped on later starts |
 
 There are no cross-database foreign keys. Cross-service references remain ID values only.
 
@@ -50,6 +51,18 @@ There are no cross-database foreign keys. Cross-service references remain ID val
 | `DietKnowledgeDb` | `src/Services/DietKnowledge/LongevityDiet.DietKnowledge.Infrastructure/Persistence/Migrations` |
 | `MealPlanningDb` | `src/Services/MealPlanning/LongevityDiet.MealPlanning.Infrastructure/Persistence/Migrations` |
 | `TrackingDb` | `src/Services/Tracking/LongevityDiet.Tracking.Infrastructure/Persistence/Migrations` |
+| `VectorDb` | `src/Services/DietKnowledge/LongevityDiet.DietKnowledge.Infrastructure/VectorDb/Migrations` |
+
+Diet Knowledge Service has two DbContexts, so `dotnet ef` needs `--context DietKnowledgeDbContext` or `--context VectorDbContext`.
+
+## Vector Database (pgvector)
+
+- Container `vector-db` (`pgvector/pgvector:pg16`), volume `vector-db-data`, host port `5437`. Only Diet Knowledge Service connects to it (`ConnectionStrings__VectorDb`).
+- It stores embeddings of active `Approved` guidelines, foods and recipes only. Raw book chunks and unreviewed candidates are never embedded.
+- Embeddings come from Gemini (`EMBEDDING_MODEL`, default `gemini-embedding-001`, 768 dimensions) when `GEMINI_ENABLED=true` and a real key is set; otherwise a local hashed bag-of-words embedding is used so the feature still works offline. Each row stores the model name; a search only compares vectors from the current model, so after switching models run an Admin rebuild.
+- `KNOWLEDGE_INDEX_ON_STARTUP=false` turns off the startup indexing.
+- Admin: `POST /api/admin/knowledge-index/rebuild` indexes new or changed items and removes items that are no longer approved or active; `GET /api/admin/knowledge-index/status` shows the model, item count and latest run. Public: `GET /api/knowledge/search?q=&type=&limit=`.
+- Recommendation Service asks `GET /api/knowledge/search` for items close to the user's preferences and ranks them first in the prompt; if the search is unavailable it falls back to plain keyword matching.
 
 ## Demo Accounts
 

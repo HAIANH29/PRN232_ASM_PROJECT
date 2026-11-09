@@ -137,6 +137,19 @@ Do not upload or distribute an unauthorized full book copy during presentation.
    - Notification Service publishes a notification message to RabbitMQ.
    - Notification Worker consumes it and logs/sends email through Brevo fallback.
 
+## 7b. Newer Modules (lecturer feedback)
+
+1. Admin: open `Managed Knowledge` and show the **Semantic search index** card (indexed items, embedding model, last run) and the categories; press **Update index**.
+2. Admin: open `Diet Regimens`, open the seeded demo menu, show its guidelines and meals by day, add or remove one meal.
+3. Admin: edit a food and show **Nutrition facts**; edit a recipe and show **Preparation steps** and the category.
+4. User: open `Profile`, save eating preferences (for example `legumes, soup`); open `Meal Ideas` and show the field is filled from the profile.
+5. User: open `Diet Knowledge`, use **Smart search** ("light bean dinner") and explain it queries the separate pgvector database; only approved knowledge is indexed.
+6. User: open `Diet Regimens`, open the demo menu and press **Start tracking**; on `Daily Check-in` show the **My diet tracking** card, mark a meal eaten, then **Mark completed**.
+7. Explain:
+   - Five modules map to five stateful databases plus the separate VectorDb; no cross-database foreign keys (regimen and meal plan ids are plain references).
+   - Daily tracking and progress are linked automatically to the active diet tracking for that period.
+   - The VectorDb is owned by Diet Knowledge and only holds approved content; Recommendation reaches it through the Diet Knowledge search API.
+
 ## 8. RabbitMQ Evidence
 
 Open RabbitMQ Management:

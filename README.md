@@ -20,10 +20,10 @@ Development conventions:
 
 - `LongevityDiet.Web` - ASP.NET Core MVC web application.
 - `LongevityDiet.ApiGateway` - YARP reverse proxy gateway.
-- `LongevityDiet.Identity.Api` - REST API for users, roles, authentication, and JWT ownership.
-- `LongevityDiet.DietKnowledge.Api` - REST API for guidelines, foods, recipes, ingredients, and Admin book-source ingestion.
+- `LongevityDiet.Identity.Api` - REST API for users, roles, authentication, JWT ownership, and eating-preference profiles.
+- `LongevityDiet.DietKnowledge.Api` - REST API for categories, guidelines, foods (ingredients with nutrition facts), recipes (with steps), diet regimens, semantic search over approved knowledge, and Admin book-source ingestion. It owns the separate pgvector `VectorDb`.
 - `LongevityDiet.MealPlanning.Api` - REST API for meal plans, reminder publishing, and AI recommendation request publishing.
-- `LongevityDiet.Tracking.Api` - REST API for daily and meal tracking.
+- `LongevityDiet.Tracking.Api` - REST API for diet tracking (following a regimen and/or meal plan), daily and meal tracking, and progress.
 - `LongevityDiet.Recommendation.Service` - internal RabbitMQ recommendation worker with approved-knowledge context, safe fallback behavior, and optional Google Gemini integration.
 - `LongevityDiet.Notification.Grpc` - internal gRPC notification service called by Tracking.
 - `LongevityDiet.NotificationWorker` - worker service for RabbitMQ notification/reminder messages and Brevo/logged email delivery.
@@ -208,6 +208,10 @@ Admin Book Sources:
 - If Gemini is disabled, safe placeholder candidates are created so the workflow can still be demonstrated.
 - Approving a candidate creates managed Diet Knowledge content; raw chunks are never user-facing content.
 
+## Database Design (five modules + separate vector database)
+
+The diagram is `docs/database/LongevityDiet-Database.drawio` (explained in `Database-Diagram-Explanation.docx`): Module 1 User (`IdentityDb`), Module 2 Diet and Module 3 Diet Regimen (`DietKnowledgeDb`), Module 4 Meal Plan (`MealPlanningDb`), Module 5 UserDietTracking (`TrackingDb`), and the separate pgvector `VectorDb` (port 5437) used for semantic search over approved knowledge. Details: `docs/database/Physical-Database.md` and `docs/development/Database-Docker-Demo-Setup.md`.
+
 ## Demo Path
 
 Use the full step-by-step script in `docs/submission/Demo-Script.md`.
@@ -219,7 +223,7 @@ Minimum browser demo:
 3. Login as Admin with `admin@longevity.local` / `Admin@123456`.
 4. Show Admin knowledge management and `Book Sources`.
 5. Logout or open another session and login as User with `user@longevity.local` / `User@123456`.
-6. Browse diet knowledge, create a meal plan, request a recommendation, accept it, mark tracking complete, and review progress.
+6. Browse diet knowledge (try Smart search) and the Diet Regimens, save eating preferences on the Profile, create a meal plan, request a recommendation, accept it, start a diet tracking, mark meals complete, and review progress.
 7. Show RabbitMQ Management at `http://localhost:15672` for queues/exchanges.
 8. Run `dotnet test LongevityDietPlatform.sln` to show automated coverage.
 
