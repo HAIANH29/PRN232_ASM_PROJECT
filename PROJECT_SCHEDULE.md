@@ -8,20 +8,21 @@ Read together with:
 
 ## Current Snapshot
 
-Current phase: Milestone 11 documentation and submission package is complete; manual source review/approval and final QA remain.
+Current phase: Milestone 9.7 (revised database design from lecturer feedback) is complete and pushed on top of Milestone 11; manual source review/approval, a visual check of the new Web pages, and final QA remain.
 
-Estimated product completion: about 98-99%.
+Estimated product completion: about 99% of the buildable scope. The remaining items need a person (book source verification, looking at the new pages, lecturer confirmation), not more code.
 
 What is already in code:
 - .NET solution and project structure exist.
 - Required services/containers are scaffolded.
 - REST service layering exists: API, Application, Infrastructure, Domain.
 - Swagger and health endpoint scaffolding exist for public REST APIs.
-- Four PostgreSQL DbContext shells exist:
+- Four PostgreSQL databases with migrations, plus a separate pgvector database:
   - `IdentityDb`
   - `DietKnowledgeDb`
   - `MealPlanningDb`
   - `TrackingDb`
+  - `VectorDb` (pgvector, owned by Diet Knowledge Service)
 - Dockerfiles and Docker Compose skeleton exist.
 - YARP API Gateway has finalized routes for public REST services.
 - RabbitMQ message contract/configuration skeletons exist.
@@ -37,10 +38,13 @@ What is already in code:
 - Notification Service now accepts progress notification gRPC requests and publishes notification messages to RabbitMQ.
 - Notification Worker now declares durable reminder/notification queues, dead-letter queues, retry handling, Brevo sender abstraction, and local log fallback delivery.
 - Web Application now supports the main User and Admin browser flows through the API Gateway.
+- Milestone 9.7 (lecturer feedback): five modules plus a separate vector database. Identity has `UserProfiles` (eating preferences); Diet Knowledge has `Categories`, `NutritionFacts`, `RecipeSteps`, diet regimens (guidelines + day/slot meals, demo seed), and semantic search over approved knowledge backed by `VectorDb`; Tracking has `UserDietTrackings` linked automatically to daily tracking and progress; Meal Planning plans can reference a regimen; Recommendation ranks approved knowledge with the semantic search; the Web app has screens for all of it (English/Vietnamese).
 - Milestone 9 Docker/database demo setup now includes health-checked PostgreSQL/RabbitMQ startup, demo admin/user seed accounts, approved local demo Diet Knowledge seed data, and clean-machine setup documentation.
 
 What is not yet product-ready:
 - The team still needs to verify book-derived seed items against a legally obtained source copy before marking them `Approved`.
+- The new Web pages were verified by a scripted run against Docker, not looked at in a browser; layout still needs a manual check.
+- The lecturer has not yet confirmed the design assumptions (Foods = "Ingredient", regimens inside Diet Knowledge, only approved content is embedded).
 - Uploaded PDF chunks and generated candidates still require Admin/team review before they should be approved for demos.
 - Search/filter/sort/pagination are implemented for Diet Knowledge and Meal Planning; Tracking supports date-filtered paged history.
 - RabbitMQ publish/consume behavior exists for Meal Planning reminders/recommendations, Recommendation Service processing/results, Notification Service notifications, and Notification Worker delivery.
@@ -61,8 +65,9 @@ The project is submission-ready only when all of these are true:
 - Tracking supports meal completion, daily tracking, progress summaries, ownership checks, and gRPC notification trigger.
 - Recommendation flow works through RabbitMQ request/result messages and follows AI safety scope.
 - Notification flow works through gRPC, RabbitMQ, Notification Worker, and Brevo placeholder or configured email delivery.
-- PostgreSQL database-per-service rule is preserved.
-- EF Core migrations exist for all four persistent services.
+- PostgreSQL database-per-service rule is preserved, plus the separate pgvector VectorDb owned by Diet Knowledge.
+- EF Core migrations exist for all four persistent services and for the VectorDb.
+- The database diagram, ERD and physical database docs show the five modules and the VectorDb, and every table in them exists in code.
 - Web Application supports the main User and Admin flows through the API Gateway.
 - Architecture docs, ERD, physical database docs, README, and progress tracker are updated.
 - Tests cover the implemented business slices.
@@ -391,6 +396,42 @@ Verification:
 Done when:
 - Admin can ingest a legally obtained PDF from the browser, create review candidates, and approve verified items into managed Diet Knowledge without exposing raw chunks to normal users.
 
+### Milestone 9.7 — Revised Database Design (Lecturer Feedback)
+
+Target: after Milestone 9.5.
+
+Status: Completed on 2026-11-09 (code, docs and push done; items marked open need a person).
+
+Code/work to do:
+- [x] Replace the `Foods.Category` text column with a `Categories` table (data-preserving migration); recipes and guidelines get an optional category.
+- [x] Add `NutritionFacts` and `RecipeSteps` with Admin management.
+- [x] Add diet regimens (`DietRegimens`, `DietRegimenGuidelines`, `DietRegimenMeals`), Admin CRUD, public read of approved regimens, and a demo seed.
+- [x] Add `UserProfiles` (preference tags and notes) and use the tags to prefill Meal Ideas.
+- [x] Add `UserDietTrackings` (one active per user) linked automatically to daily tracking and progress summaries.
+- [x] Add optional `DietRegimenId` to meal plans.
+- [x] Add the separate pgvector `VectorDb` (container, migration, `KnowledgeEmbeddings`, `EmbeddingIndexRuns`), approved-only indexing, Admin rebuild/status, public semantic search, and Recommendation ranking through the Diet Knowledge search API.
+- [x] Web screens: preferences, regimens, diet tracking, smart search, Admin regimens/nutrition facts/steps/index status; Vietnamese strings.
+- [x] Regenerate the database diagram; update Physical-Database, ERD, C4 C1, gateway routes, Docker/demo setup, README, demo script, checklist, and rewrite `Database-Diagram-Explanation.docx`.
+- [ ] Confirm the design assumptions with the lecturer.
+- [ ] Look at the new Web pages in a browser and fix any layout problems.
+
+Verification:
+- [x] Solution builds with 0 warnings; 81 automated tests pass.
+- [x] All five migration chains applied to an empty database and produced exactly the diagram's tables (4 + 13 + 2 + 3 + 4).
+- [x] Docker run on existing data: Category text converted to `Categories`, all foods linked.
+- [x] API and scripted Web run: regimens, nutrition facts, steps, preferences, diet tracking, smart search, Vietnamese pages, guest/admin access.
+- [x] Two regressions found by the run were fixed and covered by tests (new child rows saved as updates; empty optional fields rejected).
+
+Known limits:
+- Updating a recipe is rejected while any ingredient food is not active and approved, so book-derived recipes cannot get steps from the Admin UI until those foods are approved.
+- The Admin recipe form still edits a single ingredient (existing behaviour).
+- The semantic index is rebuilt at startup and on Admin request, not when content is approved.
+- `DietRegimenId` / `MealPlanId` in Tracking are not verified against the other services.
+- No automated tests exist for the Web project.
+
+Done when:
+- The database design matches the lecturer's modules and every diagram table is real code.
+
 ### Milestone 10 — Tests
 
 Target: T+15 to T+16.5 days.
@@ -437,14 +478,17 @@ Done when:
 
 Target: T+17.5 to T+18 days.
 
+Status: Partly done. Build, tests, Docker startup, migrations on an empty database and scripted API/Web runs passed on 2026-11-09; the manual checks below remain.
+
 Code/work to do:
-- Run full restore/build/test.
-- Run Docker Compose smoke test.
-- Verify Swagger endpoints.
-- Verify Web demo flow.
-- Verify no service accesses another service database.
-- Verify no forbidden medical/diagnosis feature exists.
-- Verify branch is pushed and PR is current.
+- [x] Run full restore/build/test (81 tests).
+- [x] Run Docker Compose smoke test (existing data) and apply all migrations to an empty database.
+- [ ] Run `docker compose up --build` from empty volumes and walk through `docs/submission/Submission-Checklist.md`.
+- [ ] Verify Swagger endpoints for the new APIs.
+- [ ] Verify Web demo flow by eye, in English and Vietnamese, as User and Admin.
+- [x] Verify no service accesses another service database (VectorDb is reached only by Diet Knowledge).
+- [x] Verify no forbidden medical/diagnosis feature exists (preferences and nutrition are informational; Recommendation still uses approved knowledge only).
+- [x] Verify branch is pushed (`HA/phase-1-microservices-scaffold`); no PR is open yet.
 
 Verification:
 - `dotnet restore LongevityDietPlatform.sln`
@@ -485,13 +529,14 @@ This minimum path is enough to demonstrate the required PRN232 architecture and 
 | gRPC internal flow | Tracking -> Notification implemented in a real progress use case | Add tests/smoke documentation |
 | RabbitMQ async messaging | Meal Planning publishes reminders/recommendation requests and consumes recommendation results; Recommendation Service consumes requests and publishes results; Notification Service publishes notification messages; Notification Worker consumes reminder/notification messages | Add tests and final demo script |
 | .NET Worker Service | Notification Worker implemented and Docker-smoke-tested for reminder/notification delivery | Add tests |
-| PostgreSQL database-per-service | Identity, Diet Knowledge, Meal Planning, and Tracking migrations exist | Keep service ownership boundaries intact |
+| PostgreSQL database-per-service | Identity, Diet Knowledge, Meal Planning, and Tracking migrations exist, plus the separate pgvector VectorDb owned by Diet Knowledge | Keep service ownership boundaries intact |
 | Docker Compose | Full stack Docker startup, health checks, and demo seed smoke verified through Milestone 9 | Add final demo script/checklist |
 | C4 docs | Existing | Keep synchronized with implementation |
 | Web Application | Main User/Admin browser flows implemented through the API Gateway | Add final demo script and automated UI/API smoke tests if time allows |
 | External providers | Brevo sender abstraction with log fallback exists; Gemini client abstraction with disabled-mode fallback exists | Configure real Brevo/Gemini keys only for demo/production if needed |
 | Admin PDF ingestion | Implemented and smoke-tested in Diet Knowledge/Web as an Admin-only flow | Team must verify real book candidates before approval; add final demo script |
-| Tests | Core automated tests added for Identity, Diet Knowledge, book ingestion, Meal Planning, Tracking, Recommendation, Notification Worker, and API authorization boundaries | Keep extending coverage if new behavior is added |
+| Tests | 81 automated tests: Identity (incl. preferences), Diet Knowledge (incl. categories, regimens, nutrition facts, steps), book ingestion, VectorDb indexing/search, Meal Planning, Tracking (incl. diet tracking), Recommendation, Notification Worker, and API authorization boundaries | Keep extending coverage if new behavior is added; no Web tests yet |
+| Lecturer feedback (modules + separate vector DB) | Five modules and the pgvector VectorDb implemented, documented and pushed | Confirm assumptions with the lecturer; look at the new Web pages |
 
 ## Per-Service Checklist
 
@@ -505,6 +550,7 @@ This minimum path is enough to demonstrate the required PRN232 architecture and 
 - [x] Role seed.
 - [x] Admin/User authorization policy.
 - [x] Migration and admin/user seed data.
+- [x] User eating-preference profile (preference tags and notes).
 - [x] Tests.
 
 ### Diet Knowledge Service
@@ -522,6 +568,9 @@ This minimum path is enough to demonstrate the required PRN232 architecture and 
 - [x] Source/review metadata for book knowledge.
 - [x] Admin PDF upload/chunk/candidate extraction workflow.
 - [x] Candidate approval into managed guideline/food knowledge.
+- [x] Categories, nutrition facts, recipe steps.
+- [x] Diet regimens (Admin CRUD, public approved read, demo seed).
+- [x] VectorDb indexing (approved only), Admin rebuild/status, public semantic search.
 - [ ] Team source verification and approval of seed content.
 - [x] Tests.
 
@@ -536,6 +585,7 @@ This minimum path is enough to demonstrate the required PRN232 architecture and 
 - [x] Recommendation request publish.
 - [x] Recommendation result consume.
 - [x] Accept/edit recommendation.
+- [x] Optional diet regimen reference on a plan.
 - [x] Migration.
 - [x] Tests.
 
@@ -548,6 +598,7 @@ Note: schedule support is represented on `MealPlanItem` rather than a separate t
 - [x] ProgressSummary calculation.
 - [x] Ownership checks.
 - [x] gRPC call to Notification Service.
+- [x] Diet tracking (follow a regimen and/or meal plan; one active per user; automatic link to daily tracking and progress).
 - [x] Migration.
 - [x] Tests.
 
@@ -558,6 +609,7 @@ Note: schedule support is represented on `MealPlanItem` rather than a separate t
 - [x] Safe prompt/context builder.
 - [x] Disabled-mode fallback.
 - [x] Result publisher.
+- [x] Semantic ranking of approved knowledge through the Diet Knowledge search API, with keyword fallback.
 - [x] Logging/error handling.
 - [x] Tests or smoke checks.
 
@@ -598,13 +650,18 @@ Note: schedule support is represented on `MealPlanItem` rather than a separate t
 - [x] Tracking/progress.
 - [x] Friendly error/validation handling.
 - [x] Admin Book Sources upload/chunk/review screens.
+- [x] Eating preferences on the Profile, prefilled on Meal Ideas.
+- [x] Diet Regimens (member browse/start tracking, Admin management), diet tracking card on Daily Check-in.
+- [x] Smart search, recipe steps, nutrition facts, categories; Admin semantic index status and rebuild.
+- [ ] Manual visual check of the new pages.
 
 ### Documentation And Submission
 
 - [x] README run guide.
 - [x] C0/C1 docs updated.
 - [x] ERD updated.
-- [x] Physical database docs updated.
+- [x] Physical database docs updated (five modules and VectorDb).
+- [x] Database diagram and Vietnamese explanation (`Database-Diagram-Explanation.docx`) updated.
 - [x] Demo script.
 - [x] Final checklist.
 - [x] `PROJECT_PROGRESS.md` updated after every milestone.
