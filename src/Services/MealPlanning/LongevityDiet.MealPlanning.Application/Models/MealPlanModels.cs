@@ -17,7 +17,8 @@ public sealed record MealPlanModel(
     DateOnly EndDate,
     IReadOnlyCollection<MealPlanItemModel> Items,
     DateTimeOffset CreatedAtUtc,
-    DateTimeOffset? UpdatedAtUtc);
+    DateTimeOffset? UpdatedAtUtc,
+    Guid? DietRegimenId = null);
 
 public sealed record MealPlanItemModel(
     Guid Id,
@@ -36,14 +37,16 @@ public sealed record CreateMealPlanCommand(
     string Name,
     DateOnly StartDate,
     DateOnly EndDate,
-    IReadOnlyCollection<CreateMealPlanItemCommand> Items);
+    IReadOnlyCollection<CreateMealPlanItemCommand> Items,
+    Guid? DietRegimenId = null);
 
 public sealed record UpdateMealPlanCommand(
     Guid UserId,
     string UserEmail,
     string Name,
     DateOnly StartDate,
-    DateOnly EndDate);
+    DateOnly EndDate,
+    Guid? DietRegimenId = null);
 
 public sealed record CreateMealPlanItemCommand(
     DateOnly PlannedDate,

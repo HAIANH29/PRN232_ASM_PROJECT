@@ -3,10 +3,12 @@ using LongevityDiet.DietKnowledge.Infrastructure.Ingestion;
 using LongevityDiet.DietKnowledge.Infrastructure.Persistence;
 using LongevityDiet.DietKnowledge.Infrastructure.Repositories;
 using LongevityDiet.DietKnowledge.Infrastructure.Seed;
+using LongevityDiet.DietKnowledge.Infrastructure.VectorDb;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Pgvector.EntityFrameworkCore;
 
 namespace LongevityDiet.DietKnowledge.Infrastructure;
 
@@ -76,6 +78,8 @@ public static class DependencyInjection
         });
 
         services.AddScoped<IDietKnowledgeRepository, DietKnowledgeRepository>();
+        services.AddScoped<IDietRegimenRepository, DietRegimenRepository>();
+        AddVectorDb(services, configuration);
         services.AddScoped<IDietKnowledgeSeeder, DietKnowledgeSeeder>();
         services.AddScoped<IBookKnowledgeFileStore, BookKnowledgeFileStore>();
         services.AddScoped<PdfBookTextExtractor>();
@@ -91,6 +95,56 @@ public static class DependencyInjection
             });
 
         return services;
+    }
+
+    // The separate VectorDb (PostgreSQL + pgvector). Without a connection string the store is disabled.
+    private static void AddVectorDb(IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<KnowledgeIndexOptions>(options =>
+        {
+            options.EmbeddingModel = configuration["KnowledgeIndex:EmbeddingModel"] ?? options.EmbeddingModel;
+            if (bool.TryParse(configuration["KnowledgeIndex:IndexOnStartup"], out var indexOnStartup))
+            {
+                options.IndexOnStartup = indexOnStartup;
+            }
+        });
+
+        services.AddScoped<LocalHashEmbeddingGenerator>();
+        services.AddHttpClient<GeminiEmbeddingGenerator>((serviceProvider, client) =>
+        {
+            var options = serviceProvider.GetRequiredService<IOptions<GeminiOptions>>().Value;
+            client.BaseAddress = new Uri(EnsureTrailingSlash(options.Endpoint));
+            client.Timeout = TimeSpan.FromSeconds(Math.Clamp(options.TimeoutSeconds, 5, 120));
+        });
+        services.AddScoped<IEmbeddingGenerator>(serviceProvider =>
+        {
+            var gemini = serviceProvider.GetRequiredService<IOptions<GeminiOptions>>().Value;
+            var useGemini = gemini.Enabled &&
+                !string.IsNullOrWhiteSpace(gemini.ApiKey) &&
+                !string.Equals(gemini.ApiKey, "development-only", StringComparison.OrdinalIgnoreCase);
+
+            return useGemini
+                ? serviceProvider.GetRequiredService<GeminiEmbeddingGenerator>()
+                : serviceProvider.GetRequiredService<LocalHashEmbeddingGenerator>();
+        });
+
+        var connectionString = configuration.GetConnectionString("VectorDb");
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            services.AddSingleton<IKnowledgeVectorStore, DisabledKnowledgeVectorStore>();
+            return;
+        }
+
+        services.AddDbContext<VectorDbContext>(options =>
+            options.UseNpgsql(
+                connectionString,
+                npgsql =>
+                {
+                    npgsql.EnableRetryOnFailure();
+                    npgsql.UseVector();
+                }));
+        services.AddScoped<IKnowledgeVectorStore, PgVectorKnowledgeStore>();
+        services.AddHostedService<KnowledgeIndexStartupService>();
     }
 
     private static string EnsureTrailingSlash(string value)

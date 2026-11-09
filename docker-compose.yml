@@ -52,6 +52,9 @@ services:
       - "5102:8080"
     environment:
       ConnectionStrings__DietKnowledgeDb: Host=diet-knowledge-db;Port=5432;Database=DietKnowledgeDb;Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
+      ConnectionStrings__VectorDb: Host=vector-db;Port=5432;Database=VectorDb;Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
+      KnowledgeIndex__EmbeddingModel: ${EMBEDDING_MODEL:-gemini-embedding-001}
+      KnowledgeIndex__IndexOnStartup: ${KNOWLEDGE_INDEX_ON_STARTUP:-true}
       Jwt__SigningKey: ${JWT_SIGNING_KEY:-development-only-replace-with-secret}
       DietKnowledgeSeed__IncludeDemoApprovedContent: ${DIET_KNOWLEDGE_SEED_INCLUDE_DEMO_APPROVED_CONTENT:-true}
       BookKnowledgeIngestion__StoragePath: ${BOOK_KNOWLEDGE_STORAGE_PATH:-/app/storage/book-sources}
@@ -63,6 +66,8 @@ services:
       - diet-knowledge-book-sources:/app/storage/book-sources
     depends_on:
       diet-knowledge-db:
+        condition: service_healthy
+      vector-db:
         condition: service_healthy
 
   meal-planning-service:
@@ -189,6 +194,23 @@ services:
       timeout: 5s
       retries: 10
 
+  # Separate vector database (PostgreSQL + pgvector) owned by Diet Knowledge Service.
+  vector-db:
+    image: pgvector/pgvector:pg16
+    ports:
+      - "5437:5432"
+    environment:
+      POSTGRES_DB: VectorDb
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - vector-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   meal-planning-db:
     image: postgres:16
     ports:
@@ -225,5 +247,6 @@ volumes:
   identity-db-data:
   diet-knowledge-db-data:
   diet-knowledge-book-sources:
+  vector-db-data:
   meal-planning-db-data:
   tracking-db-data:

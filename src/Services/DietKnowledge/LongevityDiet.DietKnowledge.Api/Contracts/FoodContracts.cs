@@ -27,7 +27,43 @@ public sealed record FoodResponse(
     DateTimeOffset? ReviewedAtUtc,
     bool IsActive,
     DateTimeOffset CreatedAtUtc,
-    DateTimeOffset? UpdatedAtUtc);
+    DateTimeOffset? UpdatedAtUtc,
+    IReadOnlyCollection<NutritionFactResponse>? NutritionFacts = null);
+
+public sealed record NutritionFactResponse(
+    Guid Id,
+    string ServingSize,
+    decimal EnergyKcal,
+    decimal ProteinG,
+    decimal CarbohydrateG,
+    decimal FatG,
+    decimal FiberG,
+    string SourceReference);
+
+public sealed record NutritionFactRequest
+{
+    [Required]
+    [MaxLength(120)]
+    public string ServingSize { get; init; } = string.Empty;
+
+    [Range(0, 100000)]
+    public decimal EnergyKcal { get; init; }
+
+    [Range(0, 100000)]
+    public decimal ProteinG { get; init; }
+
+    [Range(0, 100000)]
+    public decimal CarbohydrateG { get; init; }
+
+    [Range(0, 100000)]
+    public decimal FatG { get; init; }
+
+    [Range(0, 100000)]
+    public decimal FiberG { get; init; }
+
+    [MaxLength(500)]
+    public string SourceReference { get; init; } = string.Empty;
+}
 
 public sealed record CreateFoodRequest
 {
@@ -59,6 +95,9 @@ public sealed record CreateFoodRequest
 
     [MaxLength(120)]
     public string ReviewedBy { get; init; } = string.Empty;
+
+    // Optional: null keeps the current nutrition facts, a list replaces them.
+    public IReadOnlyCollection<NutritionFactRequest>? NutritionFacts { get; init; }
 }
 
 public sealed record UpdateFoodRequest
@@ -91,4 +130,7 @@ public sealed record UpdateFoodRequest
 
     [MaxLength(120)]
     public string ReviewedBy { get; init; } = string.Empty;
+
+    // Optional: null keeps the current nutrition facts, a list replaces them.
+    public IReadOnlyCollection<NutritionFactRequest>? NutritionFacts { get; init; }
 }

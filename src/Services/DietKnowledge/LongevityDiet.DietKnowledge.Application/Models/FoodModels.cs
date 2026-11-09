@@ -14,7 +14,27 @@ public sealed record FoodModel(
     DateTimeOffset? ReviewedAtUtc,
     bool IsActive,
     DateTimeOffset CreatedAtUtc,
-    DateTimeOffset? UpdatedAtUtc);
+    DateTimeOffset? UpdatedAtUtc,
+    IReadOnlyCollection<NutritionFactModel>? NutritionFacts = null);
+
+public sealed record NutritionFactModel(
+    Guid Id,
+    string ServingSize,
+    decimal EnergyKcal,
+    decimal ProteinG,
+    decimal CarbohydrateG,
+    decimal FatG,
+    decimal FiberG,
+    string SourceReference);
+
+public sealed record NutritionFactCommand(
+    string ServingSize,
+    decimal EnergyKcal,
+    decimal ProteinG,
+    decimal CarbohydrateG,
+    decimal FatG,
+    decimal FiberG,
+    string SourceReference);
 
 public sealed record CreateFoodCommand(
     string Name,
@@ -25,7 +45,8 @@ public sealed record CreateFoodCommand(
     string SourcePage,
     string SourceReference,
     string ReviewStatus,
-    string ReviewedBy);
+    string ReviewedBy,
+    IReadOnlyCollection<NutritionFactCommand>? NutritionFacts = null);
 
 public sealed record UpdateFoodCommand(
     string Name,
@@ -36,4 +57,5 @@ public sealed record UpdateFoodCommand(
     string SourcePage,
     string SourceReference,
     string ReviewStatus,
-    string ReviewedBy);
+    string ReviewedBy,
+    IReadOnlyCollection<NutritionFactCommand>? NutritionFacts = null);

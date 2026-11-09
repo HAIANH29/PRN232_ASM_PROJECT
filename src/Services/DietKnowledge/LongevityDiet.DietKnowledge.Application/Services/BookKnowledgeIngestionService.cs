@@ -386,11 +386,17 @@ public sealed class BookKnowledgeIngestionService(
                 throw new InvalidOperationException("A food with this candidate title already exists.");
             }
 
+            var bookCategory = await repository.GetOrCreateCategoryAsync(
+                "Book-derived",
+                CategoryTypes.Food,
+                cancellationToken);
+
             var food = new Food
             {
                 Id = Guid.NewGuid(),
                 Name = title,
-                Category = "Book-derived",
+                CategoryId = bookCategory.Id,
+                CategoryRef = bookCategory,
                 CompatibilityNotes = Clean(candidate.Summary),
                 SourceTitle = CleanOrDefault(candidate.SourceTitle, "The Longevity Diet"),
                 SourceChapter = sourceChapter,
@@ -461,11 +467,17 @@ public sealed class BookKnowledgeIngestionService(
             var food = await repository.GetFoodByNameAsync(ingredient.Name, cancellationToken);
             if (food is null)
             {
+                var ingredientCategory = await repository.GetOrCreateCategoryAsync(
+                    "Book-derived",
+                    CategoryTypes.Food,
+                    cancellationToken);
+
                 food = new Food
                 {
                     Id = Guid.NewGuid(),
                     Name = Truncate(ingredient.Name, 200),
-                    Category = "Book-derived",
+                    CategoryId = ingredientCategory.Id,
+                    CategoryRef = ingredientCategory,
                     CompatibilityNotes = "Ingredient named in an uploaded book recipe; nutrition note not reviewed yet.",
                     SourceTitle = CleanOrDefault(candidate.SourceTitle, "The Longevity Diet"),
                     SourceChapter = sourceChapter,

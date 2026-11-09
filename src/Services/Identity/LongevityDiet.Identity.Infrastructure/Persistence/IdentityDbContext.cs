@@ -9,6 +9,8 @@ public sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> option
 
     public DbSet<Role> Roles => Set<Role>();
 
+    public DbSet<UserPreferenceProfile> UserProfiles => Set<UserPreferenceProfile>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>(entity =>
@@ -37,6 +39,20 @@ public sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> option
                         join.HasKey("UserId", "RoleId");
                         join.ToTable("UserRoles");
                     });
+        });
+
+        modelBuilder.Entity<UserPreferenceProfile>(entity =>
+        {
+            entity.ToTable("UserProfiles");
+            entity.HasKey(profile => profile.Id);
+            entity.Property(profile => profile.PreferenceTags).HasMaxLength(800).IsRequired();
+            entity.Property(profile => profile.Notes).HasMaxLength(1000).IsRequired();
+            entity.Property(profile => profile.UpdatedAtUtc).IsRequired();
+            entity.HasOne(profile => profile.User)
+                .WithOne(user => user.Profile)
+                .HasForeignKey<UserPreferenceProfile>(profile => profile.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasIndex(profile => profile.UserId).IsUnique();
         });
 
         modelBuilder.Entity<Role>(entity =>

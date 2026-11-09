@@ -16,7 +16,8 @@ public sealed record DietGuidelineResponse(
     DateTimeOffset? ReviewedAtUtc,
     bool IsActive,
     DateTimeOffset CreatedAtUtc,
-    DateTimeOffset? UpdatedAtUtc);
+    DateTimeOffset? UpdatedAtUtc,
+    string? Category = null);
 
 public sealed record FoodResponse(
     Guid Id,
@@ -32,7 +33,8 @@ public sealed record FoodResponse(
     DateTimeOffset? ReviewedAtUtc,
     bool IsActive,
     DateTimeOffset CreatedAtUtc,
-    DateTimeOffset? UpdatedAtUtc);
+    DateTimeOffset? UpdatedAtUtc,
+    IReadOnlyCollection<NutritionFactResponse>? NutritionFacts = null);
 
 public sealed record RecipeResponse(
     Guid Id,
@@ -48,7 +50,9 @@ public sealed record RecipeResponse(
     DateTimeOffset? ReviewedAtUtc,
     IReadOnlyCollection<RecipeIngredientResponse> Ingredients,
     DateTimeOffset CreatedAtUtc,
-    DateTimeOffset? UpdatedAtUtc);
+    DateTimeOffset? UpdatedAtUtc,
+    string? Category = null,
+    IReadOnlyCollection<RecipeStepResponse>? Steps = null);
 
 public sealed record RecipeIngredientResponse(
     Guid Id,
@@ -92,6 +96,10 @@ public sealed class AdminKnowledgeViewModel
 
     public PagedResponse<RecipeResponse> Recipes { get; set; } = KnowledgeIndexViewModel.Empty<RecipeResponse>();
 
+    public KnowledgeIndexStatusResponse? IndexStatus { get; set; }
+
+    public IReadOnlyCollection<CategoryResponse> Categories { get; set; } = Array.Empty<CategoryResponse>();
+
     public GuidelineForm Guideline { get; set; } = new();
 
     public FoodForm Food { get; set; } = new();
@@ -131,6 +139,9 @@ public sealed class GuidelineForm
 
     [MaxLength(120)]
     public string ReviewedBy { get; set; } = string.Empty;
+
+    [MaxLength(120)]
+    public string? Category { get; set; }
 }
 
 public sealed class FoodForm
@@ -204,6 +215,9 @@ public sealed class RecipeForm
     [MaxLength(120)]
     [Display(Name = "Quantity")]
     public string IngredientQuantityText { get; set; } = "1 serving";
+
+    [MaxLength(120)]
+    public string? Category { get; set; }
 }
 
 public sealed record RecipeIngredientRequest(

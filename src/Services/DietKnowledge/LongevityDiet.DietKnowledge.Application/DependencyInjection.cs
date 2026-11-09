@@ -10,6 +10,8 @@ public static class DependencyInjection
         services.AddSingleton<LongevityDiet.DietKnowledge.Application.Abstractions.IGenerationProgressTracker, GenerationProgressTracker>();
         services.AddScoped<IDietKnowledgeService, DietKnowledgeService>();
         services.AddScoped<IBookKnowledgeIngestionService, BookKnowledgeIngestionService>();
+        services.AddScoped<IDietRegimenService, DietRegimenService>();
+        services.AddScoped<IKnowledgeIndexService, KnowledgeIndexService>();
 
         return services;
     }

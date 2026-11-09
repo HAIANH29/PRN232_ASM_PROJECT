@@ -13,7 +13,7 @@ public sealed class DietKnowledgeService(IDietKnowledgeRepository repository) : 
         return new DietKnowledgeServiceStatus(
             "Diet Knowledge Service",
             "DietKnowledgeDb",
-            ["DietGuideline", "Food", "Recipe", "RecipeIngredient"]);
+            ["Category", "DietGuideline", "Food", "NutritionFact", "Recipe", "RecipeIngredient", "RecipeStep"]);
     }
 
     public async Task<PagedResult<DietGuidelineModel>> ListGuidelinesAsync(
@@ -74,6 +74,7 @@ public sealed class DietKnowledgeService(IDietKnowledgeRepository repository) : 
             CreatedAtUtc = DateTimeOffset.UtcNow
         };
 
+        await ApplyCategoryAsync(guideline, command.Category, cancellationToken);
         await repository.AddGuidelineAsync(guideline, cancellationToken);
         await repository.SaveChangesAsync(cancellationToken);
 
@@ -109,6 +110,7 @@ public sealed class DietKnowledgeService(IDietKnowledgeRepository repository) : 
         guideline.Title = title;
         guideline.Summary = Clean(command.Summary);
         guideline.SourceNote = CleanOptional(command.SourceNote);
+        await ApplyCategoryAsync(guideline, command.Category, cancellationToken);
         ApplyReviewMetadata(guideline, reviewMetadata);
         guideline.UpdatedAtUtc = DateTimeOffset.UtcNow;
 
@@ -180,7 +182,6 @@ public sealed class DietKnowledgeService(IDietKnowledgeRepository repository) : 
         {
             Id = Guid.NewGuid(),
             Name = name,
-            Category = Clean(command.Category),
             CompatibilityNotes = CleanOptional(command.CompatibilityNotes),
             SourceTitle = reviewMetadata.SourceTitle,
             SourceChapter = reviewMetadata.SourceChapter,
@@ -192,6 +193,18 @@ public sealed class DietKnowledgeService(IDietKnowledgeRepository repository) : 
             IsActive = true,
             CreatedAtUtc = DateTimeOffset.UtcNow
         };
+
+        var category = await repository.GetOrCreateCategoryAsync(
+            Clean(command.Category),
+            CategoryTypes.Food,
+            cancellationToken);
+        food.CategoryId = category.Id;
+        food.CategoryRef = category;
+
+        if (command.NutritionFacts is not null)
+        {
+            repository.ReplaceNutritionFacts(food, MapNutritionFacts(command.NutritionFacts));
+        }
 
         await repository.AddFoodAsync(food, cancellationToken);
         await repository.SaveChangesAsync(cancellationToken);
@@ -226,8 +239,19 @@ public sealed class DietKnowledgeService(IDietKnowledgeRepository repository) : 
             command.ReviewedBy);
 
         food.Name = name;
-        food.Category = Clean(command.Category);
+        var foodCategory = await repository.GetOrCreateCategoryAsync(
+            Clean(command.Category),
+            CategoryTypes.Food,
+            cancellationToken);
+        food.CategoryId = foodCategory.Id;
+        food.CategoryRef = foodCategory;
         food.CompatibilityNotes = CleanOptional(command.CompatibilityNotes);
+
+        if (command.NutritionFacts is not null)
+        {
+            repository.ReplaceNutritionFacts(food, MapNutritionFacts(command.NutritionFacts));
+        }
+
         ApplyReviewMetadata(food, reviewMetadata);
         food.UpdatedAtUtc = DateTimeOffset.UtcNow;
 
@@ -318,6 +342,13 @@ public sealed class DietKnowledgeService(IDietKnowledgeRepository repository) : 
             recipe.Ingredients.Add(ingredient);
         }
 
+        await ApplyCategoryAsync(recipe, command.Category, cancellationToken);
+
+        if (command.Steps is not null)
+        {
+            repository.ReplaceRecipeSteps(recipe, MapSteps(command.Steps));
+        }
+
         await repository.AddRecipeAsync(recipe, cancellationToken);
         await repository.SaveChangesAsync(cancellationToken);
 
@@ -357,6 +388,12 @@ public sealed class DietKnowledgeService(IDietKnowledgeRepository repository) : 
         ApplyReviewMetadata(recipe, reviewMetadata);
         recipe.UpdatedAtUtc = DateTimeOffset.UtcNow;
         repository.ReplaceRecipeIngredients(recipe, MapIngredients(command.Ingredients));
+        await ApplyCategoryAsync(recipe, command.Category, cancellationToken);
+
+        if (command.Steps is not null)
+        {
+            repository.ReplaceRecipeSteps(recipe, MapSteps(command.Steps));
+        }
 
         await repository.SaveChangesAsync(cancellationToken);
         return await GetRecipeAsync(recipe.Id, includeInactive: true, cancellationToken);
@@ -419,6 +456,115 @@ public sealed class DietKnowledgeService(IDietKnowledgeRepository repository) : 
         }
     }
 
+    public async Task<IReadOnlyCollection<CategoryModel>> ListCategoriesAsync(
+        string? categoryType,
+        CancellationToken cancellationToken = default)
+    {
+        var categories = await repository.ListCategoriesAsync(
+            CleanOptional(categoryType),
+            includeInactive: false,
+            cancellationToken);
+
+        return categories
+            .Select(category => new CategoryModel(
+                category.Id,
+                category.Name,
+                category.CategoryType,
+                category.Description))
+            .ToArray();
+    }
+
+    // null leaves the category unchanged, an empty value clears it, any other value is found or created.
+    private async Task ApplyCategoryAsync(
+        DietGuideline guideline,
+        string? name,
+        CancellationToken cancellationToken)
+    {
+        if (name is null)
+        {
+            return;
+        }
+
+        var category = await ResolveOptionalCategoryAsync(name, CategoryTypes.Guideline, cancellationToken);
+        guideline.CategoryId = category?.Id;
+        guideline.CategoryRef = category;
+    }
+
+    private async Task ApplyCategoryAsync(
+        Recipe recipe,
+        string? name,
+        CancellationToken cancellationToken)
+    {
+        if (name is null)
+        {
+            return;
+        }
+
+        var category = await ResolveOptionalCategoryAsync(name, CategoryTypes.Recipe, cancellationToken);
+        recipe.CategoryId = category?.Id;
+        recipe.CategoryRef = category;
+    }
+
+    private async Task<Category?> ResolveOptionalCategoryAsync(
+        string name,
+        string categoryType,
+        CancellationToken cancellationToken)
+    {
+        return string.IsNullOrWhiteSpace(name)
+            ? null
+            : await repository.GetOrCreateCategoryAsync(name.Trim(), categoryType, cancellationToken);
+    }
+
+    private static IReadOnlyCollection<NutritionFact> MapNutritionFacts(
+        IReadOnlyCollection<NutritionFactCommand> facts)
+    {
+        foreach (var fact in facts)
+        {
+            if (string.IsNullOrWhiteSpace(fact.ServingSize))
+            {
+                throw new ValidationException("Each nutrition fact must include a serving size.");
+            }
+
+            if (fact.EnergyKcal < 0 || fact.ProteinG < 0 || fact.CarbohydrateG < 0 ||
+                fact.FatG < 0 || fact.FiberG < 0)
+            {
+                throw new ValidationException("Nutrition values cannot be negative.");
+            }
+        }
+
+        return facts.Select(fact => new NutritionFact
+        {
+            Id = Guid.NewGuid(),
+            ServingSize = fact.ServingSize.Trim(),
+            EnergyKcal = fact.EnergyKcal,
+            ProteinG = fact.ProteinG,
+            CarbohydrateG = fact.CarbohydrateG,
+            FatG = fact.FatG,
+            FiberG = fact.FiberG,
+            SourceReference = CleanOptional(fact.SourceReference)
+        }).ToArray();
+    }
+
+    private static IReadOnlyCollection<RecipeStep> MapSteps(IReadOnlyCollection<RecipeStepCommand> steps)
+    {
+        if (steps.Any(step => step.StepNumber < 1 || string.IsNullOrWhiteSpace(step.Instruction)))
+        {
+            throw new ValidationException("Recipe steps need a number of 1 or more and an instruction.");
+        }
+
+        if (steps.GroupBy(step => step.StepNumber).Any(group => group.Count() > 1))
+        {
+            throw new ValidationException("Recipe step numbers must be unique.");
+        }
+
+        return steps.Select(step => new RecipeStep
+        {
+            Id = Guid.NewGuid(),
+            StepNumber = step.StepNumber,
+            Instruction = step.Instruction.Trim()
+        }).ToArray();
+    }
+
     private static IReadOnlyCollection<RecipeIngredient> MapIngredients(
         IReadOnlyCollection<RecipeIngredientCommand> ingredients)
     {
@@ -457,7 +603,8 @@ public sealed class DietKnowledgeService(IDietKnowledgeRepository repository) : 
             guideline.ReviewedAtUtc,
             guideline.IsActive,
             guideline.CreatedAtUtc,
-            guideline.UpdatedAtUtc);
+            guideline.UpdatedAtUtc,
+            guideline.CategoryRef?.Name);
     }
 
     private static FoodModel MapFood(Food food)
@@ -465,7 +612,7 @@ public sealed class DietKnowledgeService(IDietKnowledgeRepository repository) : 
         return new FoodModel(
             food.Id,
             food.Name,
-            food.Category,
+            food.CategoryRef?.Name ?? string.Empty,
             food.CompatibilityNotes,
             food.SourceTitle,
             food.SourceChapter,
@@ -476,7 +623,19 @@ public sealed class DietKnowledgeService(IDietKnowledgeRepository repository) : 
             food.ReviewedAtUtc,
             food.IsActive,
             food.CreatedAtUtc,
-            food.UpdatedAtUtc);
+            food.UpdatedAtUtc,
+            food.NutritionFacts
+                .OrderBy(fact => fact.ServingSize)
+                .Select(fact => new NutritionFactModel(
+                    fact.Id,
+                    fact.ServingSize,
+                    fact.EnergyKcal,
+                    fact.ProteinG,
+                    fact.CarbohydrateG,
+                    fact.FatG,
+                    fact.FiberG,
+                    fact.SourceReference))
+                .ToArray());
     }
 
     private static RecipeModel MapRecipe(Recipe recipe)
@@ -499,11 +658,16 @@ public sealed class DietKnowledgeService(IDietKnowledgeRepository repository) : 
                     ingredient.Id,
                     ingredient.FoodId,
                     ingredient.Food?.Name,
-                    ingredient.Food?.Category,
+                    ingredient.Food?.CategoryRef?.Name,
                     ingredient.QuantityText))
                 .ToArray(),
             recipe.CreatedAtUtc,
-            recipe.UpdatedAtUtc);
+            recipe.UpdatedAtUtc,
+            recipe.CategoryRef?.Name,
+            recipe.Steps
+                .OrderBy(step => step.StepNumber)
+                .Select(step => new RecipeStepModel(step.Id, step.StepNumber, step.Instruction))
+                .ToArray());
     }
 
     private static DietGuidelineQuery Normalize(DietGuidelineQuery query)

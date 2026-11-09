@@ -48,7 +48,8 @@ internal static class MealPlanningContractMapper
             request.Name,
             request.StartDate,
             request.EndDate,
-            request.Items.Select(ToCommand).ToArray());
+            request.Items.Select(ToCommand).ToArray(),
+            request.DietRegimenId);
     }
 
     public static UpdateMealPlanCommand ToCommand(
@@ -61,7 +62,8 @@ internal static class MealPlanningContractMapper
             userEmail,
             request.Name,
             request.StartDate,
-            request.EndDate);
+            request.EndDate,
+            request.DietRegimenId);
     }
 
     public static AddMealPlanItemCommand ToAddCommand(
@@ -131,7 +133,8 @@ internal static class MealPlanningContractMapper
             model.EndDate,
             model.Items.Select(ToResponse).ToArray(),
             model.CreatedAtUtc,
-            model.UpdatedAtUtc);
+            model.UpdatedAtUtc,
+            model.DietRegimenId);
     }
 
     public static MealPlanItemResponse ToResponse(this MealPlanItemModel model)

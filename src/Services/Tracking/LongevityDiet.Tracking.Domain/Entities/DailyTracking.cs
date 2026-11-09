@@ -6,6 +6,10 @@ public sealed class DailyTracking
 
     public Guid UserId { get; set; }
 
+    public Guid? UserDietTrackingId { get; set; }
+
+    public UserDietTracking? UserDietTracking { get; set; }
+
     public DateOnly TrackingDate { get; set; }
 
     public string Notes { get; set; } = string.Empty;

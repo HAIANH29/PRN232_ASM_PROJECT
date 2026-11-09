@@ -42,10 +42,15 @@ namespace LongevityDiet.Tracking.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset?>("UpdatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid?>("UserDietTrackingId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("UserDietTrackingId");
 
                     b.HasIndex("UserId", "TrackingDate")
                         .IsUnique();
@@ -114,15 +119,73 @@ namespace LongevityDiet.Tracking.Infrastructure.Persistence.Migrations
                     b.Property<int>("PlannedMeals")
                         .HasColumnType("integer");
 
+                    b.Property<Guid?>("UserDietTrackingId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("UserDietTrackingId");
+
                     b.HasIndex("UserId", "PeriodStartDate", "PeriodEndDate")
                         .IsUnique();
 
                     b.ToTable("ProgressSummaries");
+                });
+
+            modelBuilder.Entity("LongevityDiet.Tracking.Domain.Entities.UserDietTracking", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DietRegimenId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly?>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<Guid?>("MealPlanId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DietRegimenId");
+
+                    b.HasIndex("MealPlanId");
+
+                    b.HasIndex("UserId", "Status");
+
+                    b.ToTable("UserDietTrackings");
+                });
+
+            modelBuilder.Entity("LongevityDiet.Tracking.Domain.Entities.DailyTracking", b =>
+                {
+                    b.HasOne("LongevityDiet.Tracking.Domain.Entities.UserDietTracking", "UserDietTracking")
+                        .WithMany("DailyTrackings")
+                        .HasForeignKey("UserDietTrackingId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("UserDietTracking");
                 });
 
             modelBuilder.Entity("LongevityDiet.Tracking.Domain.Entities.MealTracking", b =>
@@ -136,9 +199,26 @@ namespace LongevityDiet.Tracking.Infrastructure.Persistence.Migrations
                     b.Navigation("DailyTracking");
                 });
 
+            modelBuilder.Entity("LongevityDiet.Tracking.Domain.Entities.ProgressSummary", b =>
+                {
+                    b.HasOne("LongevityDiet.Tracking.Domain.Entities.UserDietTracking", "UserDietTracking")
+                        .WithMany("ProgressSummaries")
+                        .HasForeignKey("UserDietTrackingId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("UserDietTracking");
+                });
+
             modelBuilder.Entity("LongevityDiet.Tracking.Domain.Entities.DailyTracking", b =>
                 {
                     b.Navigation("Meals");
+                });
+
+            modelBuilder.Entity("LongevityDiet.Tracking.Domain.Entities.UserDietTracking", b =>
+                {
+                    b.Navigation("DailyTrackings");
+
+                    b.Navigation("ProgressSummaries");
                 });
 #pragma warning restore 612, 618
         }

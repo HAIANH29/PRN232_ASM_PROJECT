@@ -44,6 +44,10 @@
                 @T["This is a meal-planning helper, not medical advice. Preferences about illness, treatment or lifespan are ignored."]
             </div>
             <span asp-validation-for="Form.PreferenceTagsText" class="text-danger small"></span>
+            @if (Model.UsesProfileTags)
+            {
+                <div class="form-text">@T["Filled in from your saved preferences."] <a asp-controller="Auth" asp-action="Profile">@T["Change them in your profile"]</a></div>
+            }
         </div>
         <button class="btn btn-dark" type="submit"><span class="icon" aria-hidden="true">auto_awesome</span>@T["Get meal ideas"]</button>
     </form>

@@ -51,6 +51,94 @@
     </div>
 </form>
 
+@{
+    var facts = (ViewBag.NutritionFacts as IReadOnlyCollection<NutritionFactResponse> ?? Array.Empty<NutritionFactResponse>())
+        .OrderBy(fact => fact.ServingSize)
+        .ToList();
+}
+<section class="section-card mt-3">
+    <div class="card-heading">
+        <h2><span class="icon" aria-hidden="true">monitoring</span>@T["Nutrition facts"]</h2>
+        <span class="count-pill">@facts.Count</span>
+    </div>
+    <p class="text-muted">@T["Values per serving, copied from the book or another cited source. Informational only."]</p>
+    @if (facts.Count == 0)
+    {
+        <p class="empty-state">@T["No nutrition facts yet."]</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>@T["Serving size"]</th>
+                        <th>@T["Energy (kcal)"]</th>
+                        <th>@T["Protein (g)"]</th>
+                        <th>@T["Carbohydrate (g)"]</th>
+                        <th>@T["Fat (g)"]</th>
+                        <th>@T["Fiber (g)"]</th>
+                        <th class="table-actions">@T["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var fact in facts)
+                    {
+                        <tr>
+                            <td>@fact.ServingSize</td>
+                            <td>@fact.EnergyKcal.ToString("0.##", Translator.FormatCulture)</td>
+                            <td>@fact.ProteinG.ToString("0.##", Translator.FormatCulture)</td>
+                            <td>@fact.CarbohydrateG.ToString("0.##", Translator.FormatCulture)</td>
+                            <td>@fact.FatG.ToString("0.##", Translator.FormatCulture)</td>
+                            <td>@fact.FiberG.ToString("0.##", Translator.FormatCulture)</td>
+                            <td class="table-actions">
+                                <form asp-action="RemoveNutritionFact" method="post" class="inline-form">
+                                    <input type="hidden" name="id" value="@Model.Id" />
+                                    <input type="hidden" name="factId" value="@fact.Id" />
+                                    <button class="btn btn-sm btn-outline-danger" type="submit">@T["Remove"]</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    <form asp-action="AddNutritionFact" asp-route-id="@Model.Id" method="post" class="filter-bar">
+        <div>
+            <label for="nfServing" class="form-label">@T["Serving size"]</label>
+            <input id="nfServing" name="ServingSize" class="form-control" value="100 g" required />
+        </div>
+        <div>
+            <label for="nfEnergy" class="form-label">@T["Energy (kcal)"]</label>
+            <input id="nfEnergy" name="EnergyKcal" type="number" step="0.01" min="0" class="form-control" value="0" />
+        </div>
+        <div>
+            <label for="nfProtein" class="form-label">@T["Protein (g)"]</label>
+            <input id="nfProtein" name="ProteinG" type="number" step="0.01" min="0" class="form-control" value="0" />
+        </div>
+        <div>
+            <label for="nfCarb" class="form-label">@T["Carbohydrate (g)"]</label>
+            <input id="nfCarb" name="CarbohydrateG" type="number" step="0.01" min="0" class="form-control" value="0" />
+        </div>
+        <div>
+            <label for="nfFat" class="form-label">@T["Fat (g)"]</label>
+            <input id="nfFat" name="FatG" type="number" step="0.01" min="0" class="form-control" value="0" />
+        </div>
+        <div>
+            <label for="nfFiber" class="form-label">@T["Fiber (g)"]</label>
+            <input id="nfFiber" name="FiberG" type="number" step="0.01" min="0" class="form-control" value="0" />
+        </div>
+        <div>
+            <label for="nfSource" class="form-label">@T["Source reference"]</label>
+            <input id="nfSource" name="SourceReference" class="form-control" maxlength="500" />
+        </div>
+        <div class="filter-actions">
+            <button class="btn btn-dark" type="submit">@T["Add nutrition fact"]</button>
+        </div>
+    </form>
+</section>
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }

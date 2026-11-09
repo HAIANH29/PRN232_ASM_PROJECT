@@ -108,7 +108,7 @@ public sealed class DietKnowledgeTests
         {
             Id = id ?? Guid.NewGuid(),
             Name = name,
-            Category = category,
+            CategoryRef = new Category { Id = Guid.NewGuid(), Name = category, CategoryType = "Food" },
             CompatibilityNotes = $"{name} notes",
             SourceTitle = "The Longevity Diet",
             SourceChapter = "Demo chapter",

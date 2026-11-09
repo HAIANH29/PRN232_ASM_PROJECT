@@ -33,6 +33,16 @@
             <input asp-for="Form.EndDate" type="date" class="form-control" />
             <span asp-validation-for="Form.EndDate" class="text-danger small"></span>
         </div>
+        <div>
+            <label asp-for="Form.DietRegimenId" class="form-label">@T["Diet regimen (optional)"]</label>
+            <select asp-for="Form.DietRegimenId" class="form-select">
+                <option value="">@T["None"]</option>
+                @foreach (var regimen in Model.Regimens)
+                {
+                    <option value="@regimen.Id" selected="@(Model.Form.DietRegimenId == regimen.Id)">@T.C(regimen.Name)</option>
+                }
+            </select>
+        </div>
         <button class="btn btn-dark" type="submit">@T["Create meal plan"]</button>
     </form>
 

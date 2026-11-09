@@ -9,20 +9,20 @@ public sealed class UserRepository(IdentityDbContext dbContext) : IUserRepositor
 {
     public IQueryable<User> Query()
     {
-        return dbContext.Users.Include(user => user.Roles);
+        return dbContext.Users.Include(user => user.Roles).Include(user => user.Profile);
     }
 
     public Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return dbContext.Users
-            .Include(user => user.Roles)
+            .Include(user => user.Roles).Include(user => user.Profile)
             .FirstOrDefaultAsync(user => user.Id == id, cancellationToken);
     }
 
     public Task<User?> GetByEmailAsync(string normalizedEmail, CancellationToken cancellationToken = default)
     {
         return dbContext.Users
-            .Include(user => user.Roles)
+            .Include(user => user.Roles).Include(user => user.Profile)
             .FirstOrDefaultAsync(user => user.NormalizedEmail == normalizedEmail, cancellationToken);
     }
 
@@ -35,6 +35,11 @@ public sealed class UserRepository(IdentityDbContext dbContext) : IUserRepositor
     public async Task AddAsync(User user, CancellationToken cancellationToken = default)
     {
         await dbContext.Users.AddAsync(user, cancellationToken);
+    }
+
+    public void AddProfile(UserPreferenceProfile profile)
+    {
+        dbContext.UserProfiles.Add(profile);
     }
 
     public Task<bool> EmailExistsAsync(string normalizedEmail, CancellationToken cancellationToken = default)

@@ -50,6 +50,16 @@ public sealed class TrackingIndexViewModel
     public IReadOnlyCollection<FoodResponse> Foods { get; set; } = Array.Empty<FoodResponse>();
 
     public IReadOnlyCollection<RecipeResponse> Recipes { get; set; } = Array.Empty<RecipeResponse>();
+
+    // Diet tracking: the regimen / meal plan the member follows over a period.
+    public UserDietTrackingResponse? ActiveDietTracking { get; set; }
+
+    public IReadOnlyCollection<UserDietTrackingResponse> DietTrackingHistory { get; set; } =
+        Array.Empty<UserDietTrackingResponse>();
+
+    public IReadOnlyCollection<DietRegimenResponse> Regimens { get; set; } = Array.Empty<DietRegimenResponse>();
+
+    public StartDietTrackingForm StartForm { get; set; } = new();
 }
 
 public sealed class TrackingForm

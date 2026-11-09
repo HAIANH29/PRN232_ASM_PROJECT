@@ -18,7 +18,8 @@ public sealed class MealPlansController(ApiGatewayClient api, UserSession sessio
 
         return View(new MealPlansIndexViewModel
         {
-            MealPlans = await LoadMealPlansAsync(cancellationToken)
+            MealPlans = await LoadMealPlansAsync(cancellationToken),
+            Regimens = await LoadRegimensAsync(cancellationToken)
         });
     }
 
@@ -39,6 +40,7 @@ public sealed class MealPlansController(ApiGatewayClient api, UserSession sessio
             return View("Index", new MealPlansIndexViewModel
             {
                 MealPlans = await LoadMealPlansAsync(cancellationToken),
+                Regimens = await LoadRegimensAsync(cancellationToken),
                 Form = form
             });
         }
@@ -50,6 +52,7 @@ public sealed class MealPlansController(ApiGatewayClient api, UserSession sessio
                 form.Name,
                 form.StartDate,
                 form.EndDate,
+                form.DietRegimenId,
                 items = Array.Empty<object>()
             },
             Token,
@@ -123,7 +126,7 @@ public sealed class MealPlansController(ApiGatewayClient api, UserSession sessio
 
         var result = await Api.PutAsync<MealPlanResponse>(
             $"/meal-planning/api/meal-plans/{id}",
-            new { form.Name, form.StartDate, form.EndDate },
+            new { form.Name, form.StartDate, form.EndDate, form.DietRegimenId },
             Token,
             cancellationToken);
         AddResultMessage(result, "Meal plan updated.");
@@ -256,8 +259,10 @@ public sealed class MealPlansController(ApiGatewayClient api, UserSession sessio
             {
                 Name = result.Data.Name,
                 StartDate = result.Data.StartDate,
-                EndDate = result.Data.EndDate
+                EndDate = result.Data.EndDate,
+                DietRegimenId = result.Data.DietRegimenId
             },
+            Regimens = await LoadRegimensAsync(cancellationToken),
             ItemForm = new MealPlanItemForm
             {
                 PlannedDate = result.Data.StartDate,

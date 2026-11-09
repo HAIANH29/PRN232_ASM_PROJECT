@@ -6,4 +6,10 @@ public sealed record UserProfile(
     string DisplayName,
     bool IsActive,
     IReadOnlyCollection<string> Roles,
-    DateTimeOffset CreatedAtUtc);
+    DateTimeOffset CreatedAtUtc,
+    IReadOnlyCollection<string>? PreferenceTags = null,
+    string? Notes = null);
+
+public sealed record UpdatePreferencesCommand(
+    IReadOnlyCollection<string> PreferenceTags,
+    string? Notes);

@@ -1,0 +1,133 @@
+@model RegimenDetailsViewModel
+@{
+    var regimen = Model.Regimen;
+    ViewData["Title"] = T.C(regimen.Name);
+    string[] slotOrder = ["Breakfast", "Lunch", "Dinner", "Snack"];
+    var days = regimen.Meals
+        .GroupBy(meal => meal.DayNumber)
+        .OrderBy(group => group.Key)
+        .ToList();
+    var plansById = Model.MealPlans.ToDictionary(plan => plan.Id);
+}
+
+<section class="page-head">
+    <div>
+        <p class="eyebrow">@T["Diet Regimens"]</p>
+        <h1>@T.C(regimen.Name)</h1>
+        <p class="text-muted mb-0">@T.C(regimen.Description)</p>
+        <div class="knowledge-card-top mt-2">
+            <span class="chip-tag success"><span class="icon" aria-hidden="true">verified</span>@T["Approved"]</span>
+            <span class="chip-tag neutral">@T.F("{0} days", regimen.DurationDays)</span>
+            @if (!string.IsNullOrWhiteSpace(regimen.SourceChapter))
+            {
+                <span class="chip-tag"><span class="icon" aria-hidden="true">auto_stories</span>@T.C(regimen.SourceChapter) @regimen.SourcePage</span>
+            }
+        </div>
+    </div>
+    <a class="btn btn-outline-secondary" asp-action="Index"><span class="icon" aria-hidden="true">arrow_back</span>@T["All regimens"]</a>
+</section>
+
+<section class="two-pane">
+    <div>
+        <div class="section-card">
+            <div class="card-heading">
+                <h2><span class="icon" aria-hidden="true">menu_book</span>@T["Guidelines in this regimen"]</h2>
+                <span class="count-pill">@regimen.Guidelines.Count</span>
+            </div>
+            @if (regimen.Guidelines.Count == 0)
+            {
+                <p class="empty-state">@T["No guidelines are linked to this regimen."]</p>
+            }
+            else
+            {
+                <ol class="mb-0">
+                    @foreach (var link in regimen.Guidelines.OrderBy(item => item.SortOrder))
+                    {
+                        <li class="mb-2">
+                            <strong>@T.C(link.GuidelineTitle)</strong>
+                            @if (!string.IsNullOrWhiteSpace(link.Note))
+                            {
+                                <div class="text-muted small">@T.C(link.Note)</div>
+                            }
+                        </li>
+                    }
+                </ol>
+            }
+        </div>
+
+        <div class="section-card mt-3">
+            <div class="card-heading">
+                <h2><span class="icon" aria-hidden="true">calendar_month</span>@T["Menu by day"]</h2>
+                <span class="count-pill">@regimen.Meals.Count</span>
+            </div>
+            @if (days.Count == 0)
+            {
+                <p class="empty-state">@T["No meals are scheduled in this regimen yet."]</p>
+            }
+            else
+            {
+                <div class="item-stack">
+                    @foreach (var day in days)
+                    {
+                        <article class="meal-card">
+                            <div>
+                                <div class="meal-slot">@T.F("Day {0}", day.Key)</div>
+                                @foreach (var meal in day.OrderBy(item => Array.IndexOf(slotOrder, item.MealSlot)))
+                                {
+                                    <div class="meal-name">
+                                        <span class="text-muted">@T[meal.MealSlot]:</span> @T.C(meal.RecipeName)
+                                    </div>
+                                    @if (!string.IsNullOrWhiteSpace(meal.Notes))
+                                    {
+                                        <div class="meal-sub"><span>@T.C(meal.Notes)</span></div>
+                                    }
+                                }
+                            </div>
+                        </article>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="section-card form-stack">
+        <div class="card-heading">
+            <h2><span class="icon" aria-hidden="true">monitoring</span>@T["Follow this regimen"]</h2>
+        </div>
+        @if (!Model.CanStartTracking)
+        {
+            <p class="text-muted">@T["Sign in to start tracking this regimen."]</p>
+            <a class="btn btn-dark" asp-controller="Auth" asp-action="Login">@T["Sign in"]</a>
+        }
+        else if (Model.ActiveTracking is not null)
+        {
+            <p class="text-muted">@T["You already have an active diet tracking. Finish or cancel it on the Daily Check-in page before starting another."]</p>
+            <a class="btn btn-outline-secondary" asp-controller="Tracking" asp-action="Index">@T["Go to Daily Check-in"]</a>
+        }
+        else
+        {
+            <form asp-action="StartTracking" method="post" class="form-stack">
+                <input type="hidden" name="StartForm.DietRegimenId" value="@Model.StartForm.DietRegimenId" />
+                <div>
+                    <label for="startDate" class="form-label">@T["Start date"]</label>
+                    <input id="startDate" name="StartForm.StartDate" type="date" class="form-control" value="@Model.StartForm.StartDate.ToString("yyyy-MM-dd")" required />
+                </div>
+                <div>
+                    <label for="endDate" class="form-label">@T["End date"]</label>
+                    <input id="endDate" name="StartForm.EndDate" type="date" class="form-control" value="@Model.StartForm.EndDate?.ToString("yyyy-MM-dd")" />
+                </div>
+                <div>
+                    <label for="mealPlanId" class="form-label">@T["Meal plan (optional)"]</label>
+                    <select id="mealPlanId" name="StartForm.MealPlanId" class="form-select">
+                        <option value="">@T["None"]</option>
+                        @foreach (var plan in Model.MealPlans)
+                        {
+                            <option value="@plan.Id">@plan.Name (@plan.StartDate.ToString("d MMM", Translator.FormatCulture) - @plan.EndDate.ToString("d MMM", Translator.FormatCulture))</option>
+                        }
+                    </select>
+                </div>
+                <button class="btn btn-dark" type="submit"><span class="icon" aria-hidden="true">play_arrow</span>@T["Start tracking"]</button>
+            </form>
+        }
+    </div>
+</section>

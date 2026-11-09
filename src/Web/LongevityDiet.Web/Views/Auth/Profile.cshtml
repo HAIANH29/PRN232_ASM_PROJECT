@@ -1,6 +1,9 @@
-@model UserProfileResponse
+@model ProfileViewModel
+@inject UserSession UserSession
 @{
     ViewData["Title"] = T["Profile"];
+    var profile = Model.Profile;
+    var tags = profile.PreferenceTags ?? Array.Empty<string>();
 }
 
 <section class="page-head">
@@ -12,28 +15,64 @@
     <a class="btn btn-outline-secondary" asp-controller="Home" asp-action="Index"><span class="icon" aria-hidden="true">arrow_back</span>@T["Back to dashboard"]</a>
 </section>
 
-<section class="section-card narrow-card">
-    <div class="profile-head">
-        <span class="avatar avatar-lg">@(string.IsNullOrWhiteSpace(Model.DisplayName) ? "?" : Model.DisplayName.Trim()[..1])</span>
-        <div>
-            <strong>@Model.DisplayName</strong>
-            <span>@Model.Email</span>
+<section class="two-pane">
+    <div class="section-card">
+        <div class="profile-head">
+            <span class="avatar avatar-lg">@(string.IsNullOrWhiteSpace(profile.DisplayName) ? "?" : profile.DisplayName.Trim()[..1])</span>
+            <div>
+                <strong>@profile.DisplayName</strong>
+                <span>@profile.Email</span>
+            </div>
         </div>
+        <dl class="detail-list">
+            <dt>@T["Name"]</dt>
+            <dd>@profile.DisplayName</dd>
+            <dt>@T["Email"]</dt>
+            <dd>@profile.Email</dd>
+            <dt>@T["Status"]</dt>
+            <dd>
+                <span class="badge @(profile.IsActive ? "text-bg-success" : "text-bg-secondary")">
+                    @(profile.IsActive ? T["Active"] : T["Inactive"])
+                </span>
+            </dd>
+            <dt>@T["Roles"]</dt>
+            <dd>@string.Join(", ", profile.Roles.Select(role => T[role]))</dd>
+            <dt>@T["Created"]</dt>
+            <dd>@profile.CreatedAtUtc.LocalDateTime.ToString("yyyy-MM-dd HH:mm")</dd>
+        </dl>
     </div>
-    <dl class="detail-list">
-        <dt>@T["Name"]</dt>
-        <dd>@Model.DisplayName</dd>
-        <dt>@T["Email"]</dt>
-        <dd>@Model.Email</dd>
-        <dt>@T["Status"]</dt>
-        <dd>
-            <span class="badge @(Model.IsActive ? "text-bg-success" : "text-bg-secondary")">
-                @(Model.IsActive ? T["Active"] : T["Inactive"])
-            </span>
-        </dd>
-        <dt>@T["Roles"]</dt>
-        <dd>@string.Join(", ", Model.Roles.Select(role => T[role]))</dd>
-        <dt>@T["Created"]</dt>
-        <dd>@Model.CreatedAtUtc.LocalDateTime.ToString("yyyy-MM-dd HH:mm")</dd>
-    </dl>
+
+    @if (!UserSession.IsAdmin)
+    {
+        <form asp-action="SavePreferences" method="post" class="section-card form-stack">
+            <div class="card-heading">
+                <h2><span class="icon" aria-hidden="true">favorite</span>@T["Eating preferences"]</h2>
+            </div>
+            <p class="text-muted">@T["Tell us what you like to eat. Meal ideas use these tags to pick approved foods and recipes. Do not add illnesses or treatments."]</p>
+            @if (tags.Count > 0)
+            {
+                <div class="chip-row">
+                    @foreach (var tag in tags)
+                    {
+                        <span class="chip-tag neutral">@tag</span>
+                    }
+                </div>
+            }
+            <div>
+                <label asp-for="Form.Tags" class="form-label">@T["Preference tags"]</label>
+                <input asp-for="Form.Tags" class="form-control" placeholder="@T["Separate with commas, e.g. vegetarian, legumes, soup"]" />
+                <span asp-validation-for="Form.Tags" class="text-danger small"></span>
+            </div>
+            <div>
+                <label asp-for="Form.Notes" class="form-label">@T["Notes"]</label>
+                <textarea asp-for="Form.Notes" class="form-control" rows="3" placeholder="@T["Optional - anything else about how you like to eat"]"></textarea>
+                <span asp-validation-for="Form.Notes" class="text-danger small"></span>
+            </div>
+            <button class="btn btn-dark" type="submit">@T["Save preferences"]</button>
+        </form>
+    }
 </section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

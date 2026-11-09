@@ -16,7 +16,7 @@ public sealed class TrackingService(
         return new TrackingServiceStatus(
             "Tracking Service",
             "TrackingDb",
-            ["DailyTracking", "MealTracking", "ProgressSummary"]);
+            ["UserDietTracking", "DailyTracking", "MealTracking", "ProgressSummary"]);
     }
 
     public async Task<PagedResult<DailyTrackingModel>> ListDailyTrackingAsync(

@@ -46,6 +46,10 @@
         <label asp-for="ReviewedBy" class="form-label"></label>
         <input asp-for="ReviewedBy" class="form-control" />
     </div>
+    <div>
+        <label asp-for="Category" class="form-label">@T["Category (optional)"]</label>
+        <input asp-for="Category" class="form-control" />
+    </div>
     <div class="grid-full form-actions">
         <button class="btn btn-dark" type="submit">@T["Save changes"]</button>
     </div>

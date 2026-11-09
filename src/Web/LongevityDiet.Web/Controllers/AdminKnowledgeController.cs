@@ -196,6 +196,7 @@ public sealed class AdminKnowledgeController(ApiGatewayClient api, UserSession s
             return RedirectToAction(nameof(Index));
         }
 
+        ViewBag.NutritionFacts = result.Data.NutritionFacts ?? Array.Empty<NutritionFactResponse>();
         return View(MapFood(result.Data));
     }
 
@@ -243,6 +244,7 @@ public sealed class AdminKnowledgeController(ApiGatewayClient api, UserSession s
             return RedirectToAction(nameof(Index));
         }
 
+        ViewBag.Steps = result.Data.Steps ?? Array.Empty<RecipeStepResponse>();
         return View(MapRecipe(result.Data));
     }
 
@@ -275,6 +277,224 @@ public sealed class AdminKnowledgeController(ApiGatewayClient api, UserSession s
         AddResultMessage(result, "Recipe updated.");
         return RedirectToAction(nameof(Index));
     }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RebuildIndex(CancellationToken cancellationToken)
+    {
+        var guard = RequireAdmin();
+        if (guard is not null)
+        {
+            return guard;
+        }
+
+        var result = await Api.PostAsync<KnowledgeIndexResultResponse>(
+            "/diet-knowledge/api/admin/knowledge-index/rebuild",
+            new { },
+            Token,
+            cancellationToken);
+
+        if (result.Succeeded && result.Data is not null)
+        {
+            TempData["Success"] = Translator.Lookup("Knowledge index updated.") +
+                $" {result.Data.Indexed} / {result.Data.Unchanged} / {result.Data.Removed} / {result.Data.Failed}";
+        }
+        else
+        {
+            TempData["Error"] = FormatErrors(result.Message, result.Errors);
+        }
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> AddNutritionFact(
+        Guid id,
+        NutritionFactForm form,
+        CancellationToken cancellationToken)
+    {
+        var guard = RequireAdmin();
+        if (guard is not null)
+        {
+            return guard;
+        }
+
+        if (!ModelState.IsValid)
+        {
+            TempData["Error"] = "Check the nutrition values: a serving size is required and numbers cannot be negative.";
+            return RedirectToAction(nameof(EditFood), new { id });
+        }
+
+        return await SaveFoodFactsAsync(
+            id,
+            facts => facts.Where(fact => !string.Equals(fact.ServingSize, form.ServingSize.Trim(), StringComparison.OrdinalIgnoreCase))
+                .Append(new NutritionFactBody(form.ServingSize.Trim(), form.EnergyKcal, form.ProteinG, form.CarbohydrateG, form.FatG, form.FiberG, form.SourceReference ?? string.Empty))
+                .ToList(),
+            "Nutrition fact saved.",
+            cancellationToken);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RemoveNutritionFact(Guid id, Guid factId, CancellationToken cancellationToken)
+    {
+        var guard = RequireAdmin();
+        if (guard is not null)
+        {
+            return guard;
+        }
+
+        return await SaveFoodFactsAsync(
+            id,
+            _ => null,
+            "Nutrition fact removed.",
+            cancellationToken,
+            removeFactId: factId);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> AddRecipeStep(Guid id, RecipeStepForm form, CancellationToken cancellationToken)
+    {
+        var guard = RequireAdmin();
+        if (guard is not null)
+        {
+            return guard;
+        }
+
+        if (!ModelState.IsValid)
+        {
+            TempData["Error"] = "A step needs a number of 1 or more and an instruction.";
+            return RedirectToAction(nameof(EditRecipe), new { id });
+        }
+
+        return await SaveRecipeStepsAsync(
+            id,
+            steps => steps.Where(step => step.StepNumber != form.StepNumber)
+                .Append(new RecipeStepBody(form.StepNumber, form.Instruction.Trim()))
+                .ToList(),
+            "Recipe step saved.",
+            cancellationToken);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RemoveRecipeStep(Guid id, int stepNumber, CancellationToken cancellationToken)
+    {
+        var guard = RequireAdmin();
+        if (guard is not null)
+        {
+            return guard;
+        }
+
+        return await SaveRecipeStepsAsync(
+            id,
+            steps => steps.Where(step => step.StepNumber != stepNumber).ToList(),
+            "Recipe step removed.",
+            cancellationToken);
+    }
+
+    // The API replaces a food's nutrition facts as a whole, so load the food, change the list and save it again.
+    private async Task<IActionResult> SaveFoodFactsAsync(
+        Guid id,
+        Func<List<NutritionFactBody>, List<NutritionFactBody>?> change,
+        string successMessage,
+        CancellationToken cancellationToken,
+        Guid? removeFactId = null)
+    {
+        var current = await Api.GetAsync<FoodResponse>(
+            $"/diet-knowledge/api/admin/foods/{id}",
+            Token,
+            cancellationToken);
+        if (!current.Succeeded || current.Data is null)
+        {
+            TempData["Error"] = FormatErrors(current.Message, current.Errors);
+            return RedirectToAction(nameof(Index));
+        }
+
+        var food = current.Data;
+        var facts = (food.NutritionFacts ?? Array.Empty<NutritionFactResponse>())
+            .Where(fact => fact.Id != removeFactId)
+            .Select(fact => new NutritionFactBody(fact.ServingSize, fact.EnergyKcal, fact.ProteinG, fact.CarbohydrateG, fact.FatG, fact.FiberG, fact.SourceReference))
+            .ToList();
+        facts = change(facts) ?? facts;
+
+        var result = await Api.PutAsync<FoodResponse>(
+            $"/diet-knowledge/api/admin/foods/{id}",
+            new
+            {
+                food.Name,
+                food.Category,
+                food.CompatibilityNotes,
+                food.SourceTitle,
+                food.SourceChapter,
+                food.SourcePage,
+                food.SourceReference,
+                food.ReviewStatus,
+                food.ReviewedBy,
+                NutritionFacts = facts
+            },
+            Token,
+            cancellationToken);
+        AddResultMessage(result, successMessage);
+        return RedirectToAction(nameof(EditFood), new { id });
+    }
+
+    // Same idea for recipe steps; every existing ingredient is sent back so none is lost.
+    private async Task<IActionResult> SaveRecipeStepsAsync(
+        Guid id,
+        Func<List<RecipeStepBody>, List<RecipeStepBody>> change,
+        string successMessage,
+        CancellationToken cancellationToken)
+    {
+        var current = await Api.GetAsync<RecipeResponse>(
+            $"/diet-knowledge/api/admin/recipes/{id}",
+            Token,
+            cancellationToken);
+        if (!current.Succeeded || current.Data is null)
+        {
+            TempData["Error"] = FormatErrors(current.Message, current.Errors);
+            return RedirectToAction(nameof(Index));
+        }
+
+        var recipe = current.Data;
+        var steps = change((recipe.Steps ?? Array.Empty<RecipeStepResponse>())
+            .Select(step => new RecipeStepBody(step.StepNumber, step.Instruction))
+            .ToList());
+
+        var result = await Api.PutAsync<RecipeResponse>(
+            $"/diet-knowledge/api/admin/recipes/{id}",
+            new
+            {
+                recipe.Name,
+                recipe.Description,
+                recipe.SourceTitle,
+                recipe.SourceChapter,
+                recipe.SourcePage,
+                recipe.SourceReference,
+                recipe.ReviewStatus,
+                recipe.ReviewedBy,
+                Category = recipe.Category ?? string.Empty,
+                Ingredients = recipe.Ingredients.Select(ingredient => new RecipeIngredientRequest(ingredient.FoodId, ingredient.QuantityText)).ToArray(),
+                Steps = steps
+            },
+            Token,
+            cancellationToken);
+        AddResultMessage(result, successMessage);
+        return RedirectToAction(nameof(EditRecipe), new { id });
+    }
+
+    private sealed record NutritionFactBody(
+        string ServingSize,
+        decimal EnergyKcal,
+        decimal ProteinG,
+        decimal CarbohydrateG,
+        decimal FatG,
+        decimal FiberG,
+        string SourceReference);
+
+    private sealed record RecipeStepBody(int StepNumber, string Instruction);
 
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -338,8 +558,18 @@ public sealed class AdminKnowledgeController(ApiGatewayClient api, UserSession s
             Token,
             cancellationToken);
 
+        var indexStatus = await Api.GetAsync<KnowledgeIndexStatusResponse>(
+            "/diet-knowledge/api/admin/knowledge-index/status",
+            Token,
+            cancellationToken);
+        var categories = await Api.GetAsync<List<CategoryResponse>>(
+            "/diet-knowledge/api/categories",
+            cancellationToken: cancellationToken);
+
         return new AdminKnowledgeViewModel
         {
+            IndexStatus = indexStatus.Data,
+            Categories = categories.Data ?? new List<CategoryResponse>(),
             ReviewFilter = reviewFilter,
             Guidelines = guidelines.Data ?? KnowledgeIndexViewModel.Empty<DietGuidelineResponse>(),
             Foods = foods.Data ?? KnowledgeIndexViewModel.Empty<FoodResponse>(),
@@ -357,7 +587,8 @@ public sealed class AdminKnowledgeController(ApiGatewayClient api, UserSession s
         form.SourcePage,
         form.SourceReference,
         form.ReviewStatus,
-        form.ReviewedBy
+        form.ReviewedBy,
+        Category = form.Category ?? string.Empty
     };
 
     private static object ToFoodBody(FoodForm form) => new
@@ -383,6 +614,7 @@ public sealed class AdminKnowledgeController(ApiGatewayClient api, UserSession s
         form.SourceReference,
         form.ReviewStatus,
         form.ReviewedBy,
+        Category = form.Category ?? string.Empty,
         ingredients = new[]
         {
             new RecipeIngredientRequest(
@@ -402,7 +634,8 @@ public sealed class AdminKnowledgeController(ApiGatewayClient api, UserSession s
         SourcePage = item.SourcePage,
         SourceReference = item.SourceReference,
         ReviewStatus = item.ReviewStatus,
-        ReviewedBy = item.ReviewedBy
+        ReviewedBy = item.ReviewedBy,
+        Category = item.Category
     };
 
     private static FoodForm MapFood(FoodResponse item) => new()
@@ -434,7 +667,8 @@ public sealed class AdminKnowledgeController(ApiGatewayClient api, UserSession s
             ReviewStatus = item.ReviewStatus,
             ReviewedBy = item.ReviewedBy,
             IngredientFoodId = ingredient?.FoodId ?? Guid.Empty,
-            IngredientQuantityText = ingredient?.QuantityText ?? "1 serving"
+            IngredientQuantityText = ingredient?.QuantityText ?? "1 serving",
+            Category = item.Category
         };
     }
 }

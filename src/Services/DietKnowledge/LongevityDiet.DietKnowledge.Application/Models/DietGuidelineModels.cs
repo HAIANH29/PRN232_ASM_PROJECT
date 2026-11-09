@@ -14,7 +14,8 @@ public sealed record DietGuidelineModel(
     DateTimeOffset? ReviewedAtUtc,
     bool IsActive,
     DateTimeOffset CreatedAtUtc,
-    DateTimeOffset? UpdatedAtUtc);
+    DateTimeOffset? UpdatedAtUtc,
+    string? Category = null);
 
 public sealed record CreateDietGuidelineCommand(
     string Title,
@@ -25,7 +26,8 @@ public sealed record CreateDietGuidelineCommand(
     string SourcePage,
     string SourceReference,
     string ReviewStatus,
-    string ReviewedBy);
+    string ReviewedBy,
+    string? Category = null);
 
 public sealed record UpdateDietGuidelineCommand(
     string Title,
@@ -36,7 +38,8 @@ public sealed record UpdateDietGuidelineCommand(
     string SourcePage,
     string SourceReference,
     string ReviewStatus,
-    string ReviewedBy);
+    string ReviewedBy,
+    string? Category = null);
 
 public sealed record DeleteAllKnowledgeResultModel(
     int GuidelinesDeleted,

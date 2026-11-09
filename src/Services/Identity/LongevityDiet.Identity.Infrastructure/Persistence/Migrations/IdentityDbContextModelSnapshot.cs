@@ -85,6 +85,36 @@ namespace LongevityDiet.Identity.Infrastructure.Persistence.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("LongevityDiet.Identity.Domain.Entities.UserPreferenceProfile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Notes")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("PreferenceTags")
+                        .IsRequired()
+                        .HasMaxLength(800)
+                        .HasColumnType("character varying(800)");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("UserProfiles", (string)null);
+                });
+
             modelBuilder.Entity("UserRoles", b =>
                 {
                     b.Property<Guid>("UserId")
@@ -100,6 +130,17 @@ namespace LongevityDiet.Identity.Infrastructure.Persistence.Migrations
                     b.ToTable("UserRoles", (string)null);
                 });
 
+            modelBuilder.Entity("LongevityDiet.Identity.Domain.Entities.UserPreferenceProfile", b =>
+                {
+                    b.HasOne("LongevityDiet.Identity.Domain.Entities.User", "User")
+                        .WithOne("Profile")
+                        .HasForeignKey("LongevityDiet.Identity.Domain.Entities.UserPreferenceProfile", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("UserRoles", b =>
                 {
                     b.HasOne("LongevityDiet.Identity.Domain.Entities.Role", null)
@@ -113,6 +154,11 @@ namespace LongevityDiet.Identity.Infrastructure.Persistence.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("LongevityDiet.Identity.Domain.Entities.User", b =>
+                {
+                    b.Navigation("Profile");
                 });
 #pragma warning restore 612, 618
         }

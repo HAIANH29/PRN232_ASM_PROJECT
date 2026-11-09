@@ -14,6 +14,9 @@ public interface IUserRepository
 
     Task AddAsync(User user, CancellationToken cancellationToken = default);
 
+    // Marks a new preference profile as added; assigning it to User.Profile alone makes EF treat it as an update.
+    void AddProfile(UserPreferenceProfile profile);
+
     Task<bool> EmailExistsAsync(string normalizedEmail, CancellationToken cancellationToken = default);
 
     Task SaveChangesAsync(CancellationToken cancellationToken = default);

@@ -13,7 +13,7 @@ public sealed class DietKnowledgeRepository(DietKnowledgeDbContext dbContext) : 
         DietGuidelineQuery query,
         CancellationToken cancellationToken = default)
     {
-        var source = dbContext.DietGuidelines.AsNoTracking();
+        var source = dbContext.DietGuidelines.Include(guideline => guideline.CategoryRef).AsNoTracking();
 
         if (!query.IncludeInactive)
         {
@@ -41,7 +41,7 @@ public sealed class DietKnowledgeRepository(DietKnowledgeDbContext dbContext) : 
         bool approvedOnly,
         CancellationToken cancellationToken = default)
     {
-        var query = dbContext.DietGuidelines.AsQueryable();
+        var query = dbContext.DietGuidelines.Include(guideline => guideline.CategoryRef).AsQueryable();
 
         if (!includeInactive)
         {
@@ -80,7 +80,7 @@ public sealed class DietKnowledgeRepository(DietKnowledgeDbContext dbContext) : 
         FoodQuery query,
         CancellationToken cancellationToken = default)
     {
-        var source = dbContext.Foods.AsNoTracking();
+        var source = dbContext.Foods.Include(food => food.CategoryRef).Include(food => food.NutritionFacts).AsNoTracking();
 
         if (!query.IncludeInactive)
         {
@@ -100,7 +100,7 @@ public sealed class DietKnowledgeRepository(DietKnowledgeDbContext dbContext) : 
         if (!string.IsNullOrWhiteSpace(query.Category))
         {
             var category = query.Category.ToLower();
-            source = source.Where(food => food.Category.ToLower() == category);
+            source = source.Where(food => food.CategoryRef!.Name.ToLower() == category);
         }
 
         source = ApplyFoodSort(source, query.SortBy, query.SortDirection);
@@ -114,7 +114,7 @@ public sealed class DietKnowledgeRepository(DietKnowledgeDbContext dbContext) : 
         bool approvedOnly,
         CancellationToken cancellationToken = default)
     {
-        var query = dbContext.Foods.AsQueryable();
+        var query = dbContext.Foods.Include(food => food.CategoryRef).Include(food => food.NutritionFacts).AsQueryable();
 
         if (!includeInactive)
         {
@@ -148,7 +148,7 @@ public sealed class DietKnowledgeRepository(DietKnowledgeDbContext dbContext) : 
         CancellationToken cancellationToken = default)
     {
         var normalizedName = name.Trim().ToUpper();
-        return dbContext.Foods.FirstOrDefaultAsync(
+        return dbContext.Foods.Include(food => food.CategoryRef).Include(food => food.NutritionFacts).FirstOrDefaultAsync(
             food => food.Name.ToUpper() == normalizedName,
             cancellationToken);
     }
@@ -271,6 +271,8 @@ public sealed class DietKnowledgeRepository(DietKnowledgeDbContext dbContext) : 
             }
 
             recipe.Ingredients.Add(requested);
+            // A new child with a preset key under a tracked parent would otherwise be treated as an update.
+            dbContext.Entry(requested).State = EntityState.Added;
         }
     }
 
@@ -338,6 +340,8 @@ public sealed class DietKnowledgeRepository(DietKnowledgeDbContext dbContext) : 
                     cancellationToken);
 
             // Ingredients go with their recipe (cascade) and must go before the foods they reference.
+            // Regimens reference recipes and guidelines (restricted), so they go first; their links cascade.
+            await dbContext.DietRegimens.ExecuteDeleteAsync(cancellationToken);
             var recipes = await dbContext.Recipes.ExecuteDeleteAsync(cancellationToken);
             var foods = await dbContext.Foods.ExecuteDeleteAsync(cancellationToken);
             var guidelines = await dbContext.DietGuidelines.ExecuteDeleteAsync(cancellationToken);
@@ -417,6 +421,106 @@ public sealed class DietKnowledgeRepository(DietKnowledgeDbContext dbContext) : 
         await dbContext.KnowledgeCandidates.AddRangeAsync(candidates, cancellationToken);
     }
 
+    public void ReplaceNutritionFacts(Food food, IReadOnlyCollection<NutritionFact> facts)
+    {
+        dbContext.NutritionFacts.RemoveRange(food.NutritionFacts.ToArray());
+
+        foreach (var fact in facts)
+        {
+            food.NutritionFacts.Add(fact);
+            dbContext.Entry(fact).State = EntityState.Added;
+        }
+    }
+
+    public void ReplaceRecipeSteps(Recipe recipe, IReadOnlyCollection<RecipeStep> steps)
+    {
+        // Steps are matched by number so the (RecipeId, StepNumber) unique index is never hit twice.
+        var requestedNumbers = steps.Select(step => step.StepNumber).ToHashSet();
+
+        foreach (var step in recipe.Steps.Where(existing => !requestedNumbers.Contains(existing.StepNumber)).ToArray())
+        {
+            dbContext.RecipeSteps.Remove(step);
+        }
+
+        var existingByNumber = recipe.Steps
+            .Where(existing => requestedNumbers.Contains(existing.StepNumber))
+            .ToDictionary(existing => existing.StepNumber);
+
+        foreach (var requested in steps)
+        {
+            if (existingByNumber.TryGetValue(requested.StepNumber, out var existing))
+            {
+                existing.Instruction = requested.Instruction;
+                continue;
+            }
+
+            recipe.Steps.Add(requested);
+            dbContext.Entry(requested).State = EntityState.Added;
+        }
+    }
+
+    public async Task<IReadOnlyCollection<Category>> ListCategoriesAsync(
+        string? categoryType,
+        bool includeInactive,
+        CancellationToken cancellationToken = default)
+    {
+        var source = dbContext.Categories.AsNoTracking();
+
+        if (!includeInactive)
+        {
+            source = source.Where(category => category.IsActive);
+        }
+
+        if (!string.IsNullOrWhiteSpace(categoryType))
+        {
+            var type = categoryType.Trim().ToLower();
+            source = source.Where(category => category.CategoryType.ToLower() == type);
+        }
+
+        return await source
+            .OrderBy(category => category.CategoryType)
+            .ThenBy(category => category.Name)
+            .ToArrayAsync(cancellationToken);
+    }
+
+    public async Task<Category> GetOrCreateCategoryAsync(
+        string name,
+        string categoryType,
+        CancellationToken cancellationToken = default)
+    {
+        var normalizedName = name.Trim().ToUpper();
+        var existing = await dbContext.Categories.FirstOrDefaultAsync(
+            category => category.CategoryType == categoryType &&
+                category.Name.ToUpper() == normalizedName,
+            cancellationToken);
+
+        if (existing is not null)
+        {
+            return existing;
+        }
+
+        // A category created earlier in the same unit of work is not in the database yet.
+        var pending = dbContext.Categories.Local.FirstOrDefault(category =>
+            category.CategoryType == categoryType &&
+            string.Equals(category.Name, name.Trim(), StringComparison.OrdinalIgnoreCase));
+
+        if (pending is not null)
+        {
+            return pending;
+        }
+
+        var created = new Category
+        {
+            Id = Guid.NewGuid(),
+            Name = name.Trim(),
+            CategoryType = categoryType,
+            CreatedAtUtc = DateTimeOffset.UtcNow
+        };
+
+        await dbContext.Categories.AddAsync(created, cancellationToken);
+        return created;
+    }
+
     public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -425,8 +529,11 @@ public sealed class DietKnowledgeRepository(DietKnowledgeDbContext dbContext) : 
     private IQueryable<Recipe> RecipesWithDetails()
     {
         return dbContext.Recipes
+            .Include(recipe => recipe.CategoryRef)
+            .Include(recipe => recipe.Steps)
             .Include(recipe => recipe.Ingredients)
-            .ThenInclude(ingredient => ingredient.Food);
+            .ThenInclude(ingredient => ingredient.Food)
+            .ThenInclude(food => food!.CategoryRef);
     }
 
     private static IQueryable<DietGuideline> ApplyGuidelineSort(
@@ -518,8 +625,8 @@ public sealed class DietKnowledgeRepository(DietKnowledgeDbContext dbContext) : 
         return sortBy?.ToLowerInvariant() switch
         {
             "category" => descending
-                ? source.OrderByDescending(food => food.Category).ThenBy(food => food.Name)
-                : source.OrderBy(food => food.Category).ThenBy(food => food.Name),
+                ? source.OrderByDescending(food => food.CategoryRef!.Name).ThenBy(food => food.Name)
+                : source.OrderBy(food => food.CategoryRef!.Name).ThenBy(food => food.Name),
             "createdat" => descending
                 ? source.OrderByDescending(food => food.CreatedAtUtc)
                 : source.OrderBy(food => food.CreatedAtUtc),

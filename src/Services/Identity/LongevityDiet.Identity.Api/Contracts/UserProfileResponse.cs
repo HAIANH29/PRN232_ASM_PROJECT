@@ -6,4 +6,6 @@ public sealed record UserProfileResponse(
     string DisplayName,
     bool IsActive,
     IReadOnlyCollection<string> Roles,
-    DateTimeOffset CreatedAtUtc);
+    DateTimeOffset CreatedAtUtc,
+    IReadOnlyCollection<string>? PreferenceTags = null,
+    string? Notes = null);

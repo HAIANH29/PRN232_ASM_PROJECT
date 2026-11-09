@@ -62,10 +62,59 @@
         <label asp-for="ReviewedBy" class="form-label"></label>
         <input asp-for="ReviewedBy" class="form-control" />
     </div>
+    <div>
+        <label asp-for="Category" class="form-label">@T["Category (optional)"]</label>
+        <input asp-for="Category" class="form-control" />
+    </div>
     <div class="grid-full form-actions">
         <button class="btn btn-dark" type="submit">@T["Save changes"]</button>
     </div>
 </form>
+
+@{
+    var steps = (ViewBag.Steps as IReadOnlyCollection<RecipeStepResponse> ?? Array.Empty<RecipeStepResponse>())
+        .OrderBy(step => step.StepNumber)
+        .ToList();
+}
+<section class="section-card mt-3">
+    <div class="card-heading">
+        <h2><span class="icon" aria-hidden="true">format_list_numbered</span>@T["Preparation steps"]</h2>
+        <span class="count-pill">@steps.Count</span>
+    </div>
+    @if (steps.Count == 0)
+    {
+        <p class="empty-state">@T["No steps yet."]</p>
+    }
+    else
+    {
+        <ol class="list-unstyled mb-3">
+            @foreach (var step in steps)
+            {
+                <li class="d-flex justify-content-between align-items-start border-bottom py-2 gap-2">
+                    <span><strong>@step.StepNumber.</strong> @T.C(step.Instruction)</span>
+                    <form asp-action="RemoveRecipeStep" method="post">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <input type="hidden" name="stepNumber" value="@step.StepNumber" />
+                        <button class="btn btn-sm btn-outline-danger" type="submit">@T["Remove"]</button>
+                    </form>
+                </li>
+            }
+        </ol>
+    }
+    <form asp-action="AddRecipeStep" asp-route-id="@Model.Id" method="post" class="filter-bar">
+        <div>
+            <label for="stepNumber" class="form-label">@T["Step number"]</label>
+            <input id="stepNumber" name="StepNumber" type="number" min="1" class="form-control" value="@(steps.Count + 1)" />
+        </div>
+        <div class="grow">
+            <label for="stepInstruction" class="form-label">@T["Instruction"]</label>
+            <input id="stepInstruction" name="Instruction" class="form-control" maxlength="2000" required />
+        </div>
+        <div class="filter-actions">
+            <button class="btn btn-dark" type="submit">@T["Add step"]</button>
+        </div>
+    </form>
+</section>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

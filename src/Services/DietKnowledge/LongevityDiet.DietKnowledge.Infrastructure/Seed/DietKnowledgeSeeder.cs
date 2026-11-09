@@ -72,6 +72,70 @@ public sealed class DietKnowledgeSeeder(
 
             await dbContext.SaveChangesAsync(cancellationToken);
         }
+
+        foreach (var regimen in seed.Regimens)
+        {
+            await EnsureRegimenAsync(regimen, cancellationToken);
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    // Created once. An existing regimen (possibly edited by an Admin) is left untouched.
+    private async Task EnsureRegimenAsync(RegimenSeed seed, CancellationToken cancellationToken)
+    {
+        if (await dbContext.DietRegimens.AnyAsync(existing => existing.Name == seed.Name, cancellationToken))
+        {
+            return;
+        }
+
+        var guidelineTitles = seed.Guidelines.Select(link => link.Title).Distinct().ToArray();
+        var guidelines = await dbContext.DietGuidelines
+            .Where(guideline => guidelineTitles.Contains(guideline.Title))
+            .ToDictionaryAsync(guideline => guideline.Title, cancellationToken);
+        var recipeNames = seed.Meals.Select(meal => meal.RecipeName).Distinct().ToArray();
+        var recipes = await dbContext.Recipes
+            .Where(recipe => recipeNames.Contains(recipe.Name))
+            .ToDictionaryAsync(recipe => recipe.Name, cancellationToken);
+
+        var regimen = new DietRegimen
+        {
+            Id = Guid.NewGuid(),
+            Name = seed.Name,
+            Description = seed.Description,
+            DurationDays = seed.DurationDays,
+            SourceTitle = seed.SourceTitle,
+            SourceChapter = seed.SourceChapter,
+            SourcePage = seed.SourcePage,
+            ReviewStatus = seed.ReviewStatus,
+            IsActive = seed.IsActive,
+            CreatedAtUtc = DateTimeOffset.UtcNow
+        };
+
+        foreach (var link in seed.Guidelines.Where(item => guidelines.ContainsKey(item.Title)))
+        {
+            regimen.Guidelines.Add(new DietRegimenGuideline
+            {
+                Id = Guid.NewGuid(),
+                GuidelineId = guidelines[link.Title].Id,
+                SortOrder = link.SortOrder,
+                Note = link.Note
+            });
+        }
+
+        foreach (var meal in seed.Meals.Where(item => recipes.ContainsKey(item.RecipeName)))
+        {
+            regimen.Meals.Add(new DietRegimenMeal
+            {
+                Id = Guid.NewGuid(),
+                DayNumber = meal.DayNumber,
+                MealSlot = meal.MealSlot,
+                RecipeId = recipes[meal.RecipeName].Id,
+                Notes = meal.Notes
+            });
+        }
+
+        await dbContext.DietRegimens.AddAsync(regimen, cancellationToken);
     }
 
     private static async Task<BookKnowledgeSeed> LoadSeedAsync(
@@ -120,6 +184,36 @@ public sealed class DietKnowledgeSeeder(
         guideline.UpdatedAtUtc = DateTimeOffset.UtcNow;
     }
 
+    private async Task<Category> EnsureCategoryAsync(
+        string name,
+        string categoryType,
+        CancellationToken cancellationToken)
+    {
+        var trimmed = name.Trim();
+        var existing = dbContext.Categories.Local.FirstOrDefault(category =>
+                category.CategoryType == categoryType &&
+                string.Equals(category.Name, trimmed, StringComparison.OrdinalIgnoreCase))
+            ?? await dbContext.Categories.FirstOrDefaultAsync(
+                category => category.CategoryType == categoryType && category.Name == trimmed,
+                cancellationToken);
+
+        if (existing is not null)
+        {
+            return existing;
+        }
+
+        var created = new Category
+        {
+            Id = Guid.NewGuid(),
+            Name = trimmed,
+            CategoryType = categoryType,
+            CreatedAtUtc = DateTimeOffset.UtcNow
+        };
+
+        await dbContext.Categories.AddAsync(created, cancellationToken);
+        return created;
+    }
+
     private async Task EnsureFoodAsync(
         FoodSeed seed,
         CancellationToken cancellationToken)
@@ -139,7 +233,9 @@ public sealed class DietKnowledgeSeeder(
             await dbContext.Foods.AddAsync(food, cancellationToken);
         }
 
-        food.Category = seed.Category;
+        var category = await EnsureCategoryAsync(seed.Category, "Food", cancellationToken);
+        food.CategoryId = category.Id;
+        food.CategoryRef = category;
         food.CompatibilityNotes = seed.CompatibilityNotes;
         ApplyReviewMetadata(food, seed);
         food.IsActive = seed.IsActive;
@@ -268,6 +364,42 @@ public sealed class DietKnowledgeSeeder(
         public IReadOnlyCollection<FoodSeed> Foods { get; init; } = Array.Empty<FoodSeed>();
 
         public IReadOnlyCollection<RecipeSeed> Recipes { get; init; } = Array.Empty<RecipeSeed>();
+
+        public IReadOnlyCollection<RegimenSeed> Regimens { get; init; } = Array.Empty<RegimenSeed>();
+    }
+
+    private sealed class RegimenSeed : ReviewMetadataSeed
+    {
+        public string Name { get; init; } = string.Empty;
+
+        public string Description { get; init; } = string.Empty;
+
+        public int DurationDays { get; init; } = 1;
+
+        public IReadOnlyCollection<RegimenGuidelineSeed> Guidelines { get; init; } =
+            Array.Empty<RegimenGuidelineSeed>();
+
+        public IReadOnlyCollection<RegimenMealSeed> Meals { get; init; } = Array.Empty<RegimenMealSeed>();
+    }
+
+    private sealed class RegimenGuidelineSeed
+    {
+        public string Title { get; init; } = string.Empty;
+
+        public int SortOrder { get; init; }
+
+        public string Note { get; init; } = string.Empty;
+    }
+
+    private sealed class RegimenMealSeed
+    {
+        public int DayNumber { get; init; }
+
+        public string MealSlot { get; init; } = string.Empty;
+
+        public string RecipeName { get; init; } = string.Empty;
+
+        public string Notes { get; init; } = string.Empty;
     }
 
     private abstract class ReviewMetadataSeed

@@ -41,6 +41,9 @@
                             <li class="nav-item">
                                 <a class="@NavClass("Knowledge")" asp-controller="Knowledge" asp-action="Index">@T["Diet Knowledge"]</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="@NavClass("Regimens")" asp-controller="Regimens" asp-action="Index">@T["Diet Regimens"]</a>
+                            </li>
                         }
                         @if (UserSession.IsSignedIn && !UserSession.IsAdmin)
                         {
@@ -61,6 +64,9 @@
                             </li>
                             <li class="nav-item">
                                 <a class="@NavClass("AdminBookSources")" asp-controller="AdminBookSources" asp-action="Index">@T["Book Sources"]</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="@NavClass("AdminRegimens")" asp-controller="AdminRegimens" asp-action="Index">@T["Diet Regimens"]</a>
                             </li>
                         }
                     </ul>

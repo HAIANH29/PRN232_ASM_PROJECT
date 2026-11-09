@@ -33,6 +33,16 @@
             <label asp-for="EditForm.EndDate" class="form-label"></label>
             <input asp-for="EditForm.EndDate" type="date" class="form-control" />
         </div>
+        <div>
+            <label asp-for="EditForm.DietRegimenId" class="form-label">@T["Diet regimen (optional)"]</label>
+            <select asp-for="EditForm.DietRegimenId" class="form-select">
+                <option value="">@T["None"]</option>
+                @foreach (var regimen in Model.Regimens)
+                {
+                    <option value="@regimen.Id" selected="@(Model.EditForm.DietRegimenId == regimen.Id)">@T.C(regimen.Name)</option>
+                }
+            </select>
+        </div>
         <button class="btn btn-dark" type="submit">@T["Save plan"]</button>
     </form>
 
