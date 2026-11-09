@@ -61,6 +61,11 @@ internal sealed class InMemoryUserRepository : IUserRepository
         return Task.CompletedTask;
     }
 
+    public void AddProfile(UserPreferenceProfile profile)
+    {
+        // The service already attached it to User.Profile.
+    }
+
     public Task<bool> EmailExistsAsync(string normalizedEmail, CancellationToken cancellationToken = default)
     {
         return Task.FromResult(Users.Any(user => user.NormalizedEmail == normalizedEmail));
@@ -101,6 +106,8 @@ internal sealed class InMemoryDietKnowledgeRepository : IDietKnowledgeRepository
     public List<Food> Foods { get; } = [];
 
     public List<Recipe> Recipes { get; } = [];
+
+    public List<Category> Categories { get; } = [];
 
     public List<BookSourceDocument> Documents { get; } = [];
 
@@ -224,6 +231,56 @@ internal sealed class InMemoryDietKnowledgeRepository : IDietKnowledgeRepository
     {
         Recipes.Add(recipe);
         return Task.CompletedTask;
+    }
+
+    public void ReplaceNutritionFacts(Food food, IReadOnlyCollection<NutritionFact> facts)
+    {
+        food.NutritionFacts.Clear();
+        foreach (var fact in facts)
+        {
+            food.NutritionFacts.Add(fact);
+        }
+    }
+
+    public void ReplaceRecipeSteps(Recipe recipe, IReadOnlyCollection<RecipeStep> steps)
+    {
+        recipe.Steps.Clear();
+        foreach (var step in steps)
+        {
+            recipe.Steps.Add(step);
+        }
+    }
+
+    public Task<IReadOnlyCollection<Category>> ListCategoriesAsync(
+        string? categoryType,
+        bool includeInactive,
+        CancellationToken cancellationToken = default)
+    {
+        IReadOnlyCollection<Category> result = Categories
+            .Where(category => includeInactive || category.IsActive)
+            .Where(category => string.IsNullOrWhiteSpace(categoryType) ||
+                string.Equals(category.CategoryType, categoryType, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(category => category.Name)
+            .ToArray();
+        return Task.FromResult(result);
+    }
+
+    public Task<Category> GetOrCreateCategoryAsync(
+        string name,
+        string categoryType,
+        CancellationToken cancellationToken = default)
+    {
+        var existing = Categories.FirstOrDefault(category =>
+            category.CategoryType == categoryType &&
+            string.Equals(category.Name, name.Trim(), StringComparison.OrdinalIgnoreCase));
+
+        if (existing is null)
+        {
+            existing = new Category { Id = Guid.NewGuid(), Name = name.Trim(), CategoryType = categoryType };
+            Categories.Add(existing);
+        }
+
+        return Task.FromResult(existing);
     }
 
     public void ReplaceRecipeIngredients(Recipe recipe, IReadOnlyCollection<RecipeIngredient> ingredients)

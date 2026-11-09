@@ -14,7 +14,18 @@ public sealed record RecipeModel(
     DateTimeOffset? ReviewedAtUtc,
     IReadOnlyCollection<RecipeIngredientModel> Ingredients,
     DateTimeOffset CreatedAtUtc,
-    DateTimeOffset? UpdatedAtUtc);
+    DateTimeOffset? UpdatedAtUtc,
+    string? Category = null,
+    IReadOnlyCollection<RecipeStepModel>? Steps = null);
+
+public sealed record RecipeStepModel(
+    Guid Id,
+    int StepNumber,
+    string Instruction);
+
+public sealed record RecipeStepCommand(
+    int StepNumber,
+    string Instruction);
 
 public sealed record RecipeIngredientModel(
     Guid Id,
@@ -36,7 +47,9 @@ public sealed record CreateRecipeCommand(
     string SourceReference,
     string ReviewStatus,
     string ReviewedBy,
-    IReadOnlyCollection<RecipeIngredientCommand> Ingredients);
+    IReadOnlyCollection<RecipeIngredientCommand> Ingredients,
+    string? Category = null,
+    IReadOnlyCollection<RecipeStepCommand>? Steps = null);
 
 public sealed record UpdateRecipeCommand(
     string Name,
@@ -47,4 +60,6 @@ public sealed record UpdateRecipeCommand(
     string SourceReference,
     string ReviewStatus,
     string ReviewedBy,
-    IReadOnlyCollection<RecipeIngredientCommand> Ingredients);
+    IReadOnlyCollection<RecipeIngredientCommand> Ingredients,
+    string? Category = null,
+    IReadOnlyCollection<RecipeStepCommand>? Steps = null);

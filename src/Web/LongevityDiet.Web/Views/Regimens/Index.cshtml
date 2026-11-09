@@ -1,0 +1,49 @@
+@model RegimensIndexViewModel
+@{
+    ViewData["Title"] = T["Diet Regimens"];
+}
+
+<section class="page-head">
+    <div>
+        <p class="eyebrow">@T["Diet Knowledge"]</p>
+        <h1>@T["Diet Regimens"]</h1>
+        <p class="text-muted mb-0">@T["Eating patterns and menus taken from approved book content. For learning and planning only, not medical advice."]</p>
+    </div>
+</section>
+
+<form method="get" class="filter-bar">
+    <div>
+        <label for="search" class="form-label">@T["Search"]</label>
+        <input id="search" name="search" class="form-control" value="@Model.Search" placeholder="@T["Search regimens"]" />
+    </div>
+    <div class="filter-actions">
+        <button class="btn btn-dark" type="submit"><span class="icon" aria-hidden="true">search</span>@T["Search"]</button>
+    </div>
+</form>
+
+@if (Model.Regimens.Items.Count == 0)
+{
+    <p class="empty-state">@T["No diet regimens are available yet."]</p>
+}
+else
+{
+    <section class="knowledge-grid">
+        @foreach (var regimen in Model.Regimens.Items)
+        {
+            <article class="knowledge-card">
+                <div class="knowledge-card-top">
+                    <span class="chip-tag success">@T["Approved"]</span>
+                    <span class="chip-tag neutral">@T.F("{0} days", regimen.DurationDays)</span>
+                </div>
+                <h3>@T.C(regimen.Name)</h3>
+                <p>@T.C(regimen.Description)</p>
+                <div class="meal-sub">
+                    <span><span class="icon" aria-hidden="true">restaurant</span>@T.F("{0} planned meals", regimen.Meals.Count)</span>
+                    <span><span class="icon" aria-hidden="true">menu_book</span>@T.F("{0} guidelines", regimen.Guidelines.Count)</span>
+                </div>
+                <a class="btn btn-sm btn-outline-secondary mt-2" asp-action="Details" asp-route-id="@regimen.Id">@T["View regimen"]</a>
+            </article>
+        }
+    </section>
+    @await Html.PartialAsync("_Pager", PagerViewModel.For(Model.Regimens, "page", ""))
+}

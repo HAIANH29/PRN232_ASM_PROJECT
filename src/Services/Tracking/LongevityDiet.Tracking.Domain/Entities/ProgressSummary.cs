@@ -6,6 +6,10 @@ public sealed class ProgressSummary
 
     public Guid UserId { get; set; }
 
+    public Guid? UserDietTrackingId { get; set; }
+
+    public UserDietTracking? UserDietTracking { get; set; }
+
     public DateOnly PeriodStartDate { get; set; }
 
     public DateOnly PeriodEndDate { get; set; }

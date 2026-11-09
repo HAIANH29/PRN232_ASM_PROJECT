@@ -38,6 +38,98 @@
     </div>
 </section>
 
+@{
+    var regimenNames = Model.Regimens.ToDictionary(item => item.Id, item => item.Name);
+    var plansById = Model.MealPlans.ToDictionary(plan => plan.Id);
+    string TargetOf(UserDietTrackingResponse tracking) => string.Join(" + ", new[]
+    {
+        tracking.DietRegimenId.HasValue && regimenNames.TryGetValue(tracking.DietRegimenId.Value, out var regimenName) ? T.C(regimenName) : null,
+        tracking.MealPlanId.HasValue && plansById.TryGetValue(tracking.MealPlanId.Value, out var plan) ? plan.Name : null
+    }.Where(part => part is not null));
+    string PeriodOf(UserDietTrackingResponse tracking) =>
+        tracking.StartDate.ToString("d MMM yyyy", Translator.FormatCulture) +
+        (tracking.EndDate.HasValue ? " - " + tracking.EndDate.Value.ToString("d MMM yyyy", Translator.FormatCulture) : string.Empty);
+}
+
+<section class="section-card mb-3">
+    <div class="card-heading">
+        <h2><span class="icon" aria-hidden="true">flag</span>@T["My diet tracking"]</h2>
+        <a class="btn btn-sm btn-outline-secondary" asp-controller="Regimens" asp-action="Index">@T["Browse diet regimens"]</a>
+    </div>
+    @if (Model.ActiveDietTracking is { } active)
+    {
+        <article class="meal-card">
+            <div>
+                <div class="meal-slot">@T["Active"]</div>
+                <div class="meal-name">@(string.IsNullOrWhiteSpace(TargetOf(active)) ? T["Diet tracking"] : TargetOf(active))</div>
+                <div class="meal-sub"><span><span class="icon" aria-hidden="true">event</span>@PeriodOf(active)</span></div>
+            </div>
+            <div class="inline-form">
+                <form asp-action="FinishDietTracking" method="post" class="d-inline">
+                    <input type="hidden" name="id" value="@active.Id" />
+                    <input type="hidden" name="status" value="Completed" />
+                    <button class="btn btn-sm btn-dark" type="submit"><span class="icon" aria-hidden="true">task_alt</span>@T["Mark completed"]</button>
+                </form>
+                <form asp-action="FinishDietTracking" method="post" class="d-inline">
+                    <input type="hidden" name="id" value="@active.Id" />
+                    <input type="hidden" name="status" value="Cancelled" />
+                    <button class="btn btn-sm btn-outline-secondary" type="submit">@T["Cancel tracking"]</button>
+                </form>
+            </div>
+        </article>
+    }
+    else
+    {
+        <p class="text-muted">@T["Follow a diet regimen or a meal plan over a period. Your daily check-ins and progress in that period are linked to it."]</p>
+        <form asp-action="StartDietTracking" method="post" class="filter-bar">
+            <div>
+                <label for="trackRegimen" class="form-label">@T["Diet regimen"]</label>
+                <select id="trackRegimen" name="StartForm.DietRegimenId" class="form-select">
+                    <option value="">@T["None"]</option>
+                    @foreach (var regimen in Model.Regimens)
+                    {
+                        <option value="@regimen.Id">@T.C(regimen.Name)</option>
+                    }
+                </select>
+            </div>
+            <div>
+                <label for="trackPlan" class="form-label">@T["Meal plan"]</label>
+                <select id="trackPlan" name="StartForm.MealPlanId" class="form-select">
+                    <option value="">@T["None"]</option>
+                    @foreach (var plan in Model.MealPlans)
+                    {
+                        <option value="@plan.Id">@plan.Name</option>
+                    }
+                </select>
+            </div>
+            <div>
+                <label for="trackStart" class="form-label">@T["Start date"]</label>
+                <input id="trackStart" name="StartForm.StartDate" type="date" class="form-control" value="@Model.StartForm.StartDate.ToString("yyyy-MM-dd")" required />
+            </div>
+            <div>
+                <label for="trackEnd" class="form-label">@T["End date"]</label>
+                <input id="trackEnd" name="StartForm.EndDate" type="date" class="form-control" />
+            </div>
+            <div class="filter-actions">
+                <button class="btn btn-dark" type="submit"><span class="icon" aria-hidden="true">play_arrow</span>@T["Start tracking"]</button>
+            </div>
+        </form>
+    }
+    @if (Model.DietTrackingHistory.Count > 0)
+    {
+        <h3 class="h6 mt-3">@T["Earlier diet trackings"]</h3>
+        <ul class="list-unstyled mb-0">
+            @foreach (var past in Model.DietTrackingHistory)
+            {
+                <li class="d-flex justify-content-between border-top py-2">
+                    <span>@(string.IsNullOrWhiteSpace(TargetOf(past)) ? T["Diet tracking"] : TargetOf(past)) <span class="text-muted small">@PeriodOf(past)</span></span>
+                    <span class="chip-tag @(past.Status == "Completed" ? "success" : "neutral")">@T[past.Status]</span>
+                </li>
+            }
+        </ul>
+    }
+</section>
+
 <form method="get" class="filter-bar">
     <div>
         <label for="trackingDate" class="form-label">@T["Day"]</label>

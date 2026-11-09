@@ -88,6 +88,53 @@ public sealed class TrackingController(ApiGatewayClient api, UserSession session
         });
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> StartDietTracking(
+        [Bind(Prefix = "StartForm")] StartDietTrackingForm form,
+        CancellationToken cancellationToken)
+    {
+        var guard = RequireMember();
+        if (guard is not null)
+        {
+            return guard;
+        }
+
+        var result = await Api.PostAsync<UserDietTrackingResponse>(
+            "/tracking/api/diet-trackings",
+            new { form.DietRegimenId, form.MealPlanId, form.StartDate, form.EndDate },
+            Token,
+            cancellationToken);
+        AddResultMessage(result, "Diet tracking started.");
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> FinishDietTracking(
+        Guid id,
+        string status,
+        CancellationToken cancellationToken)
+    {
+        var guard = RequireMember();
+        if (guard is not null)
+        {
+            return guard;
+        }
+
+        var result = await Api.PatchAsync<UserDietTrackingResponse>(
+            $"/tracking/api/diet-trackings/{id}/status",
+            new { Status = status },
+            Token,
+            cancellationToken);
+        AddResultMessage(
+            result,
+            string.Equals(status, "Completed", StringComparison.OrdinalIgnoreCase)
+                ? "Diet tracking completed."
+                : "Diet tracking cancelled.");
+        return RedirectToAction(nameof(Index));
+    }
+
     private async Task<TrackingIndexViewModel> BuildModelAsync(
         DateOnly trackingDate,
         DateOnly periodStart,
@@ -106,6 +153,14 @@ public sealed class TrackingController(ApiGatewayClient api, UserSession session
             Token,
             cancellationToken);
 
+        var dietTrackings = (await Api.GetAsync<PagedResponse<UserDietTrackingResponse>>(
+            "/tracking/api/diet-trackings?pageSize=6",
+            Token,
+            cancellationToken)).Data?.Items ?? Array.Empty<UserDietTrackingResponse>();
+        var regimens = (await Api.GetAsync<PagedResponse<DietRegimenResponse>>(
+            "/diet-knowledge/api/diet-regimens?pageSize=100",
+            cancellationToken: cancellationToken)).Data?.Items ?? Array.Empty<DietRegimenResponse>();
+
         return new TrackingIndexViewModel
         {
             Form = new TrackingForm
@@ -119,7 +174,11 @@ public sealed class TrackingController(ApiGatewayClient api, UserSession session
             ProgressSummary = summary.Data,
             MealPlans = (await LoadMealPlansAsync(cancellationToken)).Items,
             Foods = await LoadFoodsAsync(cancellationToken: cancellationToken),
-            Recipes = await LoadRecipesAsync(cancellationToken: cancellationToken)
+            Recipes = await LoadRecipesAsync(cancellationToken: cancellationToken),
+            ActiveDietTracking = dietTrackings.FirstOrDefault(item => item.Status == "Active"),
+            DietTrackingHistory = dietTrackings.Where(item => item.Status != "Active").ToArray(),
+            Regimens = regimens,
+            StartForm = new StartDietTrackingForm { StartDate = DateOnly.FromDateTime(DateTime.Today) }
         };
     }
 }

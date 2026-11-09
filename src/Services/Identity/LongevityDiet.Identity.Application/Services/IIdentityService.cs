@@ -11,4 +11,9 @@ public interface IIdentityService
     Task<AuthResult> LoginAsync(LoginCommand command, CancellationToken cancellationToken = default);
 
     Task<UserProfile> GetProfileAsync(Guid userId, CancellationToken cancellationToken = default);
+
+    Task<UserProfile> UpdatePreferencesAsync(
+        Guid userId,
+        UpdatePreferencesCommand command,
+        CancellationToken cancellationToken = default);
 }

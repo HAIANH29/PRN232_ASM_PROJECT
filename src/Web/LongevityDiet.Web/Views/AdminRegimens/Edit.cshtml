@@ -1,0 +1,180 @@
+@model AdminRegimenEditViewModel
+@{
+    ViewData["Title"] = T["Edit regimen"];
+    var regimen = Model.Regimen;
+    string[] slots = ["Breakfast", "Lunch", "Dinner", "Snack"];
+    var usedGuidelineIds = regimen.Guidelines.Select(link => link.GuidelineId).ToHashSet();
+    var meals = regimen.Meals
+        .OrderBy(meal => meal.DayNumber)
+        .ThenBy(meal => Array.IndexOf(slots, meal.MealSlot))
+        .ToList();
+}
+
+<section class="page-head">
+    <div>
+        <p class="eyebrow">@T["Admin edit"]</p>
+        <h1>@T["Edit regimen"]</h1>
+        <p class="text-muted mb-0">@T.C(regimen.Name)</p>
+    </div>
+    <a class="btn btn-outline-secondary" asp-action="Index"><span class="icon" aria-hidden="true">arrow_back</span>@T["Back to regimens"]</a>
+</section>
+
+<form asp-action="Edit" asp-route-id="@regimen.Id" method="post" class="section-card form-grid">
+    <div asp-validation-summary="All" class="text-danger small grid-full"></div>
+    <div>
+        <label asp-for="Form.Name" class="form-label"></label>
+        <input asp-for="Form.Name" class="form-control" />
+        <span asp-validation-for="Form.Name" class="text-danger small"></span>
+    </div>
+    <div>
+        <label asp-for="Form.DurationDays" class="form-label"></label>
+        <input asp-for="Form.DurationDays" type="number" min="1" max="365" class="form-control" />
+        <span asp-validation-for="Form.DurationDays" class="text-danger small"></span>
+    </div>
+    <div class="grid-full">
+        <label asp-for="Form.Description" class="form-label"></label>
+        <textarea asp-for="Form.Description" class="form-control" rows="4"></textarea>
+        <span asp-validation-for="Form.Description" class="text-danger small"></span>
+    </div>
+    <div>
+        <label asp-for="Form.SourceChapter" class="form-label"></label>
+        <input asp-for="Form.SourceChapter" class="form-control" />
+    </div>
+    <div>
+        <label asp-for="Form.SourcePage" class="form-label"></label>
+        <input asp-for="Form.SourcePage" class="form-control" />
+    </div>
+    <div>
+        <label asp-for="Form.ReviewStatus" class="form-label"></label>
+        <select asp-for="Form.ReviewStatus" class="form-select">
+            <option value="NeedsReview">@T["NeedsReview"]</option>
+            <option value="Approved">@T["Approved"]</option>
+        </select>
+    </div>
+    <div class="grid-full form-actions">
+        <button class="btn btn-dark" type="submit">@T["Save changes"]</button>
+    </div>
+</form>
+
+<section class="two-pane mt-3">
+    <div class="section-card">
+        <div class="card-heading">
+            <h2><span class="icon" aria-hidden="true">menu_book</span>@T["Guidelines in this regimen"]</h2>
+            <span class="count-pill">@regimen.Guidelines.Count</span>
+        </div>
+        @if (regimen.Guidelines.Count == 0)
+        {
+            <p class="empty-state">@T["No guidelines are linked to this regimen."]</p>
+        }
+        else
+        {
+            <ul class="list-unstyled mb-3">
+                @foreach (var link in regimen.Guidelines.OrderBy(item => item.SortOrder))
+                {
+                    <li class="d-flex justify-content-between align-items-start border-bottom py-2 gap-2">
+                        <span>
+                            <strong>@link.SortOrder.</strong> @T.C(link.GuidelineTitle)
+                            @if (!string.IsNullOrWhiteSpace(link.Note))
+                            {
+                                <span class="text-muted small d-block">@T.C(link.Note)</span>
+                            }
+                        </span>
+                        <form asp-action="RemoveGuideline" method="post">
+                            <input type="hidden" name="id" value="@regimen.Id" />
+                            <input type="hidden" name="guidelineId" value="@link.GuidelineId" />
+                            <button class="btn btn-sm btn-outline-danger" type="submit">@T["Remove"]</button>
+                        </form>
+                    </li>
+                }
+            </ul>
+        }
+        <form asp-action="AddGuideline" asp-route-id="@regimen.Id" method="post" class="form-stack">
+            <div>
+                <label asp-for="GuidelineForm.GuidelineId" class="form-label">@T["Add an approved guideline"]</label>
+                <select asp-for="GuidelineForm.GuidelineId" class="form-select">
+                    <option value="@Guid.Empty">@T["Choose..."]</option>
+                    @foreach (var guideline in Model.Guidelines.Where(item => !usedGuidelineIds.Contains(item.Id)))
+                    {
+                        <option value="@guideline.Id">@T.C(guideline.Title)</option>
+                    }
+                </select>
+            </div>
+            <div>
+                <label asp-for="GuidelineForm.SortOrder" class="form-label"></label>
+                <input asp-for="GuidelineForm.SortOrder" type="number" min="0" class="form-control" />
+            </div>
+            <div>
+                <label asp-for="GuidelineForm.Note" class="form-label"></label>
+                <input asp-for="GuidelineForm.Note" class="form-control" />
+            </div>
+            <button class="btn btn-dark" type="submit">@T["Add guideline"]</button>
+        </form>
+    </div>
+
+    <div class="section-card">
+        <div class="card-heading">
+            <h2><span class="icon" aria-hidden="true">restaurant</span>@T["Meals"]</h2>
+            <span class="count-pill">@meals.Count</span>
+        </div>
+        @if (meals.Count == 0)
+        {
+            <p class="empty-state">@T["No meals are scheduled in this regimen yet."]</p>
+        }
+        else
+        {
+            <ul class="list-unstyled mb-3">
+                @foreach (var meal in meals)
+                {
+                    <li class="d-flex justify-content-between align-items-start border-bottom py-2 gap-2">
+                        <span>
+                            <strong>@T.F("Day {0}", meal.DayNumber)</strong> · @T[meal.MealSlot] · @T.C(meal.RecipeName)
+                            @if (!string.IsNullOrWhiteSpace(meal.Notes))
+                            {
+                                <span class="text-muted small d-block">@T.C(meal.Notes)</span>
+                            }
+                        </span>
+                        <form asp-action="RemoveMeal" method="post">
+                            <input type="hidden" name="id" value="@regimen.Id" />
+                            <input type="hidden" name="mealId" value="@meal.Id" />
+                            <button class="btn btn-sm btn-outline-danger" type="submit">@T["Remove"]</button>
+                        </form>
+                    </li>
+                }
+            </ul>
+        }
+        <form asp-action="AddMeal" asp-route-id="@regimen.Id" method="post" class="form-stack">
+            <div>
+                <label asp-for="MealForm.DayNumber" class="form-label"></label>
+                <input asp-for="MealForm.DayNumber" type="number" min="1" max="@regimen.DurationDays" class="form-control" />
+            </div>
+            <div>
+                <label asp-for="MealForm.MealSlot" class="form-label"></label>
+                <select asp-for="MealForm.MealSlot" class="form-select">
+                    @foreach (var slot in slots)
+                    {
+                        <option value="@slot">@T[slot]</option>
+                    }
+                </select>
+            </div>
+            <div>
+                <label asp-for="MealForm.RecipeId" class="form-label"></label>
+                <select asp-for="MealForm.RecipeId" class="form-select">
+                    <option value="@Guid.Empty">@T["Choose..."]</option>
+                    @foreach (var recipe in Model.Recipes)
+                    {
+                        <option value="@recipe.Id">@T.C(recipe.Name)</option>
+                    }
+                </select>
+            </div>
+            <div>
+                <label asp-for="MealForm.Notes" class="form-label"></label>
+                <input asp-for="MealForm.Notes" class="form-control" />
+            </div>
+            <button class="btn btn-dark" type="submit">@T["Add meal"]</button>
+        </form>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

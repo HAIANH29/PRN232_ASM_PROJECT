@@ -6,6 +6,10 @@ public interface IDietKnowledgeService
 {
     DietKnowledgeServiceStatus GetStatus();
 
+    Task<IReadOnlyCollection<CategoryModel>> ListCategoriesAsync(
+        string? categoryType,
+        CancellationToken cancellationToken = default);
+
     Task<PagedResult<DietGuidelineModel>> ListGuidelinesAsync(
         DietGuidelineQuery query,
         CancellationToken cancellationToken = default);

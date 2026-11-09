@@ -26,7 +26,24 @@ public sealed record RecipeResponse(
     DateTimeOffset? ReviewedAtUtc,
     IReadOnlyCollection<RecipeIngredientResponse> Ingredients,
     DateTimeOffset CreatedAtUtc,
-    DateTimeOffset? UpdatedAtUtc);
+    DateTimeOffset? UpdatedAtUtc,
+    string? Category = null,
+    IReadOnlyCollection<RecipeStepResponse>? Steps = null);
+
+public sealed record RecipeStepResponse(
+    Guid Id,
+    int StepNumber,
+    string Instruction);
+
+public sealed record RecipeStepRequest
+{
+    [Range(1, 1000)]
+    public int StepNumber { get; init; }
+
+    [Required]
+    [MaxLength(2000)]
+    public string Instruction { get; init; } = string.Empty;
+}
 
 public sealed record RecipeIngredientResponse(
     Guid Id,
@@ -76,6 +93,13 @@ public sealed record CreateRecipeRequest
     [MinLength(1)]
     public IReadOnlyCollection<RecipeIngredientRequest> Ingredients { get; init; } =
         Array.Empty<RecipeIngredientRequest>();
+
+    // Optional: null keeps the current category, empty clears it.
+    [MaxLength(120)]
+    public string? Category { get; init; }
+
+    // Optional: null keeps the current steps, a list replaces them.
+    public IReadOnlyCollection<RecipeStepRequest>? Steps { get; init; }
 }
 
 public sealed record UpdateRecipeRequest
@@ -110,4 +134,11 @@ public sealed record UpdateRecipeRequest
     [MinLength(1)]
     public IReadOnlyCollection<RecipeIngredientRequest> Ingredients { get; init; } =
         Array.Empty<RecipeIngredientRequest>();
+
+    // Optional: null keeps the current category, empty clears it.
+    [MaxLength(120)]
+    public string? Category { get; init; }
+
+    // Optional: null keeps the current steps, a list replaces them.
+    public IReadOnlyCollection<RecipeStepRequest>? Steps { get; init; }
 }

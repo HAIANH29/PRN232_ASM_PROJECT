@@ -24,7 +24,8 @@ public sealed record DietGuidelineResponse(
     DateTimeOffset? ReviewedAtUtc,
     bool IsActive,
     DateTimeOffset CreatedAtUtc,
-    DateTimeOffset? UpdatedAtUtc);
+    DateTimeOffset? UpdatedAtUtc,
+    string? Category = null);
 
 public sealed record CreateDietGuidelineRequest
 {
@@ -56,6 +57,10 @@ public sealed record CreateDietGuidelineRequest
 
     [MaxLength(120)]
     public string ReviewedBy { get; init; } = string.Empty;
+
+    // Optional: null keeps the current category, empty clears it.
+    [MaxLength(120)]
+    public string? Category { get; init; }
 }
 
 public sealed record UpdateDietGuidelineRequest
@@ -88,4 +93,8 @@ public sealed record UpdateDietGuidelineRequest
 
     [MaxLength(120)]
     public string ReviewedBy { get; init; } = string.Empty;
+
+    // Optional: null keeps the current category, empty clears it.
+    [MaxLength(120)]
+    public string? Category { get; init; }
 }

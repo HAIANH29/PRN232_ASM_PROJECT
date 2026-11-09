@@ -8,6 +8,7 @@ public static class DependencyInjection
     public static IServiceCollection AddTrackingApplication(this IServiceCollection services)
     {
         services.AddScoped<ITrackingService, TrackingService>();
+        services.AddScoped<IUserDietTrackingService, UserDietTrackingService>();
 
         return services;
     }

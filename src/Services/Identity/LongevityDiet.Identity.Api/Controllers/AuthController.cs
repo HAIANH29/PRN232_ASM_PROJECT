@@ -58,6 +58,23 @@ public sealed class AuthController(IIdentityService identityService) : Controlle
             HttpContext.TraceIdentifier));
     }
 
+    [Authorize]
+    [HttpPut("profile/preferences")]
+    public async Task<ActionResult<ApiResponse<UserProfileResponse>>> UpdatePreferences(
+        UpdatePreferencesRequest request,
+        CancellationToken cancellationToken)
+    {
+        var profile = await identityService.UpdatePreferencesAsync(
+            GetCurrentUserId(),
+            new UpdatePreferencesCommand(request.PreferenceTags, request.Notes),
+            cancellationToken);
+
+        return Ok(ApiResponse<UserProfileResponse>.Success(
+            MapProfileResponse(profile),
+            "Preferences saved.",
+            HttpContext.TraceIdentifier));
+    }
+
     [Authorize(Policy = "AdminOnly")]
     [HttpGet("admin-check")]
     public ActionResult<ApiResponse<string>> AdminCheck()
@@ -95,6 +112,8 @@ public sealed class AuthController(IIdentityService identityService) : Controlle
             profile.DisplayName,
             profile.IsActive,
             profile.Roles,
-            profile.CreatedAtUtc);
+            profile.CreatedAtUtc,
+            profile.PreferenceTags,
+            profile.Notes);
     }
 }

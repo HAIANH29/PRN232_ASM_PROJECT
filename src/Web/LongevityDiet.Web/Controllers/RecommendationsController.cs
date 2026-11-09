@@ -21,9 +21,18 @@ public sealed class RecommendationsController(ApiGatewayClient api, UserSession 
             Token,
             cancellationToken);
 
+        // Start from the preference tags saved on the member's profile.
+        var profile = await Api.GetAsync<UserProfileResponse>(
+            "/identity/api/auth/profile",
+            Token,
+            cancellationToken);
+        var savedTags = profile.Data?.PreferenceTags ?? Array.Empty<string>();
+
         return View(new RecommendationsIndexViewModel
         {
-            Requests = requests.Data ?? KnowledgeIndexViewModel.Empty<RecommendationRequestResponse>()
+            Requests = requests.Data ?? KnowledgeIndexViewModel.Empty<RecommendationRequestResponse>(),
+            Form = new RecommendationForm { PreferenceTagsText = string.Join(", ", savedTags) },
+            UsesProfileTags = savedTags.Count > 0
         });
     }
 

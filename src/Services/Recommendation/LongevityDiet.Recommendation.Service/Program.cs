@@ -14,6 +14,13 @@ builder.Services.AddHttpClient<IApprovedKnowledgeClient, HttpApprovedKnowledgeCl
     client.BaseAddress = new Uri(EnsureTrailingSlash(options.BaseUrl));
 });
 
+builder.Services.AddHttpClient<ISemanticKnowledgeSearch, HttpSemanticKnowledgeSearch>((serviceProvider, client) =>
+{
+    var options = serviceProvider.GetRequiredService<IOptions<DietKnowledgeServiceOptions>>().Value;
+    client.BaseAddress = new Uri(EnsureTrailingSlash(options.BaseUrl));
+    client.Timeout = TimeSpan.FromSeconds(10);
+});
+
 builder.Services.AddHttpClient<IGeminiClient, GeminiClient>((serviceProvider, client) =>
 {
     var options = serviceProvider.GetRequiredService<IOptions<GeminiOptions>>().Value;

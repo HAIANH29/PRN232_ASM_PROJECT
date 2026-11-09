@@ -10,7 +10,8 @@ public sealed record MealPlanResponse(
     DateOnly EndDate,
     IReadOnlyCollection<MealPlanItemResponse> Items,
     DateTimeOffset CreatedAtUtc,
-    DateTimeOffset? UpdatedAtUtc);
+    DateTimeOffset? UpdatedAtUtc,
+    Guid? DietRegimenId = null);
 
 public sealed record MealPlanItemResponse(
     Guid Id,
@@ -32,6 +33,8 @@ public sealed class MealPlansIndexViewModel
         StartDate = DateOnly.FromDateTime(DateTime.Today),
         EndDate = DateOnly.FromDateTime(DateTime.Today.AddDays(6))
     };
+
+    public IReadOnlyCollection<DietRegimenResponse> Regimens { get; set; } = Array.Empty<DietRegimenResponse>();
 }
 
 public sealed class MealPlanDetailsViewModel
@@ -39,6 +42,8 @@ public sealed class MealPlanDetailsViewModel
     public MealPlanResponse MealPlan { get; set; } = default!;
 
     public MealPlanForm EditForm { get; set; } = new();
+
+    public IReadOnlyCollection<DietRegimenResponse> Regimens { get; set; } = Array.Empty<DietRegimenResponse>();
 
     public MealPlanItemForm ItemForm { get; set; } = new()
     {
@@ -68,6 +73,9 @@ public sealed class MealPlanForm
     [Required]
     [Display(Name = "End date")]
     public DateOnly EndDate { get; set; }
+
+    [Display(Name = "Diet regimen")]
+    public Guid? DietRegimenId { get; set; }
 }
 
 public sealed class MealPlanItemForm
@@ -108,6 +116,9 @@ public sealed record RecommendationRequestResponse(
 
 public sealed class RecommendationsIndexViewModel
 {
+    // True when the preference field was filled from the member's saved profile tags.
+    public bool UsesProfileTags { get; set; }
+
     public PagedResponse<RecommendationRequestResponse> Requests { get; set; } =
         KnowledgeIndexViewModel.Empty<RecommendationRequestResponse>();
 

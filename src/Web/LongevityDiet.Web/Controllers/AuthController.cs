@@ -110,6 +110,35 @@ public sealed class AuthController(ApiGatewayClient api, UserSession session)
             return RedirectToAction("Login");
         }
 
-        return View(result.Data);
+        return View(new ProfileViewModel
+        {
+            Profile = result.Data,
+            Form = new PreferencesForm
+            {
+                Tags = string.Join(", ", result.Data.PreferenceTags ?? Array.Empty<string>()),
+                Notes = result.Data.Notes
+            }
+        });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SavePreferences(
+        [Bind(Prefix = "Form")] PreferencesForm form,
+        CancellationToken cancellationToken)
+    {
+        var guard = RequireUser();
+        if (guard is not null)
+        {
+            return guard;
+        }
+
+        var result = await Api.PutAsync<UserProfileResponse>(
+            "/identity/api/auth/profile/preferences",
+            new { PreferenceTags = SplitTags(form.Tags), form.Notes },
+            Token,
+            cancellationToken);
+        AddResultMessage(result, "Preferences saved.");
+        return RedirectToAction(nameof(Profile));
     }
 }

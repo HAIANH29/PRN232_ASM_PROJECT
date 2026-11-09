@@ -82,7 +82,8 @@ internal static class DietKnowledgeContractMapper
             request.SourcePage,
             request.SourceReference,
             request.ReviewStatus,
-            request.ReviewedBy);
+            request.ReviewedBy,
+            Category: request.Category);
     }
 
     public static UpdateDietGuidelineCommand ToCommand(this UpdateDietGuidelineRequest request)
@@ -96,7 +97,8 @@ internal static class DietKnowledgeContractMapper
             request.SourcePage,
             request.SourceReference,
             request.ReviewStatus,
-            request.ReviewedBy);
+            request.ReviewedBy,
+            Category: request.Category);
     }
 
     public static CreateFoodCommand ToCommand(this CreateFoodRequest request)
@@ -110,7 +112,8 @@ internal static class DietKnowledgeContractMapper
             request.SourcePage,
             request.SourceReference,
             request.ReviewStatus,
-            request.ReviewedBy);
+            request.ReviewedBy,
+            NutritionFacts: request.NutritionFacts?.Select(ToCommand).ToArray());
     }
 
     public static UpdateFoodCommand ToCommand(this UpdateFoodRequest request)
@@ -124,7 +127,8 @@ internal static class DietKnowledgeContractMapper
             request.SourcePage,
             request.SourceReference,
             request.ReviewStatus,
-            request.ReviewedBy);
+            request.ReviewedBy,
+            NutritionFacts: request.NutritionFacts?.Select(ToCommand).ToArray());
     }
 
     public static CreateRecipeCommand ToCommand(this CreateRecipeRequest request)
@@ -138,7 +142,9 @@ internal static class DietKnowledgeContractMapper
             request.SourceReference,
             request.ReviewStatus,
             request.ReviewedBy,
-            request.Ingredients.Select(ToCommand).ToArray());
+            request.Ingredients.Select(ToCommand).ToArray(),
+            request.Category,
+            request.Steps?.Select(ToCommand).ToArray());
     }
 
     public static UpdateRecipeCommand ToCommand(this UpdateRecipeRequest request)
@@ -152,7 +158,9 @@ internal static class DietKnowledgeContractMapper
             request.SourceReference,
             request.ReviewStatus,
             request.ReviewedBy,
-            request.Ingredients.Select(ToCommand).ToArray());
+            request.Ingredients.Select(ToCommand).ToArray(),
+            request.Category,
+            request.Steps?.Select(ToCommand).ToArray());
     }
 
     public static DietGuidelineResponse ToResponse(this DietGuidelineModel model)
@@ -171,7 +179,8 @@ internal static class DietKnowledgeContractMapper
             model.ReviewedAtUtc,
             model.IsActive,
             model.CreatedAtUtc,
-            model.UpdatedAtUtc);
+            model.UpdatedAtUtc,
+            model.Category);
     }
 
     public static FoodResponse ToResponse(this FoodModel model)
@@ -190,7 +199,8 @@ internal static class DietKnowledgeContractMapper
             model.ReviewedAtUtc,
             model.IsActive,
             model.CreatedAtUtc,
-            model.UpdatedAtUtc);
+            model.UpdatedAtUtc,
+            model.NutritionFacts?.Select(ToResponse).ToArray());
     }
 
     public static RecipeResponse ToResponse(this RecipeModel model)
@@ -209,7 +219,14 @@ internal static class DietKnowledgeContractMapper
             model.ReviewedAtUtc,
             model.Ingredients.Select(ToResponse).ToArray(),
             model.CreatedAtUtc,
-            model.UpdatedAtUtc);
+            model.UpdatedAtUtc,
+            model.Category,
+            model.Steps?.Select(ToResponse).ToArray());
+    }
+
+    public static CategoryResponse ToResponse(this CategoryModel model)
+    {
+        return new CategoryResponse(model.Id, model.Name, model.CategoryType, model.Description);
     }
 
     public static BookSourceDocumentResponse ToResponse(this BookSourceDocumentModel model)
@@ -270,6 +287,41 @@ internal static class DietKnowledgeContractMapper
             model.ProcessedChunks,
             model.RemainingChunks,
             model.SkippedChunks);
+    }
+
+    private static NutritionFactCommand ToCommand(NutritionFactRequest request)
+    {
+        return new NutritionFactCommand(
+            request.ServingSize,
+            request.EnergyKcal,
+            request.ProteinG,
+            request.CarbohydrateG,
+            request.FatG,
+            request.FiberG,
+            request.SourceReference);
+    }
+
+    private static NutritionFactResponse ToResponse(NutritionFactModel model)
+    {
+        return new NutritionFactResponse(
+            model.Id,
+            model.ServingSize,
+            model.EnergyKcal,
+            model.ProteinG,
+            model.CarbohydrateG,
+            model.FatG,
+            model.FiberG,
+            model.SourceReference);
+    }
+
+    private static RecipeStepCommand ToCommand(RecipeStepRequest request)
+    {
+        return new RecipeStepCommand(request.StepNumber, request.Instruction);
+    }
+
+    private static RecipeStepResponse ToResponse(RecipeStepModel model)
+    {
+        return new RecipeStepResponse(model.Id, model.StepNumber, model.Instruction);
     }
 
     private static RecipeIngredientCommand ToCommand(RecipeIngredientRequest request)

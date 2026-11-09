@@ -31,6 +31,9 @@ namespace LongevityDiet.MealPlanning.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid?>("DietRegimenId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateOnly>("EndDate")
                         .HasColumnType("date");
 

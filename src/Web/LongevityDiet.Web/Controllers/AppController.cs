@@ -104,6 +104,16 @@ public abstract class AppController(ApiGatewayClient api, UserSession session) :
         return result.Data?.Items ?? Array.Empty<RecipeResponse>();
     }
 
+    protected async Task<IReadOnlyCollection<DietRegimenResponse>> LoadRegimensAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var result = await Api.GetAsync<PagedResponse<DietRegimenResponse>>(
+            "/diet-knowledge/api/diet-regimens?pageNumber=1&pageSize=100",
+            cancellationToken: cancellationToken);
+
+        return result.Data?.Items ?? Array.Empty<DietRegimenResponse>();
+    }
+
     protected async Task<PagedResponse<MealPlanResponse>> LoadMealPlansAsync(
         CancellationToken cancellationToken = default)
     {

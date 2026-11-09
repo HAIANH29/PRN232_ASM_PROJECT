@@ -1,0 +1,63 @@
+@model KnowledgeSearchViewModel
+@{
+    ViewData["Title"] = T["Smart search"];
+}
+
+<section class="search-hero">
+    <p class="eyebrow">@T["Approved content"]</p>
+    <h1 class="mb-1">@T["Smart search"]</h1>
+    <p class="text-muted mb-0">@T["Finds approved guidelines, foods and recipes by meaning, not only by exact words."]</p>
+
+    <form method="get" class="filter-bar">
+        <div>
+            <label asp-for="Query" class="form-label">@T["What are you looking for?"]</label>
+            <input asp-for="Query" name="q" class="form-control" maxlength="300" placeholder="@T["Describe what you are looking for, e.g. light bean dinner"]" />
+        </div>
+        <div>
+            <label asp-for="Type" class="form-label">@T["Type"]</label>
+            <select asp-for="Type" name="type" class="form-select">
+                <option value="">@T["All"]</option>
+                <option value="Guideline">@T["Guidelines"]</option>
+                <option value="Food">@T["Foods"]</option>
+                <option value="Recipe">@T["Recipes"]</option>
+            </select>
+        </div>
+        <div class="filter-actions">
+            <button class="btn btn-dark" type="submit"><span class="icon" aria-hidden="true">auto_awesome</span>@T["Search by meaning"]</button>
+            <a class="btn btn-outline-secondary" asp-action="Index">@T["Back to knowledge"]</a>
+        </div>
+    </form>
+</section>
+
+@if (!string.IsNullOrWhiteSpace(Model.Problem))
+{
+    <p class="empty-state">@Model.Problem</p>
+}
+else if (string.IsNullOrWhiteSpace(Model.Query))
+{
+    <p class="empty-state">@T["Type a few words to search the approved knowledge."]</p>
+}
+else if (Model.Hits.Count == 0)
+{
+    <p class="empty-state">@T["Nothing matched. Try different words."]</p>
+}
+else
+{
+    <div class="knowledge-grid">
+        @foreach (var hit in Model.Hits)
+        {
+            <article class="knowledge-card">
+                <div class="knowledge-card-top">
+                    <span class="chip-tag success"><span class="icon" aria-hidden="true">verified</span>@T["Approved"]</span>
+                    <span class="chip-tag">@T[hit.SourceType]</span>
+                    <span class="chip-tag neutral">@T.F("{0}% match", Math.Round(Math.Max(0, hit.Score) * 100).ToString("0"))</span>
+                </div>
+                <h3>@T.C(hit.Title)</h3>
+                @if (!string.IsNullOrWhiteSpace(hit.Snippet))
+                {
+                    <p>@T.C(hit.Snippet)</p>
+                }
+            </article>
+        }
+    </div>
+}

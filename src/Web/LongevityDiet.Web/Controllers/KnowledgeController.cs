@@ -72,4 +72,40 @@ public sealed class KnowledgeController(ApiGatewayClient api, UserSession sessio
 
         return View(model);
     }
+
+    // Semantic search over approved knowledge (the VectorDb behind Diet Knowledge Service).
+    [HttpGet]
+    public async Task<IActionResult> Search(
+        string? q,
+        string? type,
+        CancellationToken cancellationToken = default)
+    {
+        if (Session.IsAdmin)
+        {
+            return RedirectToAction("Index", "AdminKnowledge");
+        }
+
+        var model = new KnowledgeSearchViewModel { Query = q, Type = type };
+        if (!string.IsNullOrWhiteSpace(q))
+        {
+            var result = await Api.GetAsync<List<KnowledgeSearchHitResponse>>(
+                ApiGatewayClient.BuildQuery(
+                    "/diet-knowledge/api/knowledge/search",
+                    ("q", q),
+                    ("type", type),
+                    ("limit", 12)),
+                cancellationToken: cancellationToken);
+
+            if (result.Succeeded && result.Data is not null)
+            {
+                model.Hits = result.Data;
+            }
+            else
+            {
+                model.Problem = FormatErrors(result.Message, result.Errors);
+            }
+        }
+
+        return View(model);
+    }
 }

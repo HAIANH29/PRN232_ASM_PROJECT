@@ -17,4 +17,6 @@ public sealed class User
     public DateTimeOffset CreatedAtUtc { get; set; } = DateTimeOffset.UtcNow;
 
     public ICollection<Role> Roles { get; } = new List<Role>();
+
+    public UserPreferenceProfile? Profile { get; set; }
 }

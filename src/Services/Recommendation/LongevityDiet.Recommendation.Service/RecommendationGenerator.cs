@@ -7,7 +7,8 @@ namespace LongevityDiet.Recommendation.Service;
 public sealed class RecommendationGenerator(
     IApprovedKnowledgeClient approvedKnowledgeClient,
     IGeminiClient geminiClient,
-    ILogger<RecommendationGenerator> logger) : IRecommendationGenerator
+    ILogger<RecommendationGenerator> logger,
+    ISemanticKnowledgeSearch? semanticSearch = null) : IRecommendationGenerator
 {
     private const int MaxPromptGuidelines = 25;
     private const int MaxPromptFoods = 40;
@@ -32,7 +33,8 @@ public sealed class RecommendationGenerator(
         {
             try
             {
-                var prompt = BuildPrompt(knowledge, safePreferences, count, request.RequestId, request.Language);
+                var semanticRank = await GetSemanticRankAsync(safePreferences, cancellationToken);
+                var prompt = BuildPrompt(knowledge, safePreferences, count, request.RequestId, request.Language, semanticRank);
                 var generatedText = await geminiClient.GenerateTextAsync(prompt, cancellationToken);
                 var generatedResult = TryParseGeminiResult(generatedText, count, request.Language);
                 if (generatedResult is not null)
@@ -51,12 +53,33 @@ public sealed class RecommendationGenerator(
         return BuildFallbackResult(knowledge, safePreferences, count, request.Language);
     }
 
+    // Rank (0 = best) of the items the VectorDb finds closest to the user's preferences.
+    private async Task<IReadOnlyDictionary<Guid, int>> GetSemanticRankAsync(
+        IReadOnlyCollection<string> safePreferences,
+        CancellationToken cancellationToken)
+    {
+        if (semanticSearch is null || safePreferences.Count == 0)
+        {
+            return new Dictionary<Guid, int>();
+        }
+
+        var ids = await semanticSearch.FindRelevantIdsAsync(safePreferences, cancellationToken);
+        var rank = new Dictionary<Guid, int>();
+        foreach (var id in ids)
+        {
+            rank.TryAdd(id, rank.Count);
+        }
+
+        return rank;
+    }
+
     private static string BuildPrompt(
         ApprovedKnowledgeContext knowledge,
         IReadOnlyCollection<string> safePreferences,
         int count,
         Guid requestId,
-        string? language = null)
+        string? language = null,
+        IReadOnlyDictionary<Guid, int>? semanticRank = null)
     {
         var builder = new StringBuilder();
         builder.AppendLine("Create concise meal title suggestions for the Longevity Diet Platform.");
@@ -81,7 +104,9 @@ public sealed class RecommendationGenerator(
             safePreferences,
             requestId,
             MaxPromptGuidelines,
-            guideline => $"{guideline.Title} {guideline.Summary}");
+            guideline => $"{guideline.Title} {guideline.Summary}",
+            guideline => guideline.Id,
+            semanticRank);
         foreach (var guideline in guidelines)
         {
             builder.AppendLine($"- {guideline.Title}: {guideline.Summary} ({FormatSource(guideline.SourceChapter, guideline.SourcePage, guideline.SourceReference)})");
@@ -94,7 +119,9 @@ public sealed class RecommendationGenerator(
             safePreferences,
             requestId,
             MaxPromptFoods,
-            food => $"{food.Name} {food.Category} {food.CompatibilityNotes}");
+            food => $"{food.Name} {food.Category} {food.CompatibilityNotes}",
+            food => food.Id,
+            semanticRank);
         foreach (var food in foods)
         {
             builder.AppendLine($"- {food.Name} [{food.Category}]: {food.CompatibilityNotes} ({FormatSource(food.SourceChapter, food.SourcePage, food.SourceReference)})");
@@ -107,7 +134,9 @@ public sealed class RecommendationGenerator(
             safePreferences,
             requestId,
             MaxPromptRecipes,
-            recipe => $"{recipe.Name} {recipe.Description} {string.Join(' ', recipe.Ingredients.Select(i => i.FoodName))}");
+            recipe => $"{recipe.Name} {recipe.Description} {string.Join(' ', recipe.Ingredients.Select(i => i.FoodName))}",
+            recipe => recipe.Id,
+            semanticRank);
         foreach (var recipe in recipes)
         {
             var ingredients = recipe.Ingredients.Count == 0
@@ -130,7 +159,9 @@ public sealed class RecommendationGenerator(
         IReadOnlyCollection<string> safePreferences,
         Guid requestId,
         int limit,
-        Func<T, string> searchableText)
+        Func<T, string> searchableText,
+        Func<T, Guid> idOf,
+        IReadOnlyDictionary<Guid, int>? semanticRank = null)
     {
         var all = items.ToArray();
         if (all.Length <= limit)
@@ -152,9 +183,18 @@ public sealed class RecommendationGenerator(
             {
                 var text = searchableText(item);
                 var score = terms.Count(term => text.Contains(term, StringComparison.OrdinalIgnoreCase));
-                return (item, index, score);
+                var rank = int.MaxValue;
+                if (semanticRank is not null && semanticRank.TryGetValue(idOf(item), out var found))
+                {
+                    // Items the VectorDb finds close to the preferences rank above plain keyword matches.
+                    rank = found;
+                    score += 5;
+                }
+
+                return (item, index, score, rank);
             })
             .OrderByDescending(entry => entry.score)
+            .ThenBy(entry => entry.rank)
             .ThenBy(entry => entry.index)
             .Take(limit)
             .Select(entry => entry.item)

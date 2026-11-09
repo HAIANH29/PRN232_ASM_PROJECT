@@ -31,6 +31,15 @@
             <a class="btn btn-outline-secondary" asp-action="Index">@T["Reset"]</a>
         </div>
     </form>
+    <form asp-action="Search" method="get" class="filter-bar">
+        <div>
+            <label for="smartQ" class="form-label">@T["Smart search"]</label>
+            <input id="smartQ" name="q" class="form-control" maxlength="300" placeholder="@T["Describe what you are looking for, e.g. light bean dinner"]" />
+        </div>
+        <div class="filter-actions">
+            <button class="btn btn-dark" type="submit"><span class="icon" aria-hidden="true">auto_awesome</span>@T["Search by meaning"]</button>
+        </div>
+    </form>
 </section>
 
 <div class="section-title" id="guidelines">
@@ -77,6 +86,19 @@ else
                 <h3>@T.C(food.Name)</h3>
                 <div><span class="chip-tag neutral">@T.C(food.Category)</span></div>
                 <p>@T.C(food.CompatibilityNotes)</p>
+                @if (food.NutritionFacts is { Count: > 0 })
+                {
+                    <details class="card-source">
+                        <summary>@T["Nutrition facts"]</summary>
+                        @foreach (var fact in food.NutritionFacts)
+                        {
+                            <div class="small">
+                                <strong>@fact.ServingSize</strong>:
+                                @T.F("{0} kcal, protein {1} g, carbohydrate {2} g, fat {3} g, fiber {4} g", fact.EnergyKcal.ToString("0.##", Translator.FormatCulture), fact.ProteinG.ToString("0.##", Translator.FormatCulture), fact.CarbohydrateG.ToString("0.##", Translator.FormatCulture), fact.FatG.ToString("0.##", Translator.FormatCulture), fact.FiberG.ToString("0.##", Translator.FormatCulture))
+                            </div>
+                        }
+                    </details>
+                }
             </article>
         }
     </div>
@@ -102,10 +124,26 @@ else
                     <span class="chip-tag">@T["Recipe"]</span>
                 </div>
                 <h3>@T.C(recipe.Name)</h3>
+                @if (!string.IsNullOrWhiteSpace(recipe.Category))
+                {
+                    <div><span class="chip-tag neutral">@T.C(recipe.Category)</span></div>
+                }
                 <p>@T.C(recipe.Description)</p>
                 @if (recipe.Ingredients.Any())
                 {
                     <div class="card-source"><span class="icon" aria-hidden="true">grocery</span> @string.Join(", ", recipe.Ingredients.Select(i => $"{T.Q(i.QuantityText)} {(Translator.IsVietnamese ? T.C(i.FoodName).ToLowerInvariant() : T.C(i.FoodName))}"))</div>
+                }
+                @if (recipe.Steps is { Count: > 0 })
+                {
+                    <details class="card-source">
+                        <summary>@T.F("Steps ({0})", recipe.Steps.Count)</summary>
+                        <ol class="small mb-0">
+                            @foreach (var step in recipe.Steps.OrderBy(item => item.StepNumber))
+                            {
+                                <li>@T.C(step.Instruction)</li>
+                            }
+                        </ol>
+                    </details>
                 }
             </article>
         }

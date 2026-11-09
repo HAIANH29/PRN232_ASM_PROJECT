@@ -17,7 +17,8 @@ public sealed record MealPlanResponse(
     DateOnly EndDate,
     IReadOnlyCollection<MealPlanItemResponse> Items,
     DateTimeOffset CreatedAtUtc,
-    DateTimeOffset? UpdatedAtUtc);
+    DateTimeOffset? UpdatedAtUtc,
+    Guid? DietRegimenId = null);
 
 public sealed record MealPlanItemResponse(
     Guid Id,
@@ -44,6 +45,9 @@ public sealed record CreateMealPlanRequest
 
     public IReadOnlyCollection<CreateMealPlanItemRequest> Items { get; init; } =
         Array.Empty<CreateMealPlanItemRequest>();
+
+    // Optional Diet Knowledge regimen this plan follows.
+    public Guid? DietRegimenId { get; init; }
 }
 
 public sealed record UpdateMealPlanRequest
@@ -57,6 +61,9 @@ public sealed record UpdateMealPlanRequest
 
     [Required]
     public DateOnly EndDate { get; init; }
+
+    // Optional: omitted keeps the current regimen.
+    public Guid? DietRegimenId { get; init; }
 }
 
 public sealed record CreateMealPlanItemRequest

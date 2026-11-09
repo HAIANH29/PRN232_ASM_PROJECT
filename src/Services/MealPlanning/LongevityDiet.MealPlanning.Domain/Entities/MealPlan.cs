@@ -6,6 +6,9 @@ public sealed class MealPlan
 
     public Guid UserId { get; set; }
 
+    // Cross-service reference to a Diet Knowledge regimen this plan follows. No foreign key.
+    public Guid? DietRegimenId { get; set; }
+
     public string Name { get; set; } = string.Empty;
 
     public DateOnly StartDate { get; set; }

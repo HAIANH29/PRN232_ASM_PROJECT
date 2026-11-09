@@ -121,5 +121,20 @@ public interface IDietKnowledgeRepository
     Task<DeleteAllKnowledgeResultModel> DeleteAllKnowledgeAsync(
         CancellationToken cancellationToken = default);
 
+    void ReplaceNutritionFacts(Food food, IReadOnlyCollection<NutritionFact> facts);
+
+    void ReplaceRecipeSteps(Recipe recipe, IReadOnlyCollection<RecipeStep> steps);
+
+    Task<IReadOnlyCollection<Category>> ListCategoriesAsync(
+        string? categoryType,
+        bool includeInactive,
+        CancellationToken cancellationToken = default);
+
+    // Finds a category by type and name (case-insensitive) or adds a new one to the unit of work.
+    Task<Category> GetOrCreateCategoryAsync(
+        string name,
+        string categoryType,
+        CancellationToken cancellationToken = default);
+
     Task SaveChangesAsync(CancellationToken cancellationToken = default);
 }

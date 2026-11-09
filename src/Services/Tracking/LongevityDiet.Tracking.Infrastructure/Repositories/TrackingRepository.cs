@@ -58,6 +58,10 @@ public sealed class TrackingRepository(TrackingDbContext dbContext) : ITrackingR
         var existing = await GetDailyTrackingAsync(userId, trackingDate, cancellationToken);
         if (existing is not null)
         {
+            existing.UserDietTrackingId ??= await FindActiveUserDietTrackingIdAsync(
+                userId,
+                trackingDate,
+                cancellationToken);
             return existing;
         }
 
@@ -65,6 +69,7 @@ public sealed class TrackingRepository(TrackingDbContext dbContext) : ITrackingR
         {
             Id = Guid.NewGuid(),
             UserId = userId,
+            UserDietTrackingId = await FindActiveUserDietTrackingIdAsync(userId, trackingDate, cancellationToken),
             TrackingDate = trackingDate,
             CreatedAtUtc = DateTimeOffset.UtcNow
         };
@@ -133,6 +138,11 @@ public sealed class TrackingRepository(TrackingDbContext dbContext) : ITrackingR
             await dbContext.ProgressSummaries.AddAsync(summary, cancellationToken);
         }
 
+        summary.UserDietTrackingId ??= await FindActiveUserDietTrackingIdAsync(
+            userId,
+            periodEndDate,
+            cancellationToken);
+
         var mealQuery = dbContext.MealTrackings
             .Where(meal => meal.DailyTracking != null &&
                 meal.DailyTracking.UserId == userId &&
@@ -145,6 +155,22 @@ public sealed class TrackingRepository(TrackingDbContext dbContext) : ITrackingR
         summary.CalculatedAtUtc = DateTimeOffset.UtcNow;
 
         return summary;
+    }
+
+    // The newest Active tracking that covers the date; null when the user has none.
+    private Task<Guid?> FindActiveUserDietTrackingIdAsync(
+        Guid userId,
+        DateOnly date,
+        CancellationToken cancellationToken)
+    {
+        return dbContext.UserDietTrackings
+            .Where(tracking => tracking.UserId == userId &&
+                tracking.Status == "Active" &&
+                tracking.StartDate <= date &&
+                (tracking.EndDate == null || tracking.EndDate >= date))
+            .OrderByDescending(tracking => tracking.StartDate)
+            .Select(tracking => (Guid?)tracking.Id)
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
     public async Task SaveChangesAsync(CancellationToken cancellationToken = default)

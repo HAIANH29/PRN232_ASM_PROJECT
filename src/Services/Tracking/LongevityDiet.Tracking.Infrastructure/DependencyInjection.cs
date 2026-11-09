@@ -1,4 +1,5 @@
 using LongevityDiet.Tracking.Application.Abstractions;
+using LongevityDiet.Tracking.Application.Services;
 using LongevityDiet.Tracking.Infrastructure.Notification;
 using LongevityDiet.Tracking.Infrastructure.Persistence;
 using LongevityDiet.Tracking.Infrastructure.Repositories;
@@ -19,6 +20,7 @@ public static class DependencyInjection
             options.UseNpgsql(configuration.GetConnectionString("TrackingDb")));
 
         services.AddScoped<ITrackingRepository, TrackingRepository>();
+        services.AddScoped<IUserDietTrackingRepository, UserDietTrackingRepository>();
         services.AddScoped<INotificationClient, GrpcNotificationClient>();
         services.AddScoped<ITrackingDatabaseInitializer, TrackingDatabaseInitializer>();
 

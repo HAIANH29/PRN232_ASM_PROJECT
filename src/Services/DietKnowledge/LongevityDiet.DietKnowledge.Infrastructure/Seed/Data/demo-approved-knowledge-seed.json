@@ -133,11 +133,26 @@
       "reviewedAtUtc": "2026-10-10T00:00:00Z",
       "isActive": true,
       "ingredients": [
-        { "foodName": "Green lentils", "quantityText": "1 cup cooked" },
-        { "foodName": "Farro", "quantityText": "3/4 cup cooked" },
-        { "foodName": "Kale", "quantityText": "1 cup" },
-        { "foodName": "Carrots", "quantityText": "1/2 cup" },
-        { "foodName": "Lemon-herb seasoning", "quantityText": "to taste" }
+        {
+          "foodName": "Green lentils",
+          "quantityText": "1 cup cooked"
+        },
+        {
+          "foodName": "Farro",
+          "quantityText": "3/4 cup cooked"
+        },
+        {
+          "foodName": "Kale",
+          "quantityText": "1 cup"
+        },
+        {
+          "foodName": "Carrots",
+          "quantityText": "1/2 cup"
+        },
+        {
+          "foodName": "Lemon-herb seasoning",
+          "quantityText": "to taste"
+        }
       ]
     },
     {
@@ -152,10 +167,89 @@
       "reviewedAtUtc": "2026-10-10T00:00:00Z",
       "isActive": true,
       "ingredients": [
-        { "foodName": "Navy beans", "quantityText": "1 cup cooked" },
-        { "foodName": "Kale", "quantityText": "1 cup" },
-        { "foodName": "Carrots", "quantityText": "1 cup" },
-        { "foodName": "Lemon-herb seasoning", "quantityText": "to taste" }
+        {
+          "foodName": "Navy beans",
+          "quantityText": "1 cup cooked"
+        },
+        {
+          "foodName": "Kale",
+          "quantityText": "1 cup"
+        },
+        {
+          "foodName": "Carrots",
+          "quantityText": "1 cup"
+        },
+        {
+          "foodName": "Lemon-herb seasoning",
+          "quantityText": "to taste"
+        }
+      ]
+    }
+  ],
+  "regimens": [
+    {
+      "name": "Demo plant-forward 3-day menu",
+      "description": "A short demo menu that rotates the two demo recipes over three days. Written in the team's own words for the PRN232 demo; it is a planning example, not medical advice.",
+      "durationDays": 3,
+      "sourceTitle": "The Longevity Diet",
+      "sourceChapter": "Team-approved demo scope",
+      "sourcePage": "",
+      "reviewStatus": "Approved",
+      "isActive": true,
+      "guidelines": [
+        {
+          "title": "Plant-forward everyday meals",
+          "sortOrder": 1,
+          "note": "Base every meal on plants."
+        },
+        {
+          "title": "Legume and whole-grain planning base",
+          "sortOrder": 2,
+          "note": "Beans, lentils and whole grains as staples."
+        },
+        {
+          "title": "Simple scheduled meals",
+          "sortOrder": 3,
+          "note": "Keep meal times regular."
+        }
+      ],
+      "meals": [
+        {
+          "dayNumber": 1,
+          "mealSlot": "Lunch",
+          "recipeName": "Green lentil farro bowl",
+          "notes": ""
+        },
+        {
+          "dayNumber": 1,
+          "mealSlot": "Dinner",
+          "recipeName": "Navy bean kale soup",
+          "notes": "A light evening meal."
+        },
+        {
+          "dayNumber": 2,
+          "mealSlot": "Lunch",
+          "recipeName": "Navy bean kale soup",
+          "notes": ""
+        },
+        {
+          "dayNumber": 2,
+          "mealSlot": "Dinner",
+          "recipeName": "Green lentil farro bowl",
+          "notes": ""
+        },
+        {
+          "dayNumber": 3,
+          "mealSlot": "Lunch",
+          "recipeName": "Green lentil farro bowl",
+          "notes": ""
+        },
+        {
+          "dayNumber": 3,
+          "mealSlot": "Dinner",
+          "recipeName": "Navy bean kale soup",
+          "notes": ""
+        }
       ]
     }
   ]

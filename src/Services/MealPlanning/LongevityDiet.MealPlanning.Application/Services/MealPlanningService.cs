@@ -69,6 +69,7 @@ public sealed class MealPlanningService(
             Name = CleanRequired(command.Name, "Meal plan name is required."),
             StartDate = command.StartDate,
             EndDate = command.EndDate,
+            DietRegimenId = EmptyToNull(command.DietRegimenId),
             CreatedAtUtc = DateTimeOffset.UtcNow
         };
 
@@ -108,6 +109,8 @@ public sealed class MealPlanningService(
         mealPlan.Name = CleanRequired(command.Name, "Meal plan name is required.");
         mealPlan.StartDate = command.StartDate;
         mealPlan.EndDate = command.EndDate;
+        // Not sent (null) keeps the current regimen.
+        mealPlan.DietRegimenId = EmptyToNull(command.DietRegimenId) ?? mealPlan.DietRegimenId;
         mealPlan.UpdatedAtUtc = DateTimeOffset.UtcNow;
 
         await repository.SaveChangesAsync(cancellationToken);
@@ -445,7 +448,13 @@ public sealed class MealPlanningService(
                 .Select(MapMealPlanItem)
                 .ToArray(),
             mealPlan.CreatedAtUtc,
-            mealPlan.UpdatedAtUtc);
+            mealPlan.UpdatedAtUtc,
+            mealPlan.DietRegimenId);
+    }
+
+    private static Guid? EmptyToNull(Guid? id)
+    {
+        return id == Guid.Empty ? null : id;
     }
 
     private static MealPlanItemModel MapMealPlanItem(MealPlanItem item)

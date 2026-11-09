@@ -11,11 +11,54 @@
     </div>
     <div class="head-actions">
         <a class="btn btn-outline-secondary" asp-controller="AdminBookSources" asp-action="Index"><span class="icon" aria-hidden="true">library_books</span>@T["Book sources"]</a>
+        <a class="btn btn-outline-secondary" asp-controller="AdminRegimens" asp-action="Index"><span class="icon" aria-hidden="true">calendar_month</span>@T["Diet regimens"]</a>
         <form asp-action="DeleteAll" method="post" class="d-inline"
               onsubmit="return confirm('@T["Permanently delete ALL guidelines, foods and recipes? Book sources are kept and approved candidates go back to review. This cannot be undone."]');">
             <button class="btn btn-outline-danger" type="submit"><span class="icon" aria-hidden="true">delete_forever</span>@T["Delete all knowledge"]</button>
         </form>
     </div>
+</section>
+
+<section class="section-card mb-3">
+    <div class="card-heading">
+        <h2><span class="icon" aria-hidden="true">hub</span>@T["Semantic search index"]</h2>
+        <form asp-action="RebuildIndex" method="post" class="inline-form">
+            <button class="btn btn-sm btn-dark" type="submit"><span class="icon" aria-hidden="true">refresh</span>@T["Update index"]</button>
+        </form>
+    </div>
+    @if (Model.IndexStatus is null)
+    {
+        <p class="text-muted mb-0">@T["The index status is not available right now."]</p>
+    }
+    else if (!Model.IndexStatus.VectorDbConfigured)
+    {
+        <p class="text-muted mb-0">@T["The vector database is not configured."]</p>
+    }
+    else
+    {
+        <p class="text-muted mb-1">@T["Only approved, active guidelines, foods and recipes are indexed. Update the index after approving or changing content."]</p>
+        <dl class="detail-list mb-0">
+            <dt>@T["Indexed items"]</dt>
+            <dd>@Model.IndexStatus.IndexedItems</dd>
+            <dt>@T["Embedding model"]</dt>
+            <dd>@Model.IndexStatus.EmbeddingModel</dd>
+            @if (Model.IndexStatus.LatestRun is { } run)
+            {
+                <dt>@T["Last run"]</dt>
+                <dd>@T[run.Status] · @run.StartedAtUtc.LocalDateTime.ToString("d MMM yyyy, HH:mm", Translator.FormatCulture) · @T.F("{0} indexed, {1} failed", run.ItemsIndexed, run.ItemsFailed)</dd>
+            }
+        </dl>
+    }
+    @if (Model.Categories.Count > 0)
+    {
+        <h3 class="h6 mt-3">@T["Categories"]</h3>
+        <div class="knowledge-card-top">
+            @foreach (var category in Model.Categories)
+            {
+                <span class="chip-tag neutral">@T.C(category.Name) <span class="text-muted">· @T[category.CategoryType]</span></span>
+            }
+        </div>
+    }
 </section>
 
 <nav class="d-flex flex-wrap align-items-center gap-2 mb-3" aria-label="@T["Review status"]">
