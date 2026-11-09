@@ -16,13 +16,20 @@ Base URL inside Docker Compose service-to-service calls:
 | --- | --- | --- | --- |
 | `/identity` | Identity Service | `/api/auth/login` | `/identity/api/auth/login` |
 | `/identity` | Identity Service | `/api/auth/profile` | `/identity/api/auth/profile` |
+| `/identity` | Identity Service | `PUT /api/auth/profile/preferences` | `/identity/api/auth/profile/preferences` |
 | `/diet-knowledge` | Diet Knowledge Service | `/api/diet-guidelines` | `/diet-knowledge/api/diet-guidelines` |
 | `/diet-knowledge` | Diet Knowledge Service | `/api/foods` | `/diet-knowledge/api/foods` |
 | `/diet-knowledge` | Diet Knowledge Service | `/api/recipes` | `/diet-knowledge/api/recipes` |
+| `/diet-knowledge` | Diet Knowledge Service | `/api/categories` | `/diet-knowledge/api/categories` |
+| `/diet-knowledge` | Diet Knowledge Service | `/api/knowledge/search` | `/diet-knowledge/api/knowledge/search` |
+| `/diet-knowledge` | Diet Knowledge Service (Admin) | `/api/admin/knowledge-index/status`, `/rebuild` | `/diet-knowledge/api/admin/knowledge-index/status` |
+| `/diet-knowledge` | Diet Knowledge Service | `/api/diet-regimens` | `/diet-knowledge/api/diet-regimens` |
+| `/diet-knowledge` | Diet Knowledge Service (Admin) | `/api/admin/diet-regimens` | `/diet-knowledge/api/admin/diet-regimens` |
 | `/meal-planning` | Meal Planning Service | `/api/meal-plans` | `/meal-planning/api/meal-plans` |
 | `/meal-planning` | Meal Planning Service | `/api/meal-recommendations` | `/meal-planning/api/meal-recommendations` |
 | `/tracking` | Tracking Service | `/api/daily-trackings` | `/tracking/api/daily-trackings` |
 | `/tracking` | Tracking Service | `/api/progress-summaries` | `/tracking/api/progress-summaries` |
+| `/tracking` | Tracking Service | `/api/diet-trackings` | `/tracking/api/diet-trackings` |
 
 The gateway removes the public prefix before proxying the request to the downstream service.
 

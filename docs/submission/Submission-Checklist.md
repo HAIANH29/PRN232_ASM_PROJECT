@@ -38,6 +38,11 @@ Use this checklist before handing in the repository.
 - [ ] Progress summary updates correctly.
 - [ ] Progress completion triggers Tracking -> Notification gRPC and RabbitMQ notification flow.
 - [ ] Notification Worker logs or sends the expected email payload.
+- [ ] Admin can manage diet regimens (guidelines and meals), food nutrition facts, and recipe steps/categories.
+- [ ] User can save eating preferences and see them prefilled on Meal Ideas.
+- [ ] User can browse diet regimens, start and finish a diet tracking, and see it on Daily Check-in.
+- [ ] Smart search returns approved items; Admin can update the semantic search index.
+- [ ] `VectorDb` container (pgvector) is healthy and the index status shows indexed items.
 
 ## Architecture Requirements
 
@@ -52,7 +57,7 @@ Use this checklist before handing in the repository.
 - [ ] gRPC flow is Tracking Service -> Notification Service.
 - [ ] RabbitMQ async flows are demonstrated.
 - [ ] Notification Worker is a .NET Worker Service.
-- [ ] PostgreSQL database-per-service is preserved.
+- [ ] PostgreSQL database-per-service is preserved, plus the separate pgvector VectorDb owned by Diet Knowledge.
 - [ ] No service reads another service database directly.
 - [ ] No cross-database foreign keys are introduced.
 - [ ] Recommendation Service has no database.
