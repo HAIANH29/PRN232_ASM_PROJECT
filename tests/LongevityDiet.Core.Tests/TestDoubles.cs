@@ -694,3 +694,11 @@ internal sealed class RecordingHttpMessageHandler : HttpMessageHandler
         return Task.FromResult(Responder(request));
     }
 }
+
+/// <summary>Clock the tests can pin to a moment so date rules do not depend on the real date.</summary>
+internal sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider
+{
+    public DateTimeOffset Now { get; set; } = now;
+
+    public override DateTimeOffset GetUtcNow() => Now;
+}
