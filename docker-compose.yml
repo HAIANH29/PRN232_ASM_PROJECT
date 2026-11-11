@@ -34,6 +34,7 @@ services:
     environment:
       ConnectionStrings__IdentityDb: Host=identity-db;Port=5432;Database=IdentityDb;Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
       Jwt__SigningKey: ${JWT_SIGNING_KEY:-development-only-replace-with-secret}
+      Jwt__AllowDevelopmentKey: ${JWT_ALLOW_DEVELOPMENT_KEY:-true}
       IdentitySeed__AdminEmail: ${IDENTITY_ADMIN_EMAIL:-admin@longevity.local}
       IdentitySeed__AdminPassword: ${IDENTITY_ADMIN_PASSWORD:-Admin@123456}
       IdentitySeed__AdminDisplayName: ${IDENTITY_ADMIN_DISPLAY_NAME:-Demo Admin}
@@ -56,6 +57,7 @@ services:
       KnowledgeIndex__EmbeddingModel: ${EMBEDDING_MODEL:-gemini-embedding-001}
       KnowledgeIndex__IndexOnStartup: ${KNOWLEDGE_INDEX_ON_STARTUP:-true}
       Jwt__SigningKey: ${JWT_SIGNING_KEY:-development-only-replace-with-secret}
+      Jwt__AllowDevelopmentKey: ${JWT_ALLOW_DEVELOPMENT_KEY:-true}
       DietKnowledgeSeed__IncludeDemoApprovedContent: ${DIET_KNOWLEDGE_SEED_INCLUDE_DEMO_APPROVED_CONTENT:-true}
       BookKnowledgeIngestion__StoragePath: ${BOOK_KNOWLEDGE_STORAGE_PATH:-/app/storage/book-sources}
       Gemini__Enabled: ${GEMINI_ENABLED:-false}
@@ -80,7 +82,9 @@ services:
       ConnectionStrings__MealPlanningDb: Host=meal-planning-db;Port=5432;Database=MealPlanningDb;Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
       DietKnowledgeService__BaseUrl: http://diet-knowledge-service:8080
       Jwt__SigningKey: ${JWT_SIGNING_KEY:-development-only-replace-with-secret}
+      Jwt__AllowDevelopmentKey: ${JWT_ALLOW_DEVELOPMENT_KEY:-true}
       RabbitMq__HostName: rabbitmq
+      InternalApi__Key: ${INTERNAL_API_KEY:-development-only-internal-key}
     depends_on:
       meal-planning-db:
         condition: service_healthy
@@ -98,6 +102,7 @@ services:
     environment:
       ConnectionStrings__TrackingDb: Host=tracking-db;Port=5432;Database=TrackingDb;Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
       Jwt__SigningKey: ${JWT_SIGNING_KEY:-development-only-replace-with-secret}
+      Jwt__AllowDevelopmentKey: ${JWT_ALLOW_DEVELOPMENT_KEY:-true}
       NotificationService__GrpcAddress: http://notification-service:8080
     depends_on:
       tracking-db:
@@ -140,6 +145,8 @@ services:
       dockerfile: src/Workers/LongevityDiet.NotificationWorker/Dockerfile
     environment:
       RabbitMq__HostName: rabbitmq
+      MealPlanningService__BaseUrl: http://meal-planning-service:8080
+      InternalApi__Key: ${INTERNAL_API_KEY:-development-only-internal-key}
       Brevo__BaseUrl: ${BREVO_BASE_URL:-https://api.brevo.com/v3}
       Brevo__ApiKey: ${BREVO_API_KEY:-development-only}
       Brevo__FromEmail: ${BREVO_FROM_EMAIL:-}
@@ -147,6 +154,8 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
+      meal-planning-service:
+        condition: service_started
 
   rabbitmq:
     image: rabbitmq:3-management

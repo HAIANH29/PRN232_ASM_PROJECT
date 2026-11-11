@@ -120,6 +120,17 @@ public sealed class MealPlanRepository(MealPlanningDbContext dbContext) : IMealP
         await dbContext.MealRecommendationRequests.AddAsync(request, cancellationToken);
     }
 
+    public async Task<DateTimeOffset?> GetReminderAtUtcAsync(
+        Guid mealPlanItemId,
+        CancellationToken cancellationToken = default)
+    {
+        return await dbContext.MealPlanItems
+            .AsNoTracking()
+            .Where(item => item.Id == mealPlanItemId)
+            .Select(item => (DateTimeOffset?)item.ReminderAtUtc)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
     public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         await dbContext.SaveChangesAsync(cancellationToken);

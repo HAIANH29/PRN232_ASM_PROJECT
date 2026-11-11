@@ -108,6 +108,16 @@ public sealed class TrackingService(
             command.TrackingDate,
             cancellationToken);
 
+        if (command.PlannedMealCount is < 0 or > 50)
+        {
+            throw new ValidationException("Planned meal count must be between 0 and 50.");
+        }
+
+        if (command.PlannedMealCount.HasValue)
+        {
+            dailyTracking.PlannedMealCount = command.PlannedMealCount;
+        }
+
         repository.UpsertMealTracking(
             dailyTracking,
             command.MealPlanItemId,

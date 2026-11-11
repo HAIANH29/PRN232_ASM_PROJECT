@@ -11,8 +11,7 @@ namespace LongevityDiet.MealPlanning.Application.Services;
 public sealed class MealPlanningService(
     IMealPlanRepository repository,
     IDietKnowledgeCatalogClient dietKnowledgeCatalogClient,
-    IReminderPublisher reminderPublisher,
-    IRecommendationRequestPublisher recommendationRequestPublisher) : IMealPlanningService
+    IMealPlanOutbox outbox) : IMealPlanningService
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
@@ -83,8 +82,8 @@ public sealed class MealPlanningService(
         }
 
         await repository.AddMealPlanAsync(mealPlan, cancellationToken);
+        EnqueueReminderMessages(mealPlan, mealPlan.Items, userEmail);
         await repository.SaveChangesAsync(cancellationToken);
-        await PublishReminderMessagesAsync(mealPlan, mealPlan.Items, userEmail, cancellationToken);
 
         return MapMealPlan(mealPlan);
     }
@@ -152,8 +151,8 @@ public sealed class MealPlanningService(
         await repository.AddMealPlanItemAsync(item, cancellationToken);
         mealPlan.UpdatedAtUtc = DateTimeOffset.UtcNow;
 
+        EnqueueReminderMessages(mealPlan, [item], userEmail);
         await repository.SaveChangesAsync(cancellationToken);
-        await PublishReminderMessagesAsync(mealPlan, [item], userEmail, cancellationToken);
 
         return MapMealPlanItem(item);
     }
@@ -182,6 +181,8 @@ public sealed class MealPlanningService(
             mealPlan.EndDate,
             cancellationToken);
 
+        var reminderChanged = !SameInstant(item.ReminderAtUtc, replacement.ReminderAtUtc);
+
         item.PlannedDate = replacement.PlannedDate;
         item.MealSlot = replacement.MealSlot;
         item.RecipeId = replacement.RecipeId;
@@ -191,8 +192,15 @@ public sealed class MealPlanningService(
         item.UpdatedAtUtc = DateTimeOffset.UtcNow;
         mealPlan.UpdatedAtUtc = DateTimeOffset.UtcNow;
 
+        // The reminder already waiting in RabbitMQ stays valid while the time is unchanged. When the
+        // time moves, the old message is dropped by the worker (its time no longer matches) and a
+        // new one is queued here.
+        if (reminderChanged)
+        {
+            EnqueueReminderMessages(mealPlan, [item], userEmail);
+        }
+
         await repository.SaveChangesAsync(cancellationToken);
-        await PublishReminderMessagesAsync(mealPlan, [item], userEmail, cancellationToken);
 
         return MapMealPlanItem(item);
     }
@@ -236,17 +244,16 @@ public sealed class MealPlanningService(
         };
 
         await repository.AddRecommendationRequestAsync(request, cancellationToken);
-        await repository.SaveChangesAsync(cancellationToken);
 
-        await recommendationRequestPublisher.PublishAsync(
-            new RecommendationRequestMessage(
-                request.Id,
-                command.UserId,
-                preferenceTags,
-                days,
-                requestedAtUtc,
-                string.Equals(command.Language, "vi", StringComparison.OrdinalIgnoreCase) ? "vi" : "en"),
-            cancellationToken);
+        // Saved together with the request; the outbox dispatcher publishes it to RabbitMQ.
+        outbox.Enqueue(new RecommendationRequestMessage(
+            request.Id,
+            command.UserId,
+            preferenceTags,
+            days,
+            requestedAtUtc,
+            string.Equals(command.Language, "vi", StringComparison.OrdinalIgnoreCase) ? "vi" : "en"));
+        await repository.SaveChangesAsync(cancellationToken);
 
         return MapRecommendationRequest(request);
     }
@@ -307,10 +314,26 @@ public sealed class MealPlanningService(
         request.UpdatedAtUtc = DateTimeOffset.UtcNow;
 
         await repository.AddMealPlanAsync(mealPlan, cancellationToken);
+        EnqueueReminderMessages(mealPlan, mealPlan.Items, userEmail);
         await repository.SaveChangesAsync(cancellationToken);
-        await PublishReminderMessagesAsync(mealPlan, mealPlan.Items, userEmail, cancellationToken);
 
         return MapMealPlan(mealPlan);
+    }
+
+    // True while the item still exists and its reminder time is the one in the message. The
+    // Notification Worker calls this (through the internal endpoint) before it sends a reminder.
+    public async Task<bool> IsReminderCurrentAsync(
+        Guid mealPlanItemId,
+        DateTimeOffset scheduledForUtc,
+        CancellationToken cancellationToken = default)
+    {
+        var current = await repository.GetReminderAtUtcAsync(mealPlanItemId, cancellationToken);
+        return current.HasValue && SameInstant(current.Value, scheduledForUtc);
+    }
+
+    private static bool SameInstant(DateTimeOffset left, DateTimeOffset right)
+    {
+        return Math.Abs((left - right).TotalSeconds) < 1;
     }
 
     private async Task<MealPlan> BuildMealPlanFromAcceptedRecommendationAsync(
@@ -413,24 +436,22 @@ public sealed class MealPlanningService(
         }
     }
 
-    private async Task PublishReminderMessagesAsync(
+    private void EnqueueReminderMessages(
         MealPlan mealPlan,
         IEnumerable<MealPlanItem> items,
-        string userEmail,
-        CancellationToken cancellationToken)
+        string userEmail)
     {
         foreach (var item in items)
         {
-            await reminderPublisher.PublishAsync(
-                new ReminderRequestedMessage(
-                    Guid.NewGuid(),
-                    mealPlan.UserId,
-                    mealPlan.Id,
-                    userEmail,
-                    item.ReminderAtUtc,
-                    $"Meal reminder: {item.MealSlot}",
-                    $"Your meal '{mealPlan.Name}' is scheduled for {item.PlannedDate:yyyy-MM-dd} ({item.MealSlot})."),
-                cancellationToken);
+            outbox.Enqueue(new ReminderRequestedMessage(
+                Guid.NewGuid(),
+                mealPlan.UserId,
+                mealPlan.Id,
+                userEmail,
+                item.ReminderAtUtc,
+                $"Meal reminder: {item.MealSlot}",
+                $"Your meal '{mealPlan.Name}' is scheduled for {item.PlannedDate:yyyy-MM-dd} ({item.MealSlot}).",
+                item.Id));
         }
     }
 

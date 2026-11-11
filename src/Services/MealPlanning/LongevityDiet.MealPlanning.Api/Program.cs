@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddMealPlanningApplication();
 builder.Services.AddMealPlanningInfrastructure(builder.Configuration);
-builder.Services.AddLongevityPublicApiDefaults("Longevity Diet Meal Planning Service", builder.Configuration);
+builder.Services.AddLongevityPublicApiDefaults("Longevity Diet Meal Planning Service", builder.Configuration, builder.Environment);
 
 var app = builder.Build();
 

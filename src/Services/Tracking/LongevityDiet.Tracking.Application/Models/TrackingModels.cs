@@ -46,4 +46,5 @@ public sealed record SetMealCompletionCommand(
     string UserEmail,
     DateOnly TrackingDate,
     Guid MealPlanItemId,
-    bool IsCompleted);
+    bool IsCompleted,
+    int? PlannedMealCount = null);

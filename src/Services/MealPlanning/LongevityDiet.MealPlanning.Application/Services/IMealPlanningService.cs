@@ -65,4 +65,9 @@ public interface IMealPlanningService
         Guid requestId,
         AcceptRecommendationCommand command,
         CancellationToken cancellationToken = default);
+
+    Task<bool> IsReminderCurrentAsync(
+        Guid mealPlanItemId,
+        DateTimeOffset scheduledForUtc,
+        CancellationToken cancellationToken = default);
 }

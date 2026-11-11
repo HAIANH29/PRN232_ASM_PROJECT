@@ -48,7 +48,8 @@ internal static class TrackingContractMapper
             userEmail,
             trackingDate,
             mealPlanItemId,
-            request.IsCompleted);
+            request.IsCompleted,
+            request.PlannedMealCount);
     }
 
     public static DailyTrackingResponse ToResponse(this DailyTrackingModel model)

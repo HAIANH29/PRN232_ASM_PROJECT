@@ -105,6 +105,8 @@ The Web admin area includes `Book Sources` for uploading a legally obtained PDF 
 | `RABBITMQ_DEFAULT_USER` | RabbitMQ username | `guest` |
 | `RABBITMQ_DEFAULT_PASS` | RabbitMQ password | `guest` |
 | `JWT_SIGNING_KEY` | Shared local JWT signing key | `development-only-replace-with-secret` |
+| `JWT_ALLOW_DEVELOPMENT_KEY` | Lets services start with the public development key (local demo only; services refuse it otherwise) | `true` |
+| `INTERNAL_API_KEY` | Shared secret for the internal reminder check (Notification Worker to Meal Planning) | `development-only-internal-key` |
 | `IDENTITY_ADMIN_EMAIL` | Demo admin email | `admin@longevity.local` |
 | `IDENTITY_ADMIN_PASSWORD` | Demo admin password | `Admin@123456` |
 | `IDENTITY_ADMIN_DISPLAY_NAME` | Demo admin display name | `Demo Admin` |

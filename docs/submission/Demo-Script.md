@@ -47,7 +47,7 @@ Explain the main points:
 - Web calls one backend entry point: API Gateway.
 - Public REST services: Identity, Diet Knowledge, Meal Planning, Tracking.
 - Internal services: Recommendation Service, Notification Service, Notification Worker.
-- Four PostgreSQL databases are owned by four stateful services.
+- Four PostgreSQL databases are owned by four stateful services; Diet Knowledge also owns the separate pgvector VectorDb.
 - Tracking to Notification uses gRPC.
 - Recommendation, reminder, and notification delivery use RabbitMQ.
 - Google Gemini and Brevo are external providers with safe local fallbacks.
@@ -118,7 +118,7 @@ Do not upload or distribute an unauthorized full book copy during presentation.
 4. Show the completed recommendation result.
 5. Accept the recommendation into a meal plan.
 6. Explain:
-   - Meal Planning publishes `RecommendationRequest`.
+   - Meal Planning saves `RecommendationRequest` to its outbox and a dispatcher publishes it.
    - Recommendation Service consumes it from RabbitMQ.
    - Recommendation Service builds context from approved Diet Knowledge only.
    - With Gemini disabled locally, safe fallback recommendations are returned.
@@ -163,6 +163,8 @@ Show expected queues/exchanges, for example:
 - `recommendation.requests`
 - `recommendation.results`
 - related dead-letter queues
+
+Mention that Meal Planning writes these messages to an outbox table first (so a broker outage loses nothing) and that the worker drops reminders whose meal was deleted or moved.
 
 Explain that durable topology, retries, and dead-letter queues are part of the implementation.
 

@@ -83,16 +83,22 @@ Owns:
 - Authentication
 - JWT token generation
 - Basic user profile
+- UserProfile (eating preference tags and notes, used to prefill meal ideas)
 
 Database:
 - IdentityDb
 
 ### Diet Knowledge Service
 Owns:
+- Category
 - DietGuideline
-- Food
+- Food (the "Ingredient" of the lecturer's design)
+- NutritionFact
 - Recipe
 - RecipeIngredient
+- RecipeStep
+- DietRegimen, DietRegimenGuideline, DietRegimenMeal
+- Semantic search over approved knowledge, backed by the separate VectorDb (KnowledgeEmbedding, EmbeddingIndexRun)
 - BookSourceDocument
 - BookSourceChunk
 - KnowledgeCandidate
@@ -106,9 +112,10 @@ Admin can upload a legally obtained PDF source for private project research. The
 
 ### Meal Planning Service
 Owns:
-- MealPlan
-- MealPlanItem
-- MealSchedule
+- MealPlan (optionally references a DietRegimen by id)
+- MealPlanItem (scheduling lives on the item: `PlannedDate`, `MealSlot`, `ReminderAtUtc`; there is no separate MealSchedule table)
+- MealRecommendationRequest
+- OutboxMessage (transactional outbox for RabbitMQ messages)
 
 Database:
 - MealPlanningDb
@@ -117,13 +124,15 @@ Responsibilities:
 - Create/update/delete meal plans
 - Schedule meals
 - Work with approved diet knowledge when creating plans
-- Publish reminder messages to RabbitMQ
-- Publish AI recommendation requests to RabbitMQ
+- Publish reminder messages to RabbitMQ (saved to the outbox with the plan item, then published by a background dispatcher)
+- Publish AI recommendation requests to RabbitMQ (same outbox)
 - Consume AI recommendation results from RabbitMQ when needed
+- Answer the Notification Worker's internal "is this reminder still current" check (`/internal/reminders/{id}`, shared key, never routed by the gateway)
 
 ### Tracking Service
 Owns:
-- DailyTracking
+- UserDietTracking (follows a regimen and/or meal plan; one Active per user)
+- DailyTracking (with the client-reported `PlannedMealCount`)
 - MealTracking
 - ProgressSummary
 
@@ -213,6 +222,9 @@ Tracking Service -> Notification Service:
 Notification Service -> RabbitMQ:
 - Publish notification messages
 
+Notification Worker -> Meal Planning Service:
+- HTTP / REST (internal, shared key): before sending a delayed reminder, check that the meal plan item still exists with that reminder time
+
 RabbitMQ -> Notification Worker:
 - Consume notification/reminder messages
 
@@ -278,6 +290,10 @@ Rules:
 - Browse diet guidelines
 - Search/filter foods
 - Search/filter recipes
+- Smart (semantic) search over approved knowledge
+- Browse diet regimens
+- Save eating preferences on the profile
+- Start/finish a diet tracking
 - Create/update meal plans
 - Request AI-assisted meal recommendations
 - Mark meal completion
@@ -289,6 +305,8 @@ Rules:
 - CRUD Diet Guidelines
 - CRUD Foods
 - CRUD Recipes
+- Manage diet regimens, food nutrition facts, recipe steps and categories
+- Rebuild the semantic search index
 - Activate/deactivate managed content
 - Upload book-source PDF files for Admin-only chunking and candidate extraction
 - Review, approve, or reject generated knowledge candidates
@@ -384,7 +402,7 @@ Show:
 - Meal Planning Service
 - Recommendation Service
 - Notification Service
-- 4 PostgreSQL databases
+- 4 PostgreSQL databases plus the separate VectorDb (pgvector)
 - RabbitMQ [Message Broker]
 - Notification Worker [.NET Worker Service]
 - Google Gemini [AI Provider]
@@ -428,9 +446,9 @@ Keep diagrams simple: correct, sufficient, no unnecessary text.
 7. Brevo sends the email to the user.
 
 ### Meal reminder
-1. Meal Planning Service publishes a reminder message to RabbitMQ.
-2. Notification Worker consumes the reminder message.
-3. Notification Worker sends the reminder email through Brevo.
+1. Meal Planning Service saves a reminder message to its outbox together with the meal plan item; a dispatcher publishes it to RabbitMQ.
+2. Notification Worker consumes the reminder message, sends a confirmation email, and holds the reminder in a delay queue until it is due.
+3. When due, the worker checks with Meal Planning that the item still exists with that reminder time, then sends the reminder email through Brevo (stale reminders are dropped).
 
 ## 16. Coding Workflow
 Always work incrementally.

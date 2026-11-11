@@ -12,8 +12,19 @@ public sealed class MealPlanningDbContext(DbContextOptions<MealPlanningDbContext
     public DbSet<MealRecommendationRequest> MealRecommendationRequests =>
         Set<MealRecommendationRequest>();
 
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<OutboxMessage>(entity =>
+        {
+            entity.HasKey(message => message.Id);
+            entity.Property(message => message.MessageType).HasMaxLength(60).IsRequired();
+            entity.Property(message => message.PayloadJson).IsRequired();
+            entity.Property(message => message.LastError).HasMaxLength(500);
+            entity.HasIndex(message => new { message.ProcessedAtUtc, message.NextAttemptAtUtc });
+        });
+
         modelBuilder.Entity<MealPlan>(entity =>
         {
             entity.HasKey(plan => plan.Id);

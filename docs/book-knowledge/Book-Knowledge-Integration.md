@@ -30,11 +30,14 @@ This project uses book-derived knowledge as curated educational content. Do not 
 - Admin endpoints can list all statuses and filter by `reviewStatus`.
 - Admin create/update accepts `NeedsReview`, `Approved`, or `Rejected`.
 - `Approved` content must include `SourceChapter`, either `SourcePage` or `SourceReference`, and `ReviewedBy`.
-- Admin can upload PDF sources from `Admin > Book Sources`.
+- Admin can upload PDF or TXT sources (up to 25 MB) from `Admin > Book Sources`, and delete a source (its chunks and candidates go; knowledge already approved stays).
+- "Generate candidates" analyzes the next batch of not-yet-analyzed chunks (up to `BookKnowledgeIngestion__MaxChunksPerGeneration`, default 24) and can be repeated until the whole source is covered. Boilerplate, quotes and clinical-treatment chunks (English and Vietnamese terms) are skipped.
+- "Approve all" approves pending candidates except placeholders and anything mentioning disease, treatment, cure, diagnosis, prediction or lifespan; those stay for manual review.
+- After approval, items enter the semantic search index (VectorDb) on the next Admin rebuild or service start; raw chunks and unreviewed candidates are never indexed.
 - Uploaded source metadata, extracted chunks, and generated candidates are stored in `DietKnowledgeDb`.
 - Raw extracted chunks are Admin-only and are not returned by public Diet Knowledge endpoints.
 - Gemini candidate extraction is controlled by `GEMINI_ENABLED` and `GEMINI_API_KEY`. When Gemini is disabled, the app creates safe review-placeholder candidates so the ingestion flow remains demonstrable.
-- Candidates must be explicitly approved before they create active managed knowledge. Approved guideline candidates become `DietGuideline` records; approved food candidates become `Food` records. Recipe candidates must be recreated through the recipe admin screen so ingredients are reviewed explicitly.
+- Candidates must be explicitly approved before they create active managed knowledge. Approved guideline candidates become `DietGuideline` records; approved food candidates become `Food` records. Recipe candidates carry the ingredients Gemini found in the excerpt (only names that appear in the text are kept); approving one creates the `Recipe` and its ingredients, reusing an existing `Food` by name or creating a name-only `Food` that stays `NeedsReview`. A recipe candidate without ingredients cannot be approved.
 - The JSON seed file is version-controlled at `src/Services/DietKnowledge/LongevityDiet.DietKnowledge.Infrastructure/Seed/Data/book-knowledge-seed.json`.
 - Seed entries are intentionally `NeedsReview` until the team verifies exact source locations from its legal copy.
 - Local teacher-demo data is version-controlled separately at `src/Services/DietKnowledge/LongevityDiet.DietKnowledge.Infrastructure/Seed/Data/demo-approved-knowledge-seed.json` and can be disabled with `DietKnowledgeSeed__IncludeDemoApprovedContent=false`.

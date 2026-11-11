@@ -8,6 +8,7 @@ Local Docker Compose exposes the databases on separate host ports for developmen
 - `DietKnowledgeDb`: `localhost:5434`
 - `MealPlanningDb`: `localhost:5435`
 - `TrackingDb`: `localhost:5436`
+- `VectorDb` (pgvector, owned by Diet Knowledge Service): `localhost:5437`
 
 ## IdentityDb
 
@@ -214,11 +215,22 @@ Uploaded PDF binaries are stored in a Docker/local file volume. PostgreSQL store
   - `CompletedAtUtc`
   - `UpdatedAtUtc`
 
+- `OutboxMessages`
+  - `Id`
+  - `MessageType` (`ReminderRequested` or `RecommendationRequested`)
+  - `PayloadJson`
+  - `CreatedAtUtc`
+  - `NextAttemptAtUtc`
+  - `Attempts`, `LastError`
+  - `ProcessedAtUtc` (null while the message still has to be published)
+
 Owned by `Meal Planning Service`.
+
+`OutboxMessages` implements the transactional outbox: reminder and recommendation messages are saved in the same transaction as the meal plan item or request that caused them. A background dispatcher then publishes them to RabbitMQ, retrying with a growing delay, so a broker outage never loses a message (delivery is at least once). Processed rows are deleted after one day. The Notification Worker asks Meal Planning (internal endpoint `GET /internal/reminders/{mealPlanItemId}`, shared key, not routed by the gateway) whether a delayed reminder still matches its item before sending it, so reminders for deleted or rescheduled meals are dropped.
 
 `UserId`, `RecipeId`, and `FoodId` are cross-service identifiers only. They are indexed where useful but do not have cross-database foreign keys. `MealPlanItems` has an internal foreign key to `MealPlans` only.
 
-Migrations exist: `InitialMealPlanningSchema`, `AddMealPlanDietRegimenId`.
+Migrations exist: `InitialMealPlanningSchema`, `AddMealPlanDietRegimenId`, `AddOutboxMessages`.
 
 `MealSchedule` is not represented as a separate table in the current workflow. The scheduling data is stored on `MealPlanItems` through `PlannedDate`, `MealSlot`, and `ReminderAtUtc`.
 
@@ -238,6 +250,7 @@ Migrations exist: `InitialMealPlanningSchema`, `AddMealPlanDietRegimenId`.
   - `UserId`
   - `TrackingDate`
   - `Notes`
+  - `PlannedMealCount` (optional; meals planned for the day as reported by the client, since Tracking cannot read MealPlanningDb. Progress uses the larger of this and the tracked meals)
   - `CreatedAtUtc`
   - `UpdatedAtUtc`
 - `MealTrackings`
@@ -264,7 +277,7 @@ Owned by `Tracking Service`.
 
 `MealPlanItemId` is a cross-service identifier only. `UserId` and `MealPlanItemId` do not have cross-database foreign keys. `MealTrackings` has an internal foreign key to `DailyTrackings` only.
 
-Migrations exist: `InitialTrackingSchema`, `AddUserDietTracking`.
+Migrations exist: `InitialTrackingSchema`, `AddUserDietTracking`, `AddDailyTrackingPlannedMealCount`.
 
 Daily tracking and progress summaries are linked automatically to the user's `Active` `UserDietTracking` whose period covers the date. `DietRegimenId` and `MealPlanId` are not verified against the other services.
 

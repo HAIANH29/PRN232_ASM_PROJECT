@@ -4,10 +4,10 @@ This file is the shared progress tracker for the project. Every human or AI agen
 
 ## Current Status
 
-- Phase: Milestone 11 documentation and submission package complete; manual real book source review/approval and final QA remain.
+- Phase: all milestones including the revised database design (five modules + VectorDb) and the 2026-11-11 reliability fixes are implemented; manual real book source review/approval, a visual check of the new Web pages, and final QA remain.
 - Branch: `HA/phase-1-microservices-scaffold`.
-- Last pushed baseline before this update: Milestone 9 after commit `f0ec65a`.
-- Verification baseline: `dotnet restore LongevityDietPlatform.sln`, `dotnet build LongevityDietPlatform.sln --no-restore -m:1 /p:UseSharedCompilation=false --verbosity minimal`, `dotnet test LongevityDietPlatform.sln --no-restore -m:1 --verbosity minimal`, `docker compose config --quiet`, `docker compose up -d --build`, Admin PDF ingestion API smoke, 29 automated core tests, and documentation validation passed on 2026-10-10.
+- Last pushed baseline before the 2026-11-11 change: commit `2afb60e`.
+- Verification baseline (2026-11-11): `dotnet build LongevityDietPlatform.sln` with 0 warnings and `dotnet test LongevityDietPlatform.sln` with 90 passing tests. The 2026-11-11 changes have not yet been run against Docker/PostgreSQL (see the change log).
 - Completion roadmap: `PROJECT_SCHEDULE.md`.
 
 ## Done
@@ -56,6 +56,21 @@ This file is the shared progress tracker for the project. Every human or AI agen
 - Verify each real book-derived seed/candidate item against a legally obtained source copy and approve only reviewed items.
 - Run final QA before submission.
 
+## Team Contribution Assessment
+
+Assessment dated 2026-11-09 (team of 3). Percentages are the agreed split of overall project effort.
+
+| Member | Share | Responsibility |
+|---|---|---|
+| Lam Thien Hai Anh | 45% | Architecture and infrastructure (microservices, YARP Gateway, JWT/Identity, RabbitMQ, gRPC, Docker Compose, migrations); hardest flows: Diet Knowledge (PDF ingestion, candidates, pgvector VectorDb), Recommendation (Gemini), Meal Planning and meal reminders; code review and merge. |
+| Member 1 | 35% | Tracking + Notification (API, tests, gRPC integration); QA of all end-to-end flows and unit tests; C4/ERD documentation, slides and demo; liaison with the lecturer on class requirements. |
+| Member 2 | 20% | Demo/seed content, EN/VI translations, simple Web screens, one simple CRUD, screenshots and demo video. |
+
+Notes:
+- Every member's work must be committed on their own branch and merged through a PR, so commits/PRs serve as contribution evidence.
+- Percentages reflect the agreed assignment; if actual contribution differs near submission, update this table to match the real commit history.
+- Update this table in the Change Log whenever the split changes.
+
 ## Update Rules
 
 When completing any project work, update this file in the same change set.
@@ -71,6 +86,22 @@ Each update should include:
 Do not mark a feature as complete if it only has placeholders or configuration. Call it a scaffold until the real behavior exists and has been verified.
 
 ## Change Log
+
+### 2026-11-11 — Reliability fixes: stale reminders, outbox, planned-meal progress, JWT key, repo cleanup
+
+- Stale reminders: `ReminderRequestedMessage` carries `MealPlanItemId`. Before sending, the Notification Worker asks Meal Planning (`GET /internal/reminders/{itemId}?scheduledForUtc=`, header `X-Internal-Key`, config `InternalApi__Key`) whether the item still exists with that reminder time; deleted or rescheduled meals are dropped. The check fails open if Meal Planning is unreachable. Updating an item now queues a new reminder only when its reminder time changed (otherwise the waiting one stays valid). The gateway returns 404 for any `/internal/` path.
+- Outbox: Meal Planning no longer publishes to RabbitMQ inside the request. Reminder and recommendation messages are saved to the new `OutboxMessages` table in the same `SaveChanges` as the plan/item/request (`IMealPlanOutbox`, migration `AddOutboxMessages`); `OutboxDispatcherWorker` publishes them in order, retries with back-off and never drops a message, and deletes processed rows after one day. Delivery is at least once.
+- Progress: `SetMealCompletionRequest.PlannedMealCount` (optional, 0-50) is stored on `DailyTrackings.PlannedMealCount` (migration `AddDailyTrackingPlannedMealCount`). A day's planned meals are the larger of that value and the tracked meals, so the "day completed" notification fires only when every planned meal is eaten. The Web check-in page sends the number of meals planned for the day. Clients that do not send it behave as before.
+- JWT: `JwtSigningKeyResolver` makes every public API fail at startup when `Jwt:SigningKey` is missing, shorter than 32 bytes, or the public development key, unless the environment is Development or `Jwt:AllowDevelopmentKey=true`. Docker Compose sets `JWT_ALLOW_DEVELOPMENT_KEY` (default `true`, local demo only); `.env.example` documents both it and `INTERNAL_API_KEY`.
+- Repo/docs: restored `docs/book-knowledge/Book-Knowledge-Integration.md` (README links to it); `.gitignore` now ignores `docs/book-knowledge/*.txt`, `*.pdf` (the full book text must not be committed); `Physical-Database.md` (VectorDb port, OutboxMessages, PlannedMealCount, migrations), `Conceptual-ERD.md`, `Gateway-Routes.md`, `Database-Docker-Demo-Setup.md` updated. `AsignmentDiagram.drawio` now lives in `docs/c4/` (the move is still uncommitted).
+- Verification: solution builds with 0 warnings; 90 tests pass (9 new in `ReliabilityTests`: reminder kept/requeued/stale checks, outbox publish and broker-down back-off, planned-meal progress and notification, planned count validation, JWT key rules). `dotnet ef` generated both migrations. NOT verified: the two migrations against PostgreSQL, the dispatcher against a real RabbitMQ, the worker-to-Meal-Planning check over Docker networking, and the Web check-in page in a browser.
+- Docs/code consistency pass (same day): `AGENTS.md` (owned entities, outbox, worker-to-Meal-Planning check, regimens/profile/diet tracking in scope, VectorDb in C1) and `AGENTS_UPDATED.md` (was an older copy missing the VectorDb blocks; now identical to `AGENTS.md`), `C1-Internal-Architecture.md` (new Worker to Meal Planning edge, outbox note) and the C1 drawio (edge added, layout not looked at), `README.md` (endpoint lists, outbox, planned meals, JWT rule, tests), `Book-Knowledge-Integration.md` (recipe candidates, TXT, batches, approve-all, indexing), `Seed-Data-Strategy.md`, `Demo-Script.md`, `PROJECT_SCHEDULE.md`, `CLAUDE.md`. Checked against code: every controller route, every migration and DbSet, and the Compose/`.env.example` variables.
+- Known limits: if a reminder time is changed A to B and back to A, the old and new messages both match and two mails can be sent; the progress notification trusts the client-sent planned count (it only affects the user's own data); the outbox can deliver a message twice after a crash between publish and save.
+
+### 2026-11-09 — Team contribution assessment (45 / 35 / 20)
+
+- Added a "Team Contribution Assessment" section recording the agreed split: Hai Anh 45%, Member 1 35%, Member 2 20%, with each member's responsibilities.
+- Docs only; no code changed, no tests run. Member names for 1 and 2 are placeholders and should be filled in.
 
 ### 2026-11-09 — Final pass: regimen seed, profile preferences in Meal Ideas, docx, fresh-DB check
 

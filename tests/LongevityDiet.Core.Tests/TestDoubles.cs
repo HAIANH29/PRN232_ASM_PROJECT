@@ -543,8 +543,8 @@ internal sealed class InMemoryMealPlanRepository : IMealPlanRepository
 
     public void RemoveMealPlanItem(MealPlanItem mealPlanItem)
     {
-        var plan = MealPlans.FirstOrDefault(existing => existing.Id == mealPlanItem.MealPlanId);
-        plan?.Items.Remove(mealPlanItem);
+        // Items created through a plan have no MealPlanId in this fake, so look them up by identity.
+        MealPlans.FirstOrDefault(existing => existing.Items.Contains(mealPlanItem))?.Items.Remove(mealPlanItem);
     }
 
     public Task<LongevityDiet.MealPlanning.Application.Models.PagedResult<MealRecommendationRequest>> ListRecommendationRequestsAsync(
@@ -578,6 +578,16 @@ internal sealed class InMemoryMealPlanRepository : IMealPlanRepository
     {
         RecommendationRequests.Add(request);
         return Task.CompletedTask;
+    }
+
+    public Task<DateTimeOffset?> GetReminderAtUtcAsync(
+        Guid mealPlanItemId,
+        CancellationToken cancellationToken = default)
+    {
+        var item = MealPlans
+            .SelectMany(plan => plan.Items)
+            .FirstOrDefault(existing => existing.Id == mealPlanItemId);
+        return Task.FromResult<DateTimeOffset?>(item?.ReminderAtUtc);
     }
 
     public Task SaveChangesAsync(CancellationToken cancellationToken = default)
@@ -616,26 +626,15 @@ internal sealed class FakeDietKnowledgeCatalogClient : IDietKnowledgeCatalogClie
     }
 }
 
-internal sealed class RecordingReminderPublisher : IReminderPublisher
+internal sealed class RecordingOutbox : IMealPlanOutbox
 {
-    public List<ReminderRequestedMessage> Messages { get; } = [];
+    public List<ReminderRequestedMessage> Reminders { get; } = [];
 
-    public Task PublishAsync(ReminderRequestedMessage message, CancellationToken cancellationToken = default)
-    {
-        Messages.Add(message);
-        return Task.CompletedTask;
-    }
-}
+    public List<RecommendationRequestMessage> Recommendations { get; } = [];
 
-internal sealed class RecordingRecommendationRequestPublisher : IRecommendationRequestPublisher
-{
-    public List<RecommendationRequestMessage> Messages { get; } = [];
+    public void Enqueue(ReminderRequestedMessage message) => Reminders.Add(message);
 
-    public Task PublishAsync(RecommendationRequestMessage message, CancellationToken cancellationToken = default)
-    {
-        Messages.Add(message);
-        return Task.CompletedTask;
-    }
+    public void Enqueue(RecommendationRequestMessage message) => Recommendations.Add(message);
 }
 
 internal sealed class RecordingNotificationClient : INotificationClient

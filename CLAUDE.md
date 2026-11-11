@@ -14,10 +14,10 @@ dotnet restore LongevityDietPlatform.sln
 dotnet build LongevityDietPlatform.sln
 dotnet test LongevityDietPlatform.sln
 dotnet test tests/LongevityDiet.Core.Tests --filter "FullyQualifiedName~TrackingServiceTests"   # single class / test
-copy .env.example .env; docker compose up -d --build   # full stack (Postgres x4, RabbitMQ, all services)
+copy .env.example .env; docker compose up -d --build   # full stack (Postgres x4 + pgvector VectorDb, RabbitMQ, all services)
 ```
 
-Local ports: Web 5000, Gateway 5001 (`/routes` summary), Identity 5101, DietKnowledge 5102, MealPlanning 5103, Tracking 5104, Notification 5105, RabbitMQ UI 15672. Demo logins (from `.env`): `admin@longevity.local` / `Admin@123456`, `user@longevity.local` / `User@123456`.
+Local ports: Web 5000, Gateway 5001 (`/routes` summary), Identity 5101, DietKnowledge 5102, MealPlanning 5103, Tracking 5104, Notification 5105, RabbitMQ UI 15672, VectorDb 5437. Demo logins (from `.env`): `admin@longevity.local` / `Admin@123456`, `user@longevity.local` / `User@123456`.
 
 All tests live in the single project `tests/LongevityDiet.Core.Tests` (xunit, EF InMemory, hand-written fakes in `TestDoubles.cs`).
 
@@ -28,8 +28,8 @@ Educational diet planning/tracking microservices app based on the book *The Long
 - **Layout**: `src/Services/<Name>/LongevityDiet.<Name>.{Api,Application,Infrastructure,Domain}` for the four REST services (Identity, DietKnowledge, MealPlanning, Tracking). Dependencies are one-directional; controllers must not touch DbContext — go through Application services and Infrastructure repositories. Never expose EF entities; use DTOs.
 - **Shared libs** (`src/BuildingBlocks`): `LongevityDiet.ApiDefaults` (response envelope, paged model, validation response factory, global exception middleware, Swagger Bearer setup, health/controller pipeline) and `LongevityDiet.Contracts` (RabbitMQ message contracts: reminder, notification, recommendation request/result). New REST APIs should reuse ApiDefaults (see `docs/development/Api-Conventions.md`).
 - **Non-REST pieces**: `Recommendation.Service` (RabbitMQ worker, no DB, optional Gemini), `Notification.Grpc` (gRPC, no DB), `NotificationWorker` (RabbitMQ consumer → Brevo email, falls back to logging), `ApiGateway` (YARP; prefixes `/identity`, `/diet-knowledge`, `/meal-planning`, `/tracking` — Recommendation/Notification/Worker are deliberately not routed), `Web` (ASP.NET Core MVC calling only the gateway).
-- **Database per service** (PostgreSQL: IdentityDb, DietKnowledgeDb, MealPlanningDb, TrackingDb). No cross-DB reads or FKs; cross-service references are bare IDs (e.g. Tracking stores `MealPlanItemId`). Each service applies its own EF migrations at startup. Recommendation and Notification stay stateless.
-- **Auth**: JWT Bearer issued by Identity, shared `Jwt__SigningKey` across services; roles `User`/`Admin`. Users only see their own meal plans/tracking.
+- **Database per service** (PostgreSQL: IdentityDb, DietKnowledgeDb, MealPlanningDb, TrackingDb, plus the separate pgvector VectorDb owned by Diet Knowledge; that service has two DbContexts, so pass `--context` to `dotnet ef`). No cross-DB reads or FKs; cross-service references are bare IDs (e.g. Tracking stores `MealPlanItemId`). Each service applies its own EF migrations at startup. Recommendation and Notification stay stateless.
+- **Auth**: JWT Bearer issued by Identity, shared `Jwt__SigningKey` across services (startup fails on a missing, short or public key unless Development or `Jwt__AllowDevelopmentKey=true`; Compose sets it for the demo); roles `User`/`Admin`. Users only see their own meal plans/tracking.
 
 - **Web i18n**: the MVC UI has an English/Vietnamese switch (`LanguageController`, `Services/Translations.cs`, `Translator.cs`, `ContentTranslations.cs`). New user-facing strings need entries in both languages; the selected language is also passed to Recommendation so Gemini answers in that language.
 - **Repo-local caches**: `.dotnet/` and `.nuget/` (from `DOTNET_CLI_HOME`) are gitignored — ignore them when searching. So are `.tmp/` and `.env`.
@@ -37,9 +37,9 @@ Educational diet planning/tracking microservices app based on the book *The Long
 - **Windows host**: no Python available; the shell is PowerShell/Git Bash, so use Unix-style paths in Bash and avoid `find /`.
 
 ### Cross-service flows (span multiple projects)
-- **AI recommendation**: MealPlanning publishes `RecommendationRequest` → Recommendation.Service (builds context from DietKnowledge *public* APIs, i.e. active `Approved` content only; Gemini or safe local fallback) → publishes `RecommendationResult` → MealPlanning consumes/stores it; user must accept before it becomes a plan.
+- **AI recommendation**: MealPlanning publishes `RecommendationRequest` (via its outbox) → Recommendation.Service (builds context from DietKnowledge *public* APIs, i.e. active `Approved` content only, ranked by VectorDb semantic search when available; Gemini or safe local fallback) → publishes `RecommendationResult` → MealPlanning consumes/stores it; user must accept before it becomes a plan.
 - **Progress notification**: Tracking → gRPC → Notification.Grpc → RabbitMQ `notification.messages` → NotificationWorker → Brevo.
-- **Meal reminders**: MealPlanning publishes to `reminder.requests` → NotificationWorker (sends a confirmation mail at once, holds the reminder in TTL delay queues until `ScheduledForUtc`, then sends it). There is no `MealSchedule` table; schedule = `MealPlanItem.PlannedDate/MealSlot/ReminderAtUtc`. Worker uses durable queues with dead-letter queues and retry settings (`RabbitMq__MaxDeliveryAttempts`, `RabbitMq__RetryDelaySeconds`).
+- **Meal reminders**: MealPlanning writes the message to its `OutboxMessages` table (same transaction as the item; a dispatcher publishes it) → `reminder.requests` → NotificationWorker (sends a confirmation mail at once, holds the reminder in TTL delay queues until `ScheduledForUtc`, then asks MealPlanning's internal `/internal/reminders/{id}` endpoint (key `InternalApi__Key`, blocked by the gateway) whether the item still exists with that time, and sends it only if so). There is no `MealSchedule` table; schedule = `MealPlanItem.PlannedDate/MealSlot/ReminderAtUtc`. Worker uses durable queues with dead-letter queues and retry settings (`RabbitMq__MaxDeliveryAttempts`, `RabbitMq__RetryDelaySeconds`).
 - **Book knowledge**: Admin uploads a PDF to DietKnowledge → chunks + `KnowledgeCandidate`s (Gemini-summarized or placeholders) → Admin approves/rejects → approval creates Approved guideline/food/recipe. Raw chunks/PDFs are Admin-only and must never reach public endpoints or Recommendation context. Do not commit PDFs. Seed data (`book-knowledge-seed.json` as `NeedsReview`, `demo-approved-knowledge-seed.json` gated by `DietKnowledgeSeed__IncludeDemoApprovedContent`) is described in `docs/development/Seed-Data-Strategy.md`.
 
 ## Docs to keep in sync

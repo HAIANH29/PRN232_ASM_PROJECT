@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -17,8 +18,12 @@ public static class LongevityApiDefaultsExtensions
     public static IServiceCollection AddLongevityPublicApiDefaults(
         this IServiceCollection services,
         string serviceName,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IHostEnvironment environment)
     {
+        // Resolved once at startup so a missing or public signing key stops the service immediately.
+        var signingKey = JwtSigningKeyResolver.Resolve(configuration, environment);
+
         services.AddControllers();
         services.Configure<ApiBehaviorOptions>(options =>
         {
@@ -67,7 +72,6 @@ public static class LongevityApiDefaultsExtensions
             {
                 var issuer = configuration["Jwt:Issuer"] ?? "LongevityDiet.Identity";
                 var audience = configuration["Jwt:Audience"] ?? "LongevityDiet.Platform";
-                var signingKey = configuration["Jwt:SigningKey"] ?? "development-only-replace-with-secret";
 
                 options.TokenValidationParameters = new TokenValidationParameters
                 {

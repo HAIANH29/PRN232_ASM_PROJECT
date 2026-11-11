@@ -49,6 +49,11 @@ public sealed record SetMealCompletionRequest
 {
     [Required]
     public bool IsCompleted { get; init; }
+
+    // Optional: how many meals the user has planned for this date. Lets progress count planned
+    // meals that were never ticked off.
+    [Range(0, 50)]
+    public int? PlannedMealCount { get; init; }
 }
 
 public sealed record ProgressSummaryRequest

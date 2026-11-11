@@ -36,6 +36,9 @@ namespace LongevityDiet.Tracking.Infrastructure.Persistence.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
 
+                    b.Property<int?>("PlannedMealCount")
+                        .HasColumnType("integer");
+
                     b.Property<DateOnly>("TrackingDate")
                         .HasColumnType("date");
 

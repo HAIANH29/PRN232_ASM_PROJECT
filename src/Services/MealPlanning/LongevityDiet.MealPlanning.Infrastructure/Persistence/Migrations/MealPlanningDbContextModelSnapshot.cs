@@ -165,6 +165,44 @@ namespace LongevityDiet.MealPlanning.Infrastructure.Persistence.Migrations
                     b.ToTable("MealRecommendationRequests");
                 });
 
+            modelBuilder.Entity("LongevityDiet.MealPlanning.Domain.Entities.OutboxMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastError")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("MessageType")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.Property<DateTimeOffset>("NextAttemptAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("PayloadJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("ProcessedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProcessedAtUtc", "NextAttemptAtUtc");
+
+                    b.ToTable("OutboxMessages");
+                });
+
             modelBuilder.Entity("LongevityDiet.MealPlanning.Domain.Entities.MealPlanItem", b =>
                 {
                     b.HasOne("LongevityDiet.MealPlanning.Domain.Entities.MealPlan", "MealPlan")

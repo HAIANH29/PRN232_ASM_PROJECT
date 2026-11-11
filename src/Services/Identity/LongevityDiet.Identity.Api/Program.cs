@@ -8,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddIdentityApplication();
 builder.Services.AddIdentityInfrastructure(builder.Configuration);
-builder.Services.AddLongevityPublicApiDefaults("Longevity Diet Identity Service", builder.Configuration);
+builder.Services.AddLongevityPublicApiDefaults("Longevity Diet Identity Service", builder.Configuration, builder.Environment);
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy => policy.RequireRole(IdentityRoleNames.Admin));
