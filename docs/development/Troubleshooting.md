@@ -16,6 +16,7 @@ Common problems when running the platform locally.
 
 ## Auth
 
+- **A service exits at startup with a `Jwt:SigningKey` error**: set `JWT_SIGNING_KEY` to a private 32+ character secret, or keep `JWT_ALLOW_DEVELOPMENT_KEY=true` in `.env` for the local demo.
 - **401 from the gateway**: log in again; JWTs are signed with `JWT_SIGNING_KEY`, so changing it invalidates old tokens.
 - **Default demo accounts** are defined in `.env.example`.
 

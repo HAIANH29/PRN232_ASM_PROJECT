@@ -24,6 +24,7 @@ dotnet test tests/LongevityDiet.Core.Tests --filter "FullyQualifiedName~Tracking
 | Book ingestion | `BookKnowledgeIngestionServiceTests.cs` |
 | Vector search | `VectorDbTests.cs` |
 | Meal planning | `MealPlanningServiceTests.cs` |
+| Reliability (outbox, stale reminders, planned-meal progress, JWT key rules) | `ReliabilityTests.cs` |
 | Tracking | `TrackingServiceTests.cs`, `UserProfileAndDietTrackingTests.cs` |
 | Recommendation | `RecommendationServiceTests.cs` |
 | Notification worker | `NotificationWorkerTests.cs` |

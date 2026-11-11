@@ -12,10 +12,16 @@ The platform uses RabbitMQ for asynchronous work. Queue names are the defaults c
 ## Recommendation flow
 
 1. The user asks for a recommendation through the Web app and gateway.
-2. MealPlanning publishes a message to `recommendation.requests`.
+2. MealPlanning saves the request to its outbox table (same transaction as the request); a background dispatcher publishes it to `recommendation.requests`, retrying if RabbitMQ is down.
 3. Recommendation.Service builds context from approved knowledge only.
 4. If Gemini is enabled and configured it generates the answer; otherwise a safe fallback is returned.
 5. The result is published to `recommendation.results` and stored by MealPlanning.
+
+## Reminder flow
+
+1. Adding or rescheduling a meal plan item saves a reminder to the MealPlanning outbox; the dispatcher publishes it to `reminder.requests`.
+2. NotificationWorker sends a confirmation mail and parks the reminder in a delay queue until it is due.
+3. When due, the worker asks MealPlanning (`/internal/reminders/{itemId}`, key `INTERNAL_API_KEY`) whether the item still exists with that time. Stale reminders are dropped.
 
 ## Notification flow
 
