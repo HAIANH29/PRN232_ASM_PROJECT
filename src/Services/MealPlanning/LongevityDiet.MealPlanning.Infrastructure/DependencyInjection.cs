@@ -1,4 +1,5 @@
 using LongevityDiet.MealPlanning.Application.Abstractions;
+using LongevityDiet.MealPlanning.Application.Common;
 using LongevityDiet.MealPlanning.Infrastructure.DietKnowledge;
 using LongevityDiet.MealPlanning.Infrastructure.Messaging;
 using LongevityDiet.MealPlanning.Infrastructure.Persistence;
@@ -18,6 +19,13 @@ public static class DependencyInjection
     {
         services.AddDbContext<MealPlanningDbContext>(options =>
             options.UseNpgsql(configuration.GetConnectionString("MealPlanningDb")));
+
+        // "Today" and "meal time has passed" are judged in the users' local time (minutes east of UTC).
+        var offsetMinutes = int.TryParse(configuration["MealPlanning:UtcOffsetMinutes"], out var configuredOffset)
+            ? configuredOffset
+            : (int)MealSchedulePolicy.DefaultUtcOffset.TotalMinutes;
+        services.AddSingleton(TimeProvider.System);
+        services.AddSingleton(new MealSchedulePolicy(TimeSpan.FromMinutes(offsetMinutes)));
 
         services.AddScoped<IMealPlanRepository, MealPlanRepository>();
         services.AddScoped<IReminderPublisher, RabbitMqReminderPublisher>();

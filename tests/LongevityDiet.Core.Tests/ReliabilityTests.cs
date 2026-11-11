@@ -200,7 +200,9 @@ public sealed class ReliabilityTests
         var catalog = new FakeDietKnowledgeCatalogClient();
         catalog.ExistingFoodIds.Add(foodId);
         var outbox = new RecordingOutbox();
-        var service = new MealPlanningService(new InMemoryMealPlanRepository(), catalog, outbox);
+        var service = new MealPlanningService(
+            new InMemoryMealPlanRepository(), catalog, outbox,
+            new FixedTimeProvider(new DateTimeOffset(2026, 11, 1, 0, 0, 0, TimeSpan.Zero)));
         var userId = Guid.NewGuid();
 
         var plan = await service.CreateMealPlanAsync(new CreateMealPlanCommand(

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace LongevityDiet.Web.Controllers;
 
-public sealed class RecommendationsController(ApiGatewayClient api, UserSession session)
+public sealed class RecommendationsController(ApiGatewayClient api, UserSession session, IConfiguration configuration)
     : AppController(api, session)
 {
     [HttpGet]
@@ -179,7 +179,15 @@ public sealed class RecommendationsController(ApiGatewayClient api, UserSession 
         var foods = await LoadFoodsAsync(cancellationToken: cancellationToken);
         var recipes = await LoadRecipesAsync(cancellationToken: cancellationToken);
         var slots = new[] { "Breakfast", "Lunch", "Dinner" };
-        var today = DateOnly.FromDateTime(DateTime.Today);
+        // Suggested meals start at the first day that can still be planned: once breakfast time is
+        // over (10:00 in the users' local time) a plan can no longer start with today's breakfast.
+        var offsetMinutes = int.TryParse(configuration["MealPlanning:UtcOffsetMinutes"], out var configuredOffset) ? configuredOffset : 420;
+        var localNow = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromMinutes(offsetMinutes));
+        var today = DateOnly.FromDateTime(localNow.Date);
+        if (localNow.Hour >= 10)
+        {
+            today = today.AddDays(1);
+        }
 
         return new RecommendationDetailsViewModel
         {

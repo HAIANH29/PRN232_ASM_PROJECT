@@ -28,7 +28,7 @@ flowchart LR
     Admin -->|HTTPS| Web
     Web -->|HTTPS| Gateway
 
-    Gateway -->|HTTP / REST| Identity
+    Gateway -->|HTTP / REST, YARP| Identity
     Gateway -->|HTTP / REST| Diet
     Gateway -->|HTTP / REST| Meal
     Gateway -->|HTTP / REST| Tracking
@@ -45,6 +45,8 @@ flowchart LR
     Recommendation -->|HTTPS| Gemini
     Recommendation -->|Publish| Rabbit
     Rabbit -->|Consume| Meal
+    Meal -->|HTTP / REST| Diet
+    Recommendation -->|HTTP / REST| Diet
 
     Tracking -->|gRPC| Notification
     Notification -->|Publish| Rabbit
@@ -52,6 +54,8 @@ flowchart LR
     Worker -->|HTTPS| Brevo
     Worker -->|HTTP / REST| Meal
 ```
+
+Meal Planning calls the Diet Knowledge public APIs over HTTP to read the recipe and food catalog. Recommendation Service calls the Diet Knowledge public APIs (`/api/knowledge/search`, `/api/diet-guidelines`, `/api/foods`, `/api/recipes`) over HTTP without a JWT, so it only ever sees `Approved` content.
 
 Recommendation Service and Notification Service are stateless in the current scope and do not own databases.
 
