@@ -23,6 +23,9 @@ public static class DependencyInjection
         services.AddScoped<IReminderPublisher, RabbitMqReminderPublisher>();
         services.AddScoped<IRecommendationRequestPublisher, RabbitMqRecommendationRequestPublisher>();
         services.AddScoped<IRecommendationResultConsumer, RabbitMqRecommendationResultConsumer>();
+        services.AddScoped<IMealPlanOutbox, EfMealPlanOutbox>();
+        services.AddScoped<OutboxDispatcher>();
+        services.AddHostedService<OutboxDispatcherWorker>();
         services.AddScoped<IMealPlanningDatabaseInitializer, MealPlanningDatabaseInitializer>();
 
         services.AddHttpClient<IDietKnowledgeCatalogClient, HttpDietKnowledgeCatalogClient>(client =>

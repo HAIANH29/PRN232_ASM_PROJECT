@@ -76,7 +76,7 @@ public sealed class TrackingController(ApiGatewayClient api, UserSession session
 
         var result = await Api.PutAsync<DailyTrackingResponse>(
             $"/tracking/api/daily-trackings/{form.TrackingDate:yyyy-MM-dd}/meals/{form.MealPlanItemId}",
-            new { form.IsCompleted },
+            new { form.IsCompleted, form.PlannedMealCount },
             Token,
             cancellationToken);
         AddResultMessage(result, form.IsCompleted ? "Meal marked completed." : "Meal marked not completed.");

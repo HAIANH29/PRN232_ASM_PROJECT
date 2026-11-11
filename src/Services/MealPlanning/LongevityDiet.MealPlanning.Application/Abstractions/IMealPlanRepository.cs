@@ -41,5 +41,10 @@ public interface IMealPlanRepository
         MealRecommendationRequest request,
         CancellationToken cancellationToken = default);
 
+    // Reminder time of one item regardless of owner; null when the item no longer exists.
+    Task<DateTimeOffset?> GetReminderAtUtcAsync(
+        Guid mealPlanItemId,
+        CancellationToken cancellationToken = default);
+
     Task SaveChangesAsync(CancellationToken cancellationToken = default);
 }

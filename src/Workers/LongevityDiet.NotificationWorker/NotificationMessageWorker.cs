@@ -9,7 +9,8 @@ namespace LongevityDiet.NotificationWorker;
 public sealed class NotificationMessageWorker(
     IConfiguration configuration,
     IEmailSender emailSender,
-    ILogger<NotificationMessageWorker> logger) : BackgroundService
+    ILogger<NotificationMessageWorker> logger,
+    IReminderValidityChecker? reminderValidityChecker = null) : BackgroundService
 {
     private const string ConfirmedHeader = "x-confirmed";
 
@@ -181,6 +182,22 @@ public sealed class NotificationMessageWorker(
         var message = JsonSerializer.Deserialize<ReminderRequestedMessage>(args.Body.Span, JsonOptions)
             ?? throw new InvalidDataException("Reminder message payload is empty or invalid.");
         ValidateRecipient(message.RecipientEmail);
+
+        // The meal may have been deleted or moved while this message waited; drop stale reminders.
+        if (message.MealPlanItemId.HasValue &&
+            reminderValidityChecker is not null &&
+            !await reminderValidityChecker.IsCurrentAsync(
+                message.MealPlanItemId.Value,
+                message.ScheduledForUtc,
+                stoppingToken))
+        {
+            await channel.BasicAckAsync(args.DeliveryTag, false, stoppingToken);
+            logger.LogInformation(
+                "Dropped stale reminder {MessageId}: meal plan item {MealPlanItemId} was deleted or rescheduled.",
+                message.ReminderId,
+                message.MealPlanItemId);
+            return;
+        }
 
         var remaining = message.ScheduledForUtc - DateTimeOffset.UtcNow;
         if (remaining <= TimeSpan.Zero)

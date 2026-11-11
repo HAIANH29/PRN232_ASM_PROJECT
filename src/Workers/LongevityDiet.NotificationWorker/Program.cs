@@ -6,6 +6,8 @@ var builder = Host.CreateApplicationBuilder(args);
 builder.Services.Configure<BrevoOptions>(
     builder.Configuration.GetSection(BrevoOptions.SectionName));
 builder.Services.AddHttpClient<IEmailSender, BrevoEmailSender>();
+builder.Services.AddHttpClient<IReminderValidityChecker, HttpReminderValidityChecker>(client =>
+    client.Timeout = TimeSpan.FromSeconds(10));
 builder.Services.AddHostedService<NotificationMessageWorker>();
 
 var host = builder.Build();

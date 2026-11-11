@@ -41,6 +41,7 @@ Implementation target:
 - Admin endpoints can manage and filter `NeedsReview`, `Approved`, and `Rejected` content.
 - Admin PDF ingestion is not seed data. Uploaded PDFs are private local artifacts; extracted chunks and generated candidates are stored in DietKnowledgeDb for review only.
 - Generated candidates must be approved into managed Diet Knowledge content before public browse/search, Meal Planning, or Recommendation can use them.
+- The demo seed also creates a team-written "Demo plant-forward 3-day menu" diet regimen (once, never overwritten) and demo categories; the semantic search index (VectorDb) is built from approved content after startup.
 - The startup seed path retries briefly so Docker Compose can tolerate PostgreSQL startup timing.
 
 ## Meal Planning Service
@@ -51,7 +52,7 @@ Purpose:
 Implementation target:
 - Prefer creating meal plans through APIs during demo setup after Identity and Diet Knowledge are ready.
 - If static seed is needed, store only cross-service IDs, not foreign keys.
-- Current implementation applies the `InitialMealPlanningSchema` migration on startup.
+- Current implementation applies all Meal Planning migrations on startup (including the `OutboxMessages` table).
 - No static meal plan seed is included because meal plans are user-owned and should be created through authenticated APIs.
 
 ## Tracking Service
@@ -62,7 +63,7 @@ Purpose:
 Implementation target:
 - Prefer creating tracking records through APIs during demo setup.
 - Store planned meal references as IDs only.
-- Current implementation applies the `InitialTrackingSchema` migration on startup.
+- Current implementation applies all Tracking migrations on startup.
 - No static tracking seed is included because tracking records are user-owned and should be created through authenticated APIs.
 
 ## Recommendation And Notification Services

@@ -74,6 +74,9 @@ public sealed class TrackingForm
 
     public bool IsCompleted { get; set; } = true;
 
+    // Meals planned for the day (from the meal plans shown on the page).
+    public int? PlannedMealCount { get; set; }
+
     [Required]
     public DateOnly PeriodStartDate { get; set; }
 

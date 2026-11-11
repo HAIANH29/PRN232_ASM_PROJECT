@@ -19,3 +19,8 @@ stitch-export/
 # draw.io temporary/backup files
 .$*.dtmp
 .$*.bkp
+
+# Full text of the book (copyrighted, local research copy only; never commit or redistribute)
+docs/book-knowledge/*.txt
+docs/book-knowledge/*.pdf
+*.pdf

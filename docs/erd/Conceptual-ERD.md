@@ -146,6 +146,7 @@ erDiagram
         guid UserId
         date TrackingDate
         string Notes
+        int PlannedMealCount
         datetime CreatedAtUtc
         datetime UpdatedAtUtc
     }

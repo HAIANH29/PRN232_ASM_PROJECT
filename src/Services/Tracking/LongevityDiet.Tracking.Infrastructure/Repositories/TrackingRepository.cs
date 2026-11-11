@@ -143,15 +143,22 @@ public sealed class TrackingRepository(TrackingDbContext dbContext) : ITrackingR
             periodEndDate,
             cancellationToken);
 
-        var mealQuery = dbContext.MealTrackings
-            .Where(meal => meal.DailyTracking != null &&
-                meal.DailyTracking.UserId == userId &&
-                meal.DailyTracking.TrackingDate >= periodStartDate &&
-                meal.DailyTracking.TrackingDate <= periodEndDate);
+        // A day counts every meal the client said was planned, even if never ticked off; days
+        // without that information fall back to the meals that were tracked.
+        var days = await dbContext.DailyTrackings
+            .Where(day => day.UserId == userId &&
+                day.TrackingDate >= periodStartDate &&
+                day.TrackingDate <= periodEndDate)
+            .Select(day => new
+            {
+                day.PlannedMealCount,
+                Tracked = day.Meals.Count(),
+                Completed = day.Meals.Count(meal => meal.IsCompleted)
+            })
+            .ToListAsync(cancellationToken);
 
-        summary.PlannedMeals = await mealQuery.CountAsync(cancellationToken);
-        summary.CompletedMeals = await mealQuery
-            .CountAsync(meal => meal.IsCompleted, cancellationToken);
+        summary.PlannedMeals = days.Sum(day => Math.Max(day.PlannedMealCount ?? 0, day.Tracked));
+        summary.CompletedMeals = days.Sum(day => day.Completed);
         summary.CalculatedAtUtc = DateTimeOffset.UtcNow;
 
         return summary;

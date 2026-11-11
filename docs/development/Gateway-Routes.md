@@ -53,4 +53,6 @@ These services are not routed through the gateway in the current scope:
 - RabbitMQ
 - PostgreSQL databases
 
+The gateway also answers `404` for any path containing `/internal/` (for example `/meal-planning/internal/reminders/{id}`). Those endpoints are service-to-service only, used by the Notification Worker, and are protected by the shared `InternalApi__Key` as a second layer.
+
 Recommendation and notification communication remains internal through RabbitMQ and gRPC as described in the architecture docs.

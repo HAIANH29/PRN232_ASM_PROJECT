@@ -15,13 +15,11 @@ public sealed class MealPlanningServiceTests
         var repository = new InMemoryMealPlanRepository();
         var catalog = new FakeDietKnowledgeCatalogClient();
         catalog.ExistingFoodIds.Add(foodId);
-        var reminderPublisher = new RecordingReminderPublisher();
-        var recommendationPublisher = new RecordingRecommendationRequestPublisher();
+        var outbox = new RecordingOutbox();
         var service = new MealPlanningService(
             repository,
             catalog,
-            reminderPublisher,
-            recommendationPublisher);
+            outbox);
 
         var plan = await service.CreateMealPlanAsync(new CreateMealPlanCommand(
             UserId: Guid.NewGuid(),
@@ -43,10 +41,10 @@ public sealed class MealPlanningServiceTests
         Assert.Single(repository.MealPlans);
         Assert.Single(plan.Items);
         Assert.Equal(MealSlots.Breakfast, plan.Items.Single().MealSlot);
-        Assert.Single(reminderPublisher.Messages);
-        Assert.Equal("user@example.com", reminderPublisher.Messages.Single().RecipientEmail);
-        Assert.Contains("Breakfast", reminderPublisher.Messages.Single().Subject, StringComparison.Ordinal);
-        Assert.Empty(recommendationPublisher.Messages);
+        Assert.Single(outbox.Reminders);
+        Assert.Equal("user@example.com", outbox.Reminders.Single().RecipientEmail);
+        Assert.Contains("Breakfast", outbox.Reminders.Single().Subject, StringComparison.Ordinal);
+        Assert.Empty(outbox.Recommendations);
     }
 
     [Fact]
@@ -56,8 +54,7 @@ public sealed class MealPlanningServiceTests
         var service = new MealPlanningService(
             repository,
             new FakeDietKnowledgeCatalogClient(),
-            new RecordingReminderPublisher(),
-            new RecordingRecommendationRequestPublisher());
+            new RecordingOutbox());
 
         await Assert.ThrowsAsync<ValidationException>(() =>
             service.CreateMealPlanAsync(new CreateMealPlanCommand(
@@ -84,12 +81,11 @@ public sealed class MealPlanningServiceTests
     public async Task RequestRecommendationAsync_cleans_tags_and_publishes_message()
     {
         var repository = new InMemoryMealPlanRepository();
-        var recommendationPublisher = new RecordingRecommendationRequestPublisher();
+        var outbox = new RecordingOutbox();
         var service = new MealPlanningService(
             repository,
             new FakeDietKnowledgeCatalogClient(),
-            new RecordingReminderPublisher(),
-            recommendationPublisher);
+            outbox);
         var userId = Guid.NewGuid();
 
         var result = await service.RequestRecommendationAsync(new CreateRecommendationRequestCommand(
@@ -98,10 +94,10 @@ public sealed class MealPlanningServiceTests
             3));
 
         Assert.Single(repository.RecommendationRequests);
-        Assert.Single(recommendationPublisher.Messages);
-        Assert.Equal(result.Id, recommendationPublisher.Messages.Single().RequestId);
-        Assert.Equal(userId, recommendationPublisher.Messages.Single().UserId);
-        Assert.Equal(["legumes", "vegetable"], recommendationPublisher.Messages.Single().PreferenceTags);
-        Assert.Equal(3, recommendationPublisher.Messages.Single().Days);
+        Assert.Single(outbox.Recommendations);
+        Assert.Equal(result.Id, outbox.Recommendations.Single().RequestId);
+        Assert.Equal(userId, outbox.Recommendations.Single().UserId);
+        Assert.Equal(["legumes", "vegetable"], outbox.Recommendations.Single().PreferenceTags);
+        Assert.Equal(3, outbox.Recommendations.Single().Days);
     }
 }

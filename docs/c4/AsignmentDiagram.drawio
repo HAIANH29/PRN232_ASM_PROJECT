@@ -308,6 +308,9 @@
         <mxCell id="fix-meal-consume" edge="1" parent="1" source="i52QDQEKYud7CcwnrblZ-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.75;exitDx=0;exitDy=0;entryX=1;entryY=0.75;entryDx=0;entryDy=0;" target="86zybTtth_m2HICDAMch-36" value="Consume">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
+        <mxCell id="fix-worker-meal-check" edge="1" parent="1" source="i52QDQEKYud7CcwnrblZ-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.25;exitDx=0;exitDy=0;entryX=0.75;entryY=1;entryDx=0;entryDy=0;" target="86zybTtth_m2HICDAMch-36" value="HTTP / REST">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
         <mxCell id="fix-rec-diet" edge="1" parent="1" source="uMpvLMh0J0xmMu9k2-oB-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=0;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" target="86zybTtth_m2HICDAMch-34" value="HTTP">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">

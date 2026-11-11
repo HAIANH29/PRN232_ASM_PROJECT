@@ -23,6 +23,21 @@ app.MapGet("/", () => Results.Ok(new
     internalServicesNotRouted = new[] { "recommendation-service", "notification-service", "notification-worker", "rabbitmq", "postgres" }
 }));
 app.MapGet("/routes", () => Results.Ok(publicRoutes));
+
+// Service-to-service endpoints (for example the reminder check used by the Notification Worker)
+// live under /internal on a service and must never be reachable through the public gateway.
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.Value?.Contains("/internal/", StringComparison.OrdinalIgnoreCase) == true ||
+        context.Request.Path.Value?.EndsWith("/internal", StringComparison.OrdinalIgnoreCase) == true)
+    {
+        context.Response.StatusCode = StatusCodes.Status404NotFound;
+        return;
+    }
+
+    await next();
+});
+
 app.MapReverseProxy();
 
 app.Run();

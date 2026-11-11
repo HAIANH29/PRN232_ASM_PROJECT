@@ -72,12 +72,14 @@ Useful URLs:
 
 API Gateway route prefixes:
 
-- Identity: `http://localhost:5001/identity/api/auth/login`
+- Identity: `http://localhost:5001/identity/api/auth/login`  (also `PUT /api/auth/profile/preferences`)
 - Diet Knowledge: `http://localhost:5001/diet-knowledge/api/foods`
 - Meal Planning: `http://localhost:5001/meal-planning/api/meal-plans`
 - Tracking: `http://localhost:5001/tracking/api/daily-trackings`
 
 Send the same `Authorization: Bearer <token>` header through the gateway for protected endpoints. Recommendation Service, Notification Service, Notification Worker, RabbitMQ, and databases are intentionally not exposed through gateway routes.
+
+The services refuse to start with a missing, short or public JWT signing key unless `JWT_ALLOW_DEVELOPMENT_KEY=true` (the default in `.env.example`, for the local demo only). Set `JWT_SIGNING_KEY` to a private 32+ character secret and `JWT_ALLOW_DEVELOPMENT_KEY=false` for any real deployment.
 
 Local demo Identity credentials are configured through `.env`:
 
@@ -114,6 +116,8 @@ The current suite covers:
 - Tracking progress summary calculation and notification trigger behavior.
 - Recommendation safety filtering and approved-knowledge context behavior.
 - Notification Worker Brevo/log fallback behavior.
+- Reliability: reminder staleness checks, Meal Planning outbox dispatch and back-off, planned-meal progress, JWT signing key rules.
+- Semantic search index (VectorDb), diet regimens/categories/nutrition/steps, user profile preferences and diet tracking.
 - API authorization boundaries for public, authenticated, and Admin-only endpoints.
 
 Diet Knowledge endpoints:
@@ -121,6 +125,7 @@ Diet Knowledge endpoints:
 - Public reads:
   - `GET /api/diet-guidelines`
   - `GET /api/foods`
+  - `GET /api/categories`, `GET /api/diet-regimens[/{id}]`, `GET /api/knowledge/search?q=&type=&limit=` (semantic search)
   - `GET /api/recipes`
 - Public reads return active `Approved` knowledge only.
 - Admin mutations:
@@ -128,13 +133,17 @@ Diet Knowledge endpoints:
   - `POST /api/admin/foods`, `PUT|DELETE /api/admin/foods/{id}`
   - `POST /api/admin/recipes`, `PUT|DELETE /api/admin/recipes/{id}`
   - `PATCH /api/admin/{diet-guidelines|foods|recipes}/{id}/activation`
+  - `GET|POST|PUT /api/admin/diet-regimens`, `PATCH /api/admin/diet-regimens/{id}/activation`
+  - `POST /api/admin/knowledge-index/rebuild`, `GET /api/admin/knowledge-index/status`
+  - `DELETE /api/admin/knowledge?confirm=true` deletes all managed knowledge (candidates go back to `NeedsReview`)
 - Admin book-source ingestion:
-  - `POST /api/admin/book-sources` multipart PDF upload
+  - `POST /api/admin/book-sources` multipart PDF or TXT upload
   - `GET /api/admin/book-sources`
   - `GET /api/admin/book-sources/{id}/chunks`
   - `DELETE /api/admin/book-sources/{id}` removes the PDF, its chunks and candidates (approved knowledge is kept)
   - `POST /api/admin/book-sources/{id}/candidates/generate` analyzes the next batch of not-yet-analyzed chunks (call repeatedly until done)
   - `GET /api/admin/book-sources/{id}/candidates/progress` chunks analyzed / remaining / skipped
+  - `GET /api/admin/book-sources/{id}/candidates/generate/status` live progress of a running generation
   - `POST /api/admin/book-sources/{id}/candidates/approve-all` approves every pending candidate except placeholders and items with disease/treatment wording
   - `POST /api/admin/book-sources/{id}/candidates/reject-placeholders` rejects the pending local placeholder drafts
   - `GET /api/admin/book-sources/{id}/candidates`
@@ -162,8 +171,9 @@ Meal Planning endpoints:
   - `GET /api/meal-recommendations/{id}`
   - `POST /api/meal-recommendations/{id}/accept`
 - Meal Planning validates `FoodId`/`RecipeId` through Diet Knowledge public APIs, so only active `Approved` content can be scheduled.
-- Scheduled meal items publish reminder messages to RabbitMQ.
-- Recommendation requests are published to RabbitMQ; completed recommendation results are consumed and stored for user review.
+- Reminder and recommendation messages are saved to the `OutboxMessages` table in the same transaction as the plan, item or request; a background dispatcher publishes them to RabbitMQ with retries (at-least-once delivery).
+- Changing an item publishes a new reminder only when its reminder time changes. The Notification Worker asks the internal endpoint `GET /internal/reminders/{itemId}` (shared key `INTERNAL_API_KEY`, blocked by the gateway) before sending a delayed reminder, so reminders for deleted or rescheduled meals are dropped.
+- Recommendation requests are published through the same outbox; completed recommendation results are consumed and stored for user review.
 - A separate `MealSchedule` table is not used in this milestone; schedule data is represented by `MealPlanItem.PlannedDate`, `MealSlot`, and `ReminderAtUtc`.
 
 Tracking endpoints:
@@ -174,16 +184,18 @@ Tracking endpoints:
   - `GET /api/daily-trackings/{trackingDate}`
   - `PUT /api/daily-trackings/{trackingDate}`
   - `DELETE /api/daily-trackings/{trackingDate}`
-  - `PUT /api/daily-trackings/{trackingDate}/meals/{mealPlanItemId}`
+  - `PUT /api/daily-trackings/{trackingDate}/meals/{mealPlanItemId}`  (body `isCompleted`, optional `plannedMealCount`)
 - Progress summary workflow:
   - `GET /api/progress-summaries?periodStartDate=YYYY-MM-DD&periodEndDate=YYYY-MM-DD`
 - Tracking stores only `MealPlanItemId` as a cross-service ID; it does not read `MealPlanningDb`.
-- When a daily progress summary reaches all tracked meals completed, Tracking calls Notification Service through gRPC.
+- A day counts the larger of `plannedMealCount` (meals planned that day, sent by the Web check-in page) and the tracked meals. When every counted meal of the day is completed, Tracking calls Notification Service through gRPC.
+- Diet tracking (follow a regimen and/or meal plan; one Active per user): `POST|GET /api/diet-trackings`, `GET /api/diet-trackings/{id}`, `PATCH /api/diet-trackings/{id}/status`.
 - Notification Service publishes a `NotificationRequested` message to RabbitMQ for later worker delivery.
 
 Notification Worker:
 
 - Consumes scheduled meal reminders from `reminder.requests`.
+- Drops a due reminder when Meal Planning says its meal plan item was deleted or rescheduled (fails open if Meal Planning is unreachable).
 - Consumes progress notifications from `notification.messages`.
 - Declares durable RabbitMQ exchanges/queues plus dead-letter exchanges/queues for both flows.
 - Retries failed messages using `RabbitMq__MaxDeliveryAttempts` and `RabbitMq__RetryDelaySeconds`.

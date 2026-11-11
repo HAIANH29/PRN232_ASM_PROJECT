@@ -23,11 +23,11 @@ What is already in code:
   - `MealPlanningDb`
   - `TrackingDb`
   - `VectorDb` (pgvector, owned by Diet Knowledge Service)
-- Dockerfiles and Docker Compose skeleton exist.
+- Dockerfiles and a Docker Compose file for the full stack exist.
 - YARP API Gateway has finalized routes for public REST services.
-- RabbitMQ message contract/configuration skeletons exist.
+- RabbitMQ message contracts and durable topology are implemented.
 - Recommendation Service consumes RabbitMQ recommendation requests, builds context from active `Approved` Diet Knowledge data, applies safety guardrails, uses safe fallback recommendations when Gemini is disabled, and publishes recommendation results.
-- Notification Service exists as a gRPC service skeleton.
+- Notification Service accepts Tracking gRPC calls and publishes notification messages to RabbitMQ.
 - Notification Worker consumes RabbitMQ reminder/notification messages and sends through Brevo or logs email payloads in development fallback mode.
 - Architecture docs exist and match the updated microservice diagram.
 - Identity Service now supports register/login/profile/admin-check, password hashing, JWT generation, role seeding, demo admin seeding, and the initial Identity EF Core migration.
@@ -39,6 +39,7 @@ What is already in code:
 - Notification Worker now declares durable reminder/notification queues, dead-letter queues, retry handling, Brevo sender abstraction, and local log fallback delivery.
 - Web Application now supports the main User and Admin browser flows through the API Gateway.
 - Milestone 9.7 (lecturer feedback): five modules plus a separate vector database. Identity has `UserProfiles` (eating preferences); Diet Knowledge has `Categories`, `NutritionFacts`, `RecipeSteps`, diet regimens (guidelines + day/slot meals, demo seed), and semantic search over approved knowledge backed by `VectorDb`; Tracking has `UserDietTrackings` linked automatically to daily tracking and progress; Meal Planning plans can reference a regimen; Recommendation ranks approved knowledge with the semantic search; the Web app has screens for all of it (English/Vietnamese).
+- 2026-11-11 reliability fixes: Meal Planning outbox, stale-reminder check by the Notification Worker, planned-meal-aware progress, JWT key fail-fast (see `PROJECT_PROGRESS.md`).
 - Milestone 9 Docker/database demo setup now includes health-checked PostgreSQL/RabbitMQ startup, demo admin/user seed accounts, approved local demo Diet Knowledge seed data, and clean-machine setup documentation.
 
 What is not yet product-ready:
