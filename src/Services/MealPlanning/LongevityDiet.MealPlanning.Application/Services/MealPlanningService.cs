@@ -11,8 +11,13 @@ namespace LongevityDiet.MealPlanning.Application.Services;
 public sealed class MealPlanningService(
     IMealPlanRepository repository,
     IDietKnowledgeCatalogClient dietKnowledgeCatalogClient,
-    IMealPlanOutbox outbox) : IMealPlanningService
+    IMealPlanOutbox outbox,
+    TimeProvider? timeProvider = null,
+    MealSchedulePolicy? schedulePolicy = null) : IMealPlanningService
 {
+    private readonly TimeProvider clock = timeProvider ?? TimeProvider.System;
+    private readonly MealSchedulePolicy schedule = schedulePolicy ?? new MealSchedulePolicy();
+
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     public MealPlanningServiceStatus GetStatus()
@@ -60,6 +65,7 @@ public sealed class MealPlanningService(
         EnsureUser(command.UserId);
         var userEmail = CleanEmail(command.UserEmail);
         ValidatePlanDates(command.StartDate, command.EndDate);
+        EnsureNotInPast(command.StartDate);
 
         var mealPlan = new MealPlan
         {
@@ -98,6 +104,11 @@ public sealed class MealPlanningService(
         ValidatePlanDates(command.StartDate, command.EndDate);
 
         var mealPlan = await GetOwnedMealPlanAsync(mealPlanId, command.UserId, cancellationToken);
+        if (command.StartDate != mealPlan.StartDate)
+        {
+            EnsureNotInPast(command.StartDate);
+        }
+
         if (mealPlan.Items.Any(item =>
                 item.PlannedDate < command.StartDate || item.PlannedDate > command.EndDate))
         {
@@ -179,7 +190,9 @@ public sealed class MealPlanningService(
                 command.ReminderAtUtc),
             mealPlan.StartDate,
             mealPlan.EndDate,
-            cancellationToken);
+            cancellationToken,
+            enforceNotInPast: item.PlannedDate != command.PlannedDate ||
+                !string.Equals(item.MealSlot, command.MealSlot?.Trim(), StringComparison.OrdinalIgnoreCase));
 
         var reminderChanged = !SameInstant(item.ReminderAtUtc, replacement.ReminderAtUtc);
 
@@ -341,6 +354,7 @@ public sealed class MealPlanningService(
         CancellationToken cancellationToken)
     {
         ValidatePlanDates(command.StartDate, command.EndDate);
+        EnsureNotInPast(command.StartDate);
 
         var mealPlan = new MealPlan
         {
@@ -379,7 +393,8 @@ public sealed class MealPlanningService(
         CreateMealPlanItemCommand command,
         DateOnly planStartDate,
         DateOnly planEndDate,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        bool enforceNotInPast = true)
     {
         if (command.PlannedDate < planStartDate || command.PlannedDate > planEndDate)
         {
@@ -394,6 +409,12 @@ public sealed class MealPlanningService(
         }
 
         mealSlot = MealSlots.Normalize(mealSlot);
+        if (enforceNotInPast && schedule.HasSlotEnded(command.PlannedDate, mealSlot, clock.GetUtcNow()))
+        {
+            throw new ValidationException(
+                $"Cannot plan {mealSlot} on {command.PlannedDate:yyyy-MM-dd}: that meal time has already passed. Choose the current or a later meal.");
+        }
+
         await ValidateCatalogReferenceAsync(command.FoodId, command.RecipeId, cancellationToken);
 
         return new MealPlanItem
@@ -405,7 +426,7 @@ public sealed class MealPlanningService(
             FoodId = command.FoodId,
             Notes = CleanOptional(command.Notes),
             ReminderAtUtc = command.ReminderAtUtc ??
-                BuildDefaultReminderAtUtc(command.PlannedDate, mealSlot),
+                schedule.DefaultReminderAtUtc(command.PlannedDate, mealSlot),
             CreatedAtUtc = DateTimeOffset.UtcNow
         };
     }
@@ -441,8 +462,16 @@ public sealed class MealPlanningService(
         IEnumerable<MealPlanItem> items,
         string userEmail)
     {
+        var now = clock.GetUtcNow();
         foreach (var item in items)
         {
+            // A reminder that is already due would be emailed straight away for a meal the user is
+            // creating right now, so only future reminders are scheduled.
+            if (item.ReminderAtUtc <= now)
+            {
+                continue;
+            }
+
             outbox.Enqueue(new ReminderRequestedMessage(
                 Guid.NewGuid(),
                 mealPlan.UserId,
@@ -566,6 +595,14 @@ public sealed class MealPlanningService(
         }
     }
 
+    private void EnsureNotInPast(DateOnly startDate)
+    {
+        if (startDate < schedule.Today(clock.GetUtcNow()))
+        {
+            throw new ValidationException("Meal plan start date cannot be in the past.");
+        }
+    }
+
     private static void EnsureUser(Guid userId)
     {
         if (userId == Guid.Empty)
@@ -613,11 +650,5 @@ public sealed class MealPlanningService(
     {
         return JsonSerializer.Deserialize<IReadOnlyCollection<string>>(json, JsonOptions)
             ?? Array.Empty<string>();
-    }
-
-    private static DateTimeOffset BuildDefaultReminderAtUtc(DateOnly plannedDate, string mealSlot)
-    {
-        var time = MealSlots.DefaultReminderTimeUtc(mealSlot);
-        return new DateTimeOffset(plannedDate.ToDateTime(time, DateTimeKind.Utc));
     }
 }
