@@ -1,6 +1,6 @@
 <mxfile host="Electron">
   <diagram name="Page-1" id="hXYz041lIH6drTuMHhkz">
-    <mxGraphModel dx="3230" dy="1414" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="1842" dy="589" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -60,7 +60,7 @@
         <mxCell id="86zybTtth_m2HICDAMch-53" edge="1" parent="1" source="86zybTtth_m2HICDAMch-26" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="86zybTtth_m2HICDAMch-32">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="86zybTtth_m2HICDAMch-57" connectable="0" parent="86zybTtth_m2HICDAMch-53" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="HTTP" vertex="1">
+        <mxCell id="86zybTtth_m2HICDAMch-57" connectable="0" parent="86zybTtth_m2HICDAMch-53" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="HTTP / REST" vertex="1">
           <mxGeometry relative="1" x="-0.3157" as="geometry">
             <mxPoint as="offset" />
           </mxGeometry>
@@ -68,7 +68,7 @@
         <mxCell id="86zybTtth_m2HICDAMch-54" edge="1" parent="1" source="86zybTtth_m2HICDAMch-26" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="86zybTtth_m2HICDAMch-34">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="86zybTtth_m2HICDAMch-59" connectable="0" parent="86zybTtth_m2HICDAMch-54" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="HTTP" vertex="1">
+        <mxCell id="86zybTtth_m2HICDAMch-59" connectable="0" parent="86zybTtth_m2HICDAMch-54" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="HTTP / REST" vertex="1">
           <mxGeometry relative="1" x="0.0271" y="1" as="geometry">
             <mxPoint as="offset" />
           </mxGeometry>
@@ -76,7 +76,7 @@
         <mxCell id="86zybTtth_m2HICDAMch-55" edge="1" parent="1" source="86zybTtth_m2HICDAMch-26" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.75;entryY=0;entryDx=0;entryDy=0;" target="86zybTtth_m2HICDAMch-35">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="86zybTtth_m2HICDAMch-60" connectable="0" parent="86zybTtth_m2HICDAMch-55" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="HTTP" vertex="1">
+        <mxCell id="86zybTtth_m2HICDAMch-60" connectable="0" parent="86zybTtth_m2HICDAMch-55" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="HTTP / REST" vertex="1">
           <mxGeometry relative="1" x="0.0345" as="geometry">
             <mxPoint as="offset" />
           </mxGeometry>
@@ -84,7 +84,7 @@
         <mxCell id="86zybTtth_m2HICDAMch-56" edge="1" parent="1" source="86zybTtth_m2HICDAMch-26" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="86zybTtth_m2HICDAMch-36">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="86zybTtth_m2HICDAMch-58" connectable="0" parent="86zybTtth_m2HICDAMch-56" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="HTTP" vertex="1">
+        <mxCell id="86zybTtth_m2HICDAMch-58" connectable="0" parent="86zybTtth_m2HICDAMch-56" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="HTTP / REST" vertex="1">
           <mxGeometry relative="1" x="-0.3577" y="1" as="geometry">
             <mxPoint as="offset" />
           </mxGeometry>
@@ -160,7 +160,7 @@
         <mxCell id="86zybTtth_m2HICDAMch-66" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.database;whiteSpace=wrap;" value="Meal Planning DB&lt;div&gt;&lt;pre dir=&quot;ltr&quot;&gt;&lt;code&gt;[PostgreSQL]&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="90" width="125" x="535" y="630" as="geometry" />
         </mxCell>
-        <mxCell id="i52QDQEKYud7CcwnrblZ-8" edge="1" parent="1" source="i52QDQEKYud7CcwnrblZ-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="i52QDQEKYud7CcwnrblZ-3">
+        <mxCell id="i52QDQEKYud7CcwnrblZ-8" edge="1" parent="1" source="i52QDQEKYud7CcwnrblZ-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="i52QDQEKYud7CcwnrblZ-3" value="Consume">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="795.06" y="590" />
@@ -168,7 +168,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="uMpvLMh0J0xmMu9k2-oB-25" edge="1" parent="1" source="i52QDQEKYud7CcwnrblZ-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.543;entryY=0.992;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.25;exitY=1;exitDx=0;exitDy=0;" target="uMpvLMh0J0xmMu9k2-oB-3">
+        <mxCell id="uMpvLMh0J0xmMu9k2-oB-25" edge="1" parent="1" source="i52QDQEKYud7CcwnrblZ-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.543;entryY=0.992;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.25;exitY=1;exitDx=0;exitDy=0;" target="uMpvLMh0J0xmMu9k2-oB-3" value="Consume">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="775.5" y="560" />
@@ -308,8 +308,12 @@
         <mxCell id="fix-meal-consume" edge="1" parent="1" source="i52QDQEKYud7CcwnrblZ-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.75;exitDx=0;exitDy=0;entryX=1;entryY=0.75;entryDx=0;entryDy=0;" target="86zybTtth_m2HICDAMch-36" value="Consume">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="fix-worker-meal-check" edge="1" parent="1" source="i52QDQEKYud7CcwnrblZ-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.25;exitDx=0;exitDy=0;entryX=0.75;entryY=1;entryDx=0;entryDy=0;" target="86zybTtth_m2HICDAMch-36" value="HTTP / REST">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="fix-worker-meal-check" edge="1" parent="1" source="i52QDQEKYud7CcwnrblZ-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.25;exitDx=0;exitDy=0;entryX=0.75;entryY=1;entryDx=0;entryDy=0;" value="HTTP / REST">
+          <mxGeometry relative="1" x="-0.6386" y="10" as="geometry">
+            <mxPoint as="offset" />
+            <mxPoint x="746.5" y="660" as="sourcePoint" />
+            <mxPoint x="664" y="560" as="targetPoint" />
+          </mxGeometry>
         </mxCell>
         <mxCell id="fix-rec-diet" edge="1" parent="1" source="uMpvLMh0J0xmMu9k2-oB-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=0;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" target="86zybTtth_m2HICDAMch-34" value="HTTP">
           <mxGeometry relative="1" as="geometry">
@@ -324,6 +328,25 @@
             <Array as="points">
               <mxPoint x="218" y="440" />
               <mxPoint x="-510" y="440" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fix-vectordb" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.database;whiteSpace=wrap;" value="Vector DB&lt;div&gt;&lt;pre dir=&quot;ltr&quot;&gt;&lt;code&gt;[PostgreSQL + pgvector]&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="80" width="125" x="225" y="735" as="geometry" />
+        </mxCell>
+        <mxCell id="fix-diet-vectordb" edge="1" parent="1" source="86zybTtth_m2HICDAMch-34" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.75;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" target="fix-vectordb" value="Npgsql">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="362" y="545" />
+              <mxPoint x="362" y="775" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fix-meal-diet" edge="1" parent="1" source="86zybTtth_m2HICDAMch-36" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=0;exitDx=0;exitDy=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;" target="86zybTtth_m2HICDAMch-34" value="HTTP">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="572" y="455" />
+              <mxPoint x="315" y="455" />
             </Array>
           </mxGeometry>
         </mxCell>
