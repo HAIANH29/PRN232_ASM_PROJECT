@@ -1,0 +1,74 @@
+<section class="cover">
+<div class="tag">PRN232 · Software Project</div>
+<h1>Architecture Diagrams</h1>
+<div class="sub">Longevity Diet Platform — C4 context, containers, deployment and communication flows</div>
+<table>
+<tr><td>Document</td><td>Architecture Description</td></tr>
+<tr><td>Version</td><td>1.0 (2026-11-12)</td></tr>
+<tr><td>Editable source</td><td><code>diagrams/C4-Architecture.drawio</code></td></tr>
+</table>
+</section>
+
+<h1 class="first">1. Architecture overview</h1>
+<p>The platform follows a microservice architecture. Public traffic enters through one <b>API Gateway</b>; four business services each own a PostgreSQL database; slow or optional work is moved to <b>RabbitMQ</b> consumers; one synchronous internal call uses <b>gRPC</b>.</p>
+<h2>1.1 Communication styles</h2>
+<table>
+<tr><th style="width:16%">Style</th><th>Used for</th><th>Why</th></tr>
+<tr><td>HTTPS</td><td>Users → Web, Web → Gateway (target), Gemini, Brevo</td><td>Protect data in transit over the Internet</td></tr>
+<tr><td>HTTP / REST</td><td>Gateway → services, Meal Planning → Diet Knowledge, Recommendation → Diet Knowledge, Worker → Meal Planning</td><td>Normal synchronous calls behind the gateway</td></tr>
+<tr><td>gRPC</td><td>Tracking → Notification</td><td>Typed contract (<code>.proto</code>), fast internal call</td></tr>
+<tr><td>RabbitMQ</td><td>Reminders, AI requests/results, notification emails</td><td>Sender does not wait; work survives a consumer outage</td></tr>
+</table>
+<h2>1.2 Container responsibilities</h2>
+<table>
+<tr><th style="width:24%">Container</th><th>Responsibility</th><th style="width:16%">Data</th></tr>
+<tr><td>Web (MVC)</td><td>UI, session, English/Vietnamese</td><td>—</td></tr>
+<tr><td>API Gateway (YARP)</td><td>Single entry, prefix routing, blocks <code>/internal/</code></td><td>—</td></tr>
+<tr><td>Identity</td><td>Accounts, roles, JWT, preferences</td><td>IdentityDb</td></tr>
+<tr><td>Diet Knowledge</td><td>Guidelines, foods, recipes, regimens, book review, semantic search</td><td>DietKnowledgeDb, VectorDb</td></tr>
+<tr><td>Meal Planning</td><td>Plans, items, reminder outbox, AI requests</td><td>MealPlanningDb</td></tr>
+<tr><td>Tracking</td><td>Daily tracking, progress, diet tracking, gRPC client</td><td>TrackingDb</td></tr>
+<tr><td>Recommendation</td><td>Builds AI context from approved data, calls Gemini, publishes result</td><td>stateless</td></tr>
+<tr><td>Notification (gRPC)</td><td>Receives progress requests, publishes messages</td><td>stateless</td></tr>
+<tr><td>Notification Worker</td><td>Consumes messages, delays reminders, sends email via Brevo</td><td>stateless</td></tr>
+<tr><td>RabbitMQ</td><td>Message broker</td><td>queues</td></tr>
+</table>
+
+<section class="wide">
+<h1 class="first">2. C4 diagrams — C1 containers and C0 system context</h1>
+<figure><img src="../diagrams/C4-Architecture.png"><figcaption>Top: C1 internal architecture. Bottom: C0 system context (users, platform, Gemini, Brevo). Editable: diagrams/C4-Architecture.drawio</figcaption></figure>
+</section>
+
+<h1>3. Deployment view</h1>
+<figure><img src="../diagrams/deploy.png"><figcaption>Docker Compose deployment with host ports</figcaption></figure>
+<h2>3.1 RabbitMQ topology</h2>
+<table>
+<tr><th>Exchange</th><th>Queue</th><th>Routing key</th><th>Publisher</th><th>Consumer</th></tr>
+<tr><td>longevity.reminders</td><td>reminder.requests</td><td>reminder.requested</td><td>Meal Planning (outbox)</td><td>Notification Worker</td></tr>
+<tr><td>longevity.recommendations</td><td>recommendation.requests</td><td>recommendation.requested</td><td>Meal Planning (outbox)</td><td>Recommendation</td></tr>
+<tr><td>longevity.recommendations</td><td>recommendation.results</td><td>recommendation.completed</td><td>Recommendation</td><td>Meal Planning</td></tr>
+<tr><td>longevity.notifications</td><td>notification.messages</td><td>notification.requested</td><td>Notification (gRPC)</td><td>Notification Worker</td></tr>
+</table>
+<p>All queues are durable and have dead-letter queues; consumers retry up to 3 times with a 5 s delay. Reminder delay queues use TTL (30 s near the time, 1 h far from it).</p>
+
+<h1>4. Layered structure inside a REST service</h1>
+<table>
+<tr><th style="width:18%">Layer</th><th>Contains</th><th style="width:30%">May depend on</th></tr>
+<tr><td>API</td><td>Controllers, request/response contracts, authentication entry, Program.cs</td><td>Application</td></tr>
+<tr><td>Application</td><td>Business services, rules, abstractions (interfaces), commands/models</td><td>Domain</td></tr>
+<tr><td>Domain</td><td>Entities</td><td>nothing</td></tr>
+<tr><td>Infrastructure</td><td>DbContext, repositories, RabbitMQ / HTTP / gRPC clients, seeding, migrations</td><td>Application, Domain</td></tr>
+</table>
+<div class="note">Controllers never touch the DbContext and never return entities; shared behaviour (JWT, Swagger, error envelope, health) lives in <code>LongevityDiet.ApiDefaults</code>; message contracts in <code>LongevityDiet.Contracts</code>.</div>
+
+<h1>5. Main runtime flows</h1>
+<h2>5.1 Authentication</h2>
+<figure><img src="../diagrams/seq-auth.png"></figure>
+<h2>5.2 AI recommendation</h2>
+<figure><img src="../diagrams/seq-ai.png"></figure>
+<h2>5.3 Meal reminder</h2>
+<figure><img src="../diagrams/seq-reminder.png"></figure>
+<h2>5.4 Progress notification</h2>
+<figure><img src="../diagrams/seq-progress.png"></figure>
+<h2>5.5 Book knowledge</h2>
+<figure><img src="../diagrams/seq-book.png"></figure>

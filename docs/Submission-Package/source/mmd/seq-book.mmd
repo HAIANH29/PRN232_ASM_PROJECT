@@ -1,0 +1,14 @@
+sequenceDiagram
+  autonumber
+  actor A as Admin
+  participant D as DietKnowledge
+  participant G as Gemini
+  participant V as VectorDb
+  A->>D: Upload PDF/TXT (max 25 MB)
+  D->>D: Extract text, split into chunks
+  A->>D: Generate candidates (batch)
+  D->>G: Summarize chunk (or placeholder)
+  D->>D: Save KnowledgeCandidate = NeedsReview
+  A->>D: Approve / reject candidate
+  D->>D: Approve creates Approved guideline / food / recipe
+  D->>V: Index approved content (embeddings)

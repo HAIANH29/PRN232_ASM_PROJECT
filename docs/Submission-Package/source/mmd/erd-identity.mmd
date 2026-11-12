@@ -1,0 +1,24 @@
+erDiagram
+  Users ||--o| UserProfiles : has
+  Users }o--o{ Roles : UserRoles
+  Users {
+    guid Id PK
+    string Email
+    string NormalizedEmail
+    string DisplayName
+    string PasswordHash
+    bool IsActive
+    datetime CreatedAtUtc
+  }
+  Roles {
+    guid Id PK
+    string Name
+    string NormalizedName
+  }
+  UserProfiles {
+    guid Id PK
+    guid UserId FK
+    string PreferenceTags
+    string Notes
+    datetime UpdatedAtUtc
+  }

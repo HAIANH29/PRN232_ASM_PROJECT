@@ -1,0 +1,7 @@
+stateDiagram-v2
+  direction LR
+  [*] --> NeedsReview: candidate generated
+  NeedsReview --> Approved: Admin approves
+  NeedsReview --> Rejected: Admin rejects
+  Approved --> [*]
+  Rejected --> [*]

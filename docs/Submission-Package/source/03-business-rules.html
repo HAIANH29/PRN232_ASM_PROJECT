@@ -1,0 +1,191 @@
+<section class="cover">
+<div class="tag">PRN232 · Software Project</div>
+<h1>Business Rules</h1>
+<div class="sub">Longevity Diet Platform — catalogue of rules enforced by the system</div>
+<table>
+<tr><td>Document</td><td>Business Rules Specification</td></tr>
+<tr><td>Version</td><td>1.0 (2026-11-12)</td></tr>
+<tr><td>Source of truth</td><td>Application-layer services, <code>AGENTS.md</code>, EF Core configuration</td></tr>
+<tr><td>Status</td><td>Verified against the code base (94 automated tests passing)</td></tr>
+</table>
+</section>
+
+<h1 class="first">1. Purpose and conventions</h1>
+<p>This document lists every business rule that the Longevity Diet Platform enforces, grouped by domain. Each rule has an ID (<b>BR-xx</b>), a plain statement, the service that enforces it and the response the client receives when it is broken. Rules are enforced in the <i>Application</i> layer of each service (never in controllers), so they apply no matter which client calls the API.</p>
+<div class="note"><b>Product boundary.</b> The platform is educational: diet planning and tracking inspired by the book <i>The Longevity Diet</i>. It never diagnoses, treats, predicts disease or lifespan, or gives medical advice (BR-01).</div>
+<p>Error mapping used by all REST services (<code>GlobalExceptionHandlingMiddleware</code>): validation failure → <b>400</b>; missing/invalid token → <b>401</b>; wrong role → <b>403</b>; resource not found or owned by someone else → <b>404</b>; duplicate / state conflict → <b>409</b>. Every response uses the same envelope <code>{ succeeded, data, message, errors, traceId }</code>.</p>
+
+<h2>Rule index</h2>
+<table>
+<tr><th style="width:12%">Group</th><th>Rules</th></tr>
+<tr><td>Scope &amp; safety</td><td>BR-01 – BR-03</td></tr>
+<tr><td>Identity &amp; access</td><td>BR-04 – BR-12</td></tr>
+<tr><td>Diet knowledge</td><td>BR-13 – BR-27</td></tr>
+<tr><td>Book ingestion &amp; review</td><td>BR-28 – BR-36</td></tr>
+<tr><td>Meal planning</td><td>BR-37 – BR-50</td></tr>
+<tr><td>AI recommendation</td><td>BR-51 – BR-57</td></tr>
+<tr><td>Reminders &amp; notifications</td><td>BR-58 – BR-65</td></tr>
+<tr><td>Tracking &amp; progress</td><td>BR-66 – BR-74</td></tr>
+<tr><td>Architecture &amp; data</td><td>BR-75 – BR-82</td></tr>
+</table>
+
+<h1>2. Scope and safety rules</h1>
+<table>
+<tr><th style="width:9%">ID</th><th>Rule</th><th style="width:20%">Enforced by</th></tr>
+<tr><td>BR-01</td><td>The system must never provide diagnosis, treatment, disease-specific advice, disease prediction or lifespan prediction. AI output is filtered by a safety policy and always carries a disclaimer.</td><td>Recommendation Service (<code>RecommendationSafetyPolicy</code>)</td></tr>
+<tr><td>BR-02</td><td>Content is limited to the book-based domain: guidelines, foods, recipes, regimens, meal plans, tracking, reminders. No payments, social network, wearables, media storage or mobile app.</td><td>Scope (<code>AGENTS.md</code>)</td></tr>
+<tr><td>BR-03</td><td>Uploaded book PDFs and raw extracted chunks are Admin-only. They never appear in public endpoints, search results or AI context. PDFs are not committed to git.</td><td>Diet Knowledge (admin routes, public filters)</td></tr>
+</table>
+
+<h1>3. Identity and access rules</h1>
+<table>
+<tr><th style="width:9%">ID</th><th>Rule</th><th style="width:20%">Response / Layer</th></tr>
+<tr><td>BR-04</td><td>Email is required, must be a valid address and is unique case-insensitively (stored as <code>NormalizedEmail</code>).</td><td>400 / 409 · Identity</td></tr>
+<tr><td>BR-05</td><td>Password must have at least 8 characters; it is stored only as a PBKDF2 hash, never in clear text.</td><td>400 · Identity</td></tr>
+<tr><td>BR-06</td><td>A new self-registered account always receives the <b>User</b> role. The <b>Admin</b> role exists only through seeding.</td><td>Identity</td></tr>
+<tr><td>BR-07</td><td>Wrong email or password returns the same generic message, so attackers cannot learn which part was wrong.</td><td>401 · Identity</td></tr>
+<tr><td>BR-08</td><td>An inactive account (<code>IsActive = false</code>) cannot log in.</td><td>403 · Identity</td></tr>
+<tr><td>BR-09</td><td>All services validate the JWT with a shared signing key. A service refuses to start if the key is missing, too short or a public placeholder (unless Development or <code>Jwt__AllowDevelopmentKey=true</code>).</td><td>Startup check · ApiDefaults</td></tr>
+<tr><td>BR-10</td><td>Roles are <b>User</b> and <b>Admin</b>. Every <code>/api/admin/*</code> endpoint requires Admin; browsing public knowledge needs no login.</td><td>401/403 · all APIs</td></tr>
+<tr><td>BR-11</td><td>A user sees and changes only their own meal plans, recommendations, trackings and profile. Another user's id behaves as “not found”.</td><td>404 · MealPlanning, Tracking</td></tr>
+<tr><td>BR-12</td><td>Profile preferences: at most 20 tags, each ≤ 40 characters and without commas; notes ≤ 1000 characters.</td><td>400 · Identity</td></tr>
+</table>
+
+<h1>4. Diet knowledge rules</h1>
+<h2>4.1 Review status and visibility</h2>
+<table>
+<tr><th style="width:9%">ID</th><th>Rule</th><th style="width:20%">Layer</th></tr>
+<tr><td>BR-13</td><td>Every guideline, food, recipe and regimen has a <code>ReviewStatus</code>: <b>NeedsReview</b>, <b>Approved</b> or <b>Rejected</b>.</td><td>Diet Knowledge</td></tr>
+<tr><td>BR-14</td><td><b>Only items that are Approved <u>and</u> active are returned by public endpoints</b>, used by Meal Planning validation, embedded in VectorDb and fed to the AI.</td><td>Diet Knowledge, Recommendation</td></tr>
+<tr><td>BR-15</td><td>Approving an item requires source metadata: <code>SourceChapter</code>, <code>SourcePage</code> (or reference) and <code>ReviewedBy</code>.</td><td>400 · Diet Knowledge</td></tr>
+<tr><td>BR-16</td><td>Admin can activate/deactivate content without deleting it; deactivated content disappears from public views immediately.</td><td>Diet Knowledge</td></tr>
+</table>
+<h2>4.2 Uniqueness and composition</h2>
+<table>
+<tr><th style="width:9%">ID</th><th>Rule</th><th style="width:20%">Response</th></tr>
+<tr><td>BR-17</td><td>Guideline titles, food names, recipe names and regimen names are unique.</td><td>409</td></tr>
+<tr><td>BR-18</td><td>A recipe needs at least one ingredient; each ingredient references an active Approved food; the same food cannot appear twice in one recipe.</td><td>400</td></tr>
+<tr><td>BR-19</td><td>Recipe steps need a number ≥ 1 and an instruction; step numbers are unique inside a recipe.</td><td>400</td></tr>
+<tr><td>BR-20</td><td>A nutrition fact needs a serving size; energy, protein, carbohydrate, fat and fibre values cannot be negative.</td><td>400</td></tr>
+<tr><td>BR-21</td><td>Categories have a type (Food, Recipe or Guideline) and a food's category is mandatory.</td><td>400</td></tr>
+<tr><td>BR-22</td><td>A regimen lasts 1 – 365 days.</td><td>400</td></tr>
+<tr><td>BR-23</td><td>A regimen cannot link the same guideline twice; it may only link active Approved guidelines and recipes.</td><td>400</td></tr>
+<tr><td>BR-24</td><td>A regimen meal has a <code>DayNumber</code> within the regimen duration and a meal slot of Breakfast, Lunch, Dinner or Snack; the same recipe cannot be added twice to the same day and slot.</td><td>400</td></tr>
+<tr><td>BR-25</td><td>Deleting all knowledge removes regimens first, because their links restrict deletion of guidelines and recipes.</td><td>Diet Knowledge</td></tr>
+</table>
+<h2>4.3 Search</h2>
+<table>
+<tr><th style="width:9%">ID</th><th>Rule</th><th style="width:20%">Layer</th></tr>
+<tr><td>BR-26</td><td>List endpoints support keyword search, filter, sort (<code>asc|desc</code>) and pagination (page size 1 – 100).</td><td>All list APIs</td></tr>
+<tr><td>BR-27</td><td>Semantic search ranks only embedded Approved items. Rows whose source is no longer Approved/active are removed on the next index run, but only if the whole run embedded successfully. Embeddings come from Gemini or a local fallback model.</td><td>VectorDb</td></tr>
+</table>
+
+<h1>5. Book ingestion and review rules</h1>
+<div class="grid2">
+<figure><img src="../diagrams/state-doc.png"><figcaption>Source document lifecycle</figcaption></figure>
+<figure><img src="../diagrams/state-candidate.png"><figcaption>Knowledge candidate lifecycle</figcaption></figure>
+</div>
+<table>
+<tr><th style="width:9%">ID</th><th>Rule</th><th style="width:20%">Response</th></tr>
+<tr><td>BR-28</td><td>Only Admin may upload sources. Accepted formats: <b>PDF or TXT</b>, maximum <b>25 MB</b>.</td><td>400 / 403</td></tr>
+<tr><td>BR-29</td><td>The file is stored on a private volume; the database holds only metadata, chunks and candidates. A file with no readable text ends as <b>Failed</b>.</td><td>400</td></tr>
+<tr><td>BR-30</td><td>Candidates can be generated only after the document is <b>Chunked</b>, in batches; already analysed chunks are skipped.</td><td>400</td></tr>
+<tr><td>BR-31</td><td>Candidates are summaries produced by Gemini or by a local placeholder generator. They are <b>not</b> knowledge until an Admin approves them.</td><td>Diet Knowledge</td></tr>
+<tr><td>BR-32</td><td>Only a candidate in <b>NeedsReview</b> can be approved or rejected.</td><td>400</td></tr>
+<tr><td>BR-33</td><td>Approval creates an Approved guideline, food or recipe (by <code>CandidateType</code>) and stores its id in <code>ApprovedKnowledgeId</code>.</td><td>Diet Knowledge</td></tr>
+<tr><td>BR-34</td><td>Approval fails if an item with the same title or name already exists.</td><td>409</td></tr>
+<tr><td>BR-35</td><td>A recipe candidate must carry ingredients taken from the book; without them it cannot be approved.</td><td>400</td></tr>
+<tr><td>BR-36</td><td>A rejected candidate keeps a note with the reason; Admin may bulk-reject placeholder candidates or bulk-approve valid ones.</td><td>Diet Knowledge</td></tr>
+</table>
+
+<h1>6. Meal planning rules</h1>
+<h2>6.1 Meal slots and time rules</h2>
+<p>The server runs in UTC; the user's local time is derived from the configurable offset <code>MealPlanning__UtcOffsetMinutes</code> (default 420 = UTC+7).</p>
+<table>
+<tr><th>Meal slot</th><th>Default reminder time (local)</th><th>Slot ends (local)</th></tr>
+<tr><td>Breakfast</td><td>07:00</td><td>10:00</td></tr>
+<tr><td>Lunch</td><td>11:00</td><td>14:00</td></tr>
+<tr><td>Snack</td><td>15:00</td><td>17:00</td></tr>
+<tr><td>Dinner</td><td>17:00</td><td>21:00</td></tr>
+</table>
+<table>
+<tr><th style="width:9%">ID</th><th>Rule</th><th style="width:20%">Response</th></tr>
+<tr><td>BR-37</td><td>A meal plan has a name, a start date and an end date; start date ≤ end date.</td><td>400</td></tr>
+<tr><td>BR-38</td><td>A meal plan cannot start before today (local date).</td><td>400</td></tr>
+<tr><td>BR-39</td><td>A plan item's date must lie inside the plan's date range. Changing the range is rejected if existing items would fall outside.</td><td>400</td></tr>
+<tr><td>BR-40</td><td>Meal slot must be Breakfast, Lunch, Dinner or Snack (case-insensitive, normalised).</td><td>400</td></tr>
+<tr><td>BR-41</td><td>For today, an item cannot use a slot whose end time has already passed.</td><td>400</td></tr>
+<tr><td>BR-42</td><td>An item references <b>exactly one</b> of: an Approved recipe or an Approved food (never both, never none). Existence and approval are verified through the Diet Knowledge API.</td><td>400</td></tr>
+<tr><td>BR-43</td><td>When editing an item, the past-time check runs again only if date or slot changed; when editing a plan, only if the start date moved.</td><td>400</td></tr>
+<tr><td>BR-44</td><td>A plan may optionally follow a diet regimen; the regimen id is a bare reference (no cross-database foreign key).</td><td>MealPlanning</td></tr>
+<tr><td>BR-45</td><td>Plan list endpoints are paged, filterable and sortable, and return only the caller's plans.</td><td>MealPlanning</td></tr>
+<tr><td>BR-46</td><td>Plan status shown to the user is derived from dates: <b>Upcoming</b>, <b>Active now</b> or <b>Finished</b>.</td><td>Web</td></tr>
+</table>
+
+<h1>7. AI recommendation rules</h1>
+<figure><img src="../diagrams/state-reco.png" style="max-height:60mm"><figcaption>Recommendation request lifecycle</figcaption></figure>
+<table>
+<tr><th style="width:9%">ID</th><th>Rule</th><th style="width:20%">Response</th></tr>
+<tr><td>BR-47</td><td>AI is an enhancement, not the source of truth. The final plan exists only after the user accepts it.</td><td>MealPlanning</td></tr>
+<tr><td>BR-48</td><td>A request covers 1 – 14 days and optional preference tags (cleaned and de-duplicated).</td><td>400</td></tr>
+<tr><td>BR-49</td><td>The request and its outbox message are saved in <b>one transaction</b>; the user gets an immediate “Pending” answer.</td><td>MealPlanning</td></tr>
+<tr><td>BR-50</td><td>Allowed statuses: <b>Pending → Completed → Accepted</b>. Only a <b>Completed</b> recommendation can be accepted.</td><td>400</td></tr>
+<tr><td>BR-51</td><td>The AI context contains only active Approved knowledge from the public APIs, ranked by semantic search when available. Raw chunks and unapproved candidates are never used.</td><td>Recommendation</td></tr>
+<tr><td>BR-52</td><td>If Gemini is disabled, fails or returns unsafe text, a safe local fallback recommendation is produced instead.</td><td>Recommendation</td></tr>
+<tr><td>BR-53</td><td>Recommendation Service never writes to MealPlanningDb; it only publishes a result message.</td><td>Architecture</td></tr>
+<tr><td>BR-54</td><td>The user's UI language (English/Vietnamese) is passed along so the answer is in the same language.</td><td>Web → Recommendation</td></tr>
+<tr><td>BR-55</td><td>When a recommendation is accepted, the normal meal plan rules (BR-37 – BR-43) apply. The Web form starts from tomorrow if it is already past 10:00 local time.</td><td>MealPlanning, Web</td></tr>
+<tr><td>BR-56</td><td>Failed deliveries are retried (<code>MaxDeliveryAttempts</code> 3, <code>RetryDelaySeconds</code> 5) and then dead-lettered.</td><td>Worker / consumers</td></tr>
+<tr><td>BR-57</td><td>Every recommendation stores a disclaimer that it is educational, not medical advice.</td><td>MealPlanning</td></tr>
+</table>
+
+<h1>8. Reminder and notification rules</h1>
+<table>
+<tr><th style="width:9%">ID</th><th>Rule</th><th style="width:22%">Layer</th></tr>
+<tr><td>BR-58</td><td>Reminder messages are written to <code>OutboxMessages</code> in the same transaction as the meal item (<b>transactional outbox</b>); a dispatcher publishes them with growing retry delay (max 300 s). Delivery is at least once.</td><td>MealPlanning</td></tr>
+<tr><td>BR-59</td><td>Only reminders whose time is still in the future are scheduled; a due reminder is never sent immediately.</td><td>MealPlanning</td></tr>
+<tr><td>BR-60</td><td>On receipt the Worker sends a confirmation email at once and holds the reminder in a TTL delay queue (short 30 s, long 1 h) until <code>ReminderAtUtc</code>.</td><td>Worker</td></tr>
+<tr><td>BR-61</td><td>Before sending, the Worker asks MealPlanning (<code>/internal/reminders/{id}</code>, header <code>X-Internal-Key</code>) whether the item still exists with that time; stale reminders are dropped.</td><td>Worker, MealPlanning</td></tr>
+<tr><td>BR-62</td><td>Internal endpoints are protected by a shared key <b>and</b> blocked by the gateway (any path containing <code>/internal/</code> returns 404).</td><td>Gateway, MealPlanning</td></tr>
+<tr><td>BR-63</td><td>Processed outbox rows are deleted after one day.</td><td>MealPlanning</td></tr>
+<tr><td>BR-64</td><td>Email goes through Brevo only when a real API key and sender address are set; otherwise the message is logged (development fallback).</td><td>Worker</td></tr>
+<tr><td>BR-65</td><td>Notification Service stores no history; it only converts a gRPC call into a RabbitMQ message.</td><td>Notification</td></tr>
+</table>
+
+<h1>9. Tracking and progress rules</h1>
+<figure><img src="../diagrams/state-tracking.png" style="max-height:50mm"><figcaption>User diet tracking lifecycle</figcaption></figure>
+<table>
+<tr><th style="width:9%">ID</th><th>Rule</th><th style="width:20%">Response</th></tr>
+<tr><td>BR-66</td><td>A user may have only <b>one Active</b> diet tracking. Starting another requires finishing or cancelling the first.</td><td>409</td></tr>
+<tr><td>BR-67</td><td>Status values: <b>Active</b>, <b>Completed</b>, <b>Cancelled</b>. A tracking can only be changed to Completed or Cancelled.</td><td>400</td></tr>
+<tr><td>BR-68</td><td>A tracking may reference a regimen and/or a meal plan by id; these ids are not verified against other services.</td><td>400 if not valid GUIDs</td></tr>
+<tr><td>BR-69</td><td>A meal tracking needs a meal plan item id; completing it stores <code>CompletedAtUtc</code>.</td><td>400</td></tr>
+<tr><td>BR-70</td><td><code>PlannedMealCount</code> (reported by the client) is between 0 and 50. Progress uses the larger of planned count and tracked meals, because Tracking cannot read MealPlanningDb.</td><td>400</td></tr>
+<tr><td>BR-71</td><td>Daily trackings and progress summaries attach automatically to the Active tracking whose period covers the date.</td><td>Tracking</td></tr>
+<tr><td>BR-72</td><td>A progress period needs start date ≤ end date.</td><td>400</td></tr>
+<tr><td>BR-73</td><td>When a day's planned meals are all completed for the first time, Tracking calls Notification over <b>gRPC</b>. A failed notification is logged but never blocks tracking.</td><td>Tracking</td></tr>
+<tr><td>BR-74</td><td>At most one progress notification per summary (<code>LastNotificationSentAtUtc</code>).</td><td>Tracking</td></tr>
+</table>
+
+<h1>10. Architecture and data rules</h1>
+<table>
+<tr><th style="width:9%">ID</th><th>Rule</th></tr>
+<tr><td>BR-75</td><td>Database per service: IdentityDb, DietKnowledgeDb, MealPlanningDb, TrackingDb, plus VectorDb (pgvector) owned by Diet Knowledge. No service reads another service's database.</td></tr>
+<tr><td>BR-76</td><td>No foreign keys across databases. Cross-service references are bare IDs (e.g. <code>MealTracking.MealPlanItemId</code>, <code>MealPlan.UserId</code>).</td></tr>
+<tr><td>BR-77</td><td>Each REST service has the layers API → Application → Infrastructure/Domain. Controllers never use DbContext and never return EF entities (DTOs only).</td></tr>
+<tr><td>BR-78</td><td>The Web app calls only the API Gateway. Recommendation, Notification and Worker are not routed through the gateway.</td></tr>
+<tr><td>BR-79</td><td>Synchronous internal call: Tracking → Notification by <b>gRPC</b>. Asynchronous work (AI, reminders, email) uses <b>RabbitMQ</b> with durable queues and dead-letter queues.</td></tr>
+<tr><td>BR-80</td><td>Each service applies its own EF Core migrations at startup. Recommendation and Notification stay stateless.</td></tr>
+<tr><td>BR-81</td><td>Gemini and Brevo are optional in development; fallbacks keep the system fully working without external accounts.</td></tr>
+<tr><td>BR-82</td><td>The Web UI supports English and Vietnamese; every user-facing string must exist in both languages.</td></tr>
+</table>
+
+<h2>Validation limits (summary)</h2>
+<table>
+<tr><th>Item</th><th>Limit</th><th>Item</th><th>Limit</th></tr>
+<tr><td>Password</td><td>≥ 8 characters</td><td>Upload size</td><td>25 MB (PDF/TXT)</td></tr>
+<tr><td>Preference tags</td><td>≤ 20, each ≤ 40 chars</td><td>Recommendation days</td><td>1 – 14</td></tr>
+<tr><td>Profile notes</td><td>≤ 1000 chars</td><td>Regimen duration</td><td>1 – 365 days</td></tr>
+<tr><td>Planned meal count</td><td>0 – 50</td><td>Page size</td><td>1 – 100</td></tr>
+<tr><td>Delivery attempts</td><td>3 (5 s delay)</td><td>Outbox retention</td><td>1 day</td></tr>
+</table>
