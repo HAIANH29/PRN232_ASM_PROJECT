@@ -1,0 +1,30 @@
+erDiagram
+  BookSourceDocuments ||--o{ BookSourceChunks : extracted_into
+  BookSourceDocuments ||--o{ KnowledgeCandidates : generates
+  BookSourceChunks ||--o{ KnowledgeCandidates : supports
+  BookSourceDocuments {
+    guid Id PK
+    string OriginalFileName
+    string StoragePath
+    string Status
+    int ChunkCount
+    string UploadedBy
+  }
+  BookSourceChunks {
+    guid Id PK
+    guid DocumentId FK
+    int ChunkIndex
+    int PageNumber
+    string Text
+    datetime CandidatesGeneratedAtUtc
+  }
+  KnowledgeCandidates {
+    guid Id PK
+    guid DocumentId FK
+    guid ChunkId FK
+    string CandidateType
+    string Title
+    string Status
+    string IngredientsJson
+    guid ApprovedKnowledgeId
+  }

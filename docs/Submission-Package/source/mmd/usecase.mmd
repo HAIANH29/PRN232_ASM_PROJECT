@@ -1,0 +1,22 @@
+flowchart LR
+  U([User])
+  A([Admin])
+  subgraph P[Longevity Diet Platform]
+    direction TB
+    UC1(Register / Login)
+    UC2(Browse guidelines, foods, recipes)
+    UC3(Smart semantic search)
+    UC4(Browse diet regimens)
+    UC5(Save eating preferences)
+    UC6(Create / edit meal plans)
+    UC7(Schedule meals and reminders)
+    UC8(Request AI meal ideas and accept)
+    UC9(Start / finish diet tracking)
+    UC10(Mark meals completed, view progress)
+    UC11(Manage guidelines, foods, recipes, regimens)
+    UC12(Upload book PDF)
+    UC13(Review and approve candidates)
+    UC14(Rebuild search index)
+  end
+  U --- UC1 & UC2 & UC3 & UC4 & UC5 & UC6 & UC7 & UC8 & UC9 & UC10
+  A --- UC1 & UC11 & UC12 & UC13 & UC14

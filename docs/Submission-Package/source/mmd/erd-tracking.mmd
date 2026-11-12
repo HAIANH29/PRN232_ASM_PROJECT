@@ -1,0 +1,30 @@
+erDiagram
+  UserDietTrackings ||--o{ DailyTrackings : has
+  UserDietTrackings ||--o{ ProgressSummaries : summarizes
+  DailyTrackings ||--o{ MealTrackings : records
+  UserDietTrackings {
+    guid Id PK
+    guid UserId "ref"
+    guid DietRegimenId "ref"
+    guid MealPlanId "ref"
+    string Status
+  }
+  DailyTrackings {
+    guid Id PK
+    guid UserDietTrackingId FK
+    date TrackingDate
+    int PlannedMealCount
+  }
+  MealTrackings {
+    guid Id PK
+    guid DailyTrackingId FK
+    guid MealPlanItemId "ref"
+    bool IsCompleted
+  }
+  ProgressSummaries {
+    guid Id PK
+    guid UserDietTrackingId FK
+    int PlannedMeals
+    int CompletedMeals
+    datetime LastNotificationSentAtUtc
+  }

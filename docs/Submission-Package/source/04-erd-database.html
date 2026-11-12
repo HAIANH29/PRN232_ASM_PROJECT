@@ -1,0 +1,114 @@
+<section class="cover">
+<div class="tag">PRN232 · Software Project</div>
+<h1>ERD &amp; Database Design</h1>
+<div class="sub">Longevity Diet Platform — PostgreSQL database per service plus a separate pgvector database</div>
+<table>
+<tr><td>Document</td><td>Entity-Relationship and Physical Database Specification</td></tr>
+<tr><td>Version</td><td>1.0 (2026-11-12)</td></tr>
+<tr><td>Editable source</td><td><code>database/LongevityDiet-Database.drawio</code></td></tr>
+</table>
+</section>
+
+<h1 class="first">1. Database strategy</h1>
+<p>Each stateful service owns its database. There is no shared schema, no cross-database read and no cross-database foreign key. Where one service refers to data of another, it stores a <b>bare ID</b> (a “ref”) that is validated through the owning service's API.</p>
+<table>
+<tr><th>Database</th><th>Owner service</th><th>Host port</th><th>Module</th><th>Tables</th></tr>
+<tr><td>IdentityDb</td><td>Identity</td><td>5433</td><td>1 – User</td><td>Users, Roles, UserRoles, UserProfiles</td></tr>
+<tr><td>DietKnowledgeDb</td><td>Diet Knowledge</td><td>5434</td><td>2 – Diet, 3 – Diet Regimen</td><td>Categories, DietGuidelines, Foods, NutritionFacts, Recipes, RecipeIngredients, RecipeSteps, DietRegimens, DietRegimenGuidelines, DietRegimenMeals, BookSourceDocuments, BookSourceChunks, KnowledgeCandidates</td></tr>
+<tr><td>MealPlanningDb</td><td>Meal Planning</td><td>5435</td><td>4 – Meal Plan</td><td>MealPlans, MealPlanItems, MealRecommendationRequests, OutboxMessages</td></tr>
+<tr><td>TrackingDb</td><td>Tracking</td><td>5436</td><td>5 – UserDietTracking</td><td>UserDietTrackings, DailyTrackings, MealTrackings, ProgressSummaries</td></tr>
+<tr><td>VectorDb (pgvector)</td><td>Diet Knowledge</td><td>5437</td><td>Search index</td><td>KnowledgeEmbeddings, EmbeddingIndexRuns</td></tr>
+</table>
+<p>Recommendation Service, Notification Service and Notification Worker are stateless and have no database.</p>
+<div class="note"><b>Legend for diagrams.</b> <b>PK</b> primary key · <b>FK</b> foreign key inside the same database · <i>ref</i> bare ID of another service (no FK). “Foods” is the <i>Ingredient</i> entity of the lecturer's design.</div>
+
+<h1>2. Conceptual ERD per service</h1>
+<h2>2.1 IdentityDb — Module 1: User</h2>
+<figure><img src="../diagrams/erd-identity.png" style="max-height:90mm"></figure>
+<h2>2.2 DietKnowledgeDb — Modules 2 and 3: Diet and Diet Regimen</h2>
+<figure><img src="../diagrams/erd-diet.png"></figure>
+<h2>2.3 DietKnowledgeDb — Book ingestion (Admin only)</h2>
+<figure><img src="../diagrams/erd-book.png" style="max-height:100mm"></figure>
+<p>These tables hold uploaded-source metadata, extracted chunks and review candidates. They are never exposed publicly and never embedded. <code>ApprovedKnowledgeId</code> is polymorphic (guideline, food or recipe) and therefore not a foreign key.</p>
+<h2>2.4 MealPlanningDb — Module 4: Meal Plan</h2>
+<figure><img src="../diagrams/erd-meal.png"></figure>
+<p>There is no <code>MealSchedule</code> table: scheduling is stored on <code>MealPlanItems</code> as <code>PlannedDate</code>, <code>MealSlot</code> and <code>ReminderAtUtc</code>. <code>OutboxMessages</code> implements the transactional outbox.</p>
+<h2>2.5 TrackingDb — Module 5: UserDietTracking</h2>
+<figure><img src="../diagrams/erd-tracking.png"></figure>
+<h2>2.6 VectorDb — semantic search index</h2>
+<figure><img src="../diagrams/erd-vector.png" style="max-height:80mm"></figure>
+<p><code>Embedding</code> is <code>vector(768)</code> with an HNSW index (cosine distance). Only active Approved content is embedded.</p>
+
+<h1>3. Data dictionary</h1>
+<h2>3.1 IdentityDb</h2>
+<table>
+<tr><th style="width:22%">Table</th><th>Columns and rules</th></tr>
+<tr><td>Users</td><td>Id, Email, NormalizedEmail (unique), DisplayName, PasswordHash, IsActive, CreatedAtUtc</td></tr>
+<tr><td>Roles</td><td>Id, Name, NormalizedName — seeded: User, Admin</td></tr>
+<tr><td>UserRoles</td><td>Join table (UserId, RoleId)</td></tr>
+<tr><td>UserProfiles</td><td>Id, UserId (FK, one per user), PreferenceTags (comma separated, ≤ 20), Notes, UpdatedAtUtc</td></tr>
+</table>
+<h2>3.2 DietKnowledgeDb</h2>
+<table>
+<tr><th style="width:22%">Table</th><th>Columns and rules</th></tr>
+<tr><td>Categories</td><td>Id, Name, CategoryType (Food | Recipe | Guideline), Description, IsActive, CreatedAtUtc</td></tr>
+<tr><td>DietGuidelines</td><td>Id, CategoryId?, Title (unique), Summary, SourceNote, Source{Title,Chapter,Page,Reference}, ReviewStatus, ReviewedBy, ReviewedAtUtc, IsActive, CreatedAtUtc, UpdatedAtUtc</td></tr>
+<tr><td>Foods</td><td>Id, CategoryId (FK), Name (unique), CompatibilityNotes, Source*, ReviewStatus, ReviewedBy, ReviewedAtUtc, IsActive, timestamps</td></tr>
+<tr><td>NutritionFacts</td><td>Id, FoodId (FK), ServingSize, EnergyKcal, ProteinG, CarbohydrateG, FatG, FiberG, SourceReference</td></tr>
+<tr><td>Recipes</td><td>Id, CategoryId?, Name (unique), Description, Source*, ReviewStatus, ReviewedBy, IsActive, timestamps</td></tr>
+<tr><td>RecipeIngredients</td><td>Id, RecipeId (FK), FoodId (FK), QuantityText</td></tr>
+<tr><td>RecipeSteps</td><td>Id, RecipeId (FK), StepNumber (unique per recipe), Instruction</td></tr>
+<tr><td>DietRegimens</td><td>Id, Name (unique), Description, DurationDays (1–365), Source*, ReviewStatus, IsActive, timestamps</td></tr>
+<tr><td>DietRegimenGuidelines</td><td>Id, DietRegimenId (FK), GuidelineId (FK), SortOrder, Note</td></tr>
+<tr><td>DietRegimenMeals</td><td>Id, DietRegimenId (FK), RecipeId (FK), DayNumber, MealSlot, Notes</td></tr>
+<tr><td>BookSourceDocuments</td><td>Id, OriginalFileName, StoredFileName, ContentType, FileSizeBytes, StoragePath, Status (Uploaded | Chunked | Failed), UploadedBy, UploadedAtUtc, ProcessedAtUtc, ChunkCount, ErrorMessage</td></tr>
+<tr><td>BookSourceChunks</td><td>Id, DocumentId (FK), ChunkIndex, PageNumber, Text, CharacterCount, TokenEstimate, CreatedAtUtc, CandidatesGeneratedAtUtc</td></tr>
+<tr><td>KnowledgeCandidates</td><td>Id, DocumentId (FK), ChunkId (FK), CandidateType, Title, Summary, Source*, IngredientsJson, Status (NeedsReview | Approved | Rejected), GeneratedBy, CreatedAtUtc, ReviewedBy, ReviewedAtUtc, ApprovedKnowledgeId (ref)</td></tr>
+</table>
+<h2>3.3 MealPlanningDb</h2>
+<table>
+<tr><th style="width:22%">Table</th><th>Columns and rules</th></tr>
+<tr><td>MealPlans</td><td>Id, UserId (ref), DietRegimenId? (ref), Name, StartDate, EndDate, CreatedAtUtc, UpdatedAtUtc</td></tr>
+<tr><td>MealPlanItems</td><td>Id, MealPlanId (FK), PlannedDate, MealSlot, RecipeId? (ref), FoodId? (ref) — exactly one of the two, Notes, ReminderAtUtc, timestamps</td></tr>
+<tr><td>MealRecommendationRequests</td><td>Id, UserId (ref), PreferenceTagsJson, Days (1–14), Status (Pending | Completed | Accepted), SuggestedMealTitlesJson, Disclaimer, AcceptedMealPlanId? (ref), RequestedAtUtc, CompletedAtUtc, UpdatedAtUtc</td></tr>
+<tr><td>OutboxMessages</td><td>Id, MessageType (ReminderRequested | RecommendationRequested), PayloadJson, CreatedAtUtc, NextAttemptAtUtc, Attempts, LastError, ProcessedAtUtc</td></tr>
+</table>
+<h2>3.4 TrackingDb</h2>
+<table>
+<tr><th style="width:22%">Table</th><th>Columns and rules</th></tr>
+<tr><td>UserDietTrackings</td><td>Id, UserId (ref), DietRegimenId? (ref), MealPlanId? (ref), StartDate, EndDate?, Status (Active | Completed | Cancelled) — one Active per user</td></tr>
+<tr><td>DailyTrackings</td><td>Id, UserDietTrackingId? (FK), UserId (ref), TrackingDate, Notes, PlannedMealCount (0–50), timestamps</td></tr>
+<tr><td>MealTrackings</td><td>Id, DailyTrackingId (FK), MealPlanItemId (ref), IsCompleted, CompletedAtUtc, timestamps</td></tr>
+<tr><td>ProgressSummaries</td><td>Id, UserDietTrackingId? (FK), UserId (ref), PeriodStartDate, PeriodEndDate, PlannedMeals, CompletedMeals, CalculatedAtUtc, LastNotificationId, LastNotificationSentAtUtc</td></tr>
+</table>
+<h2>3.5 VectorDb</h2>
+<table>
+<tr><th style="width:22%">Table</th><th>Columns and rules</th></tr>
+<tr><td>KnowledgeEmbeddings</td><td>Id, IndexRunId (FK), SourceType (Guideline | Food | Recipe) + SourceId (ref, unique together), ContentHash (SHA-256), Content (≤ 4000 chars), Embedding vector(768), EmbeddingModel, timestamps</td></tr>
+<tr><td>EmbeddingIndexRuns</td><td>Id, StartedAtUtc, CompletedAtUtc, ItemsIndexed, ItemsFailed, Status (Running | Completed | CompletedWithErrors | Failed)</td></tr>
+</table>
+
+<h1>4. Cross-service references</h1>
+<table>
+<tr><th>Column</th><th>Located in</th><th>Points to</th><th>Verified how</th></tr>
+<tr><td>UserId</td><td>MealPlans, MealRecommendationRequests, UserDietTrackings, DailyTrackings, ProgressSummaries</td><td>Identity.Users</td><td>JWT claim</td></tr>
+<tr><td>RecipeId / FoodId</td><td>MealPlanItems</td><td>DietKnowledge.Recipes / Foods</td><td>HTTP call to Diet Knowledge (Approved + active)</td></tr>
+<tr><td>DietRegimenId</td><td>MealPlans, UserDietTrackings</td><td>DietKnowledge.DietRegimens</td><td>Not verified (reference only)</td></tr>
+<tr><td>MealPlanId</td><td>UserDietTrackings</td><td>MealPlanning.MealPlans</td><td>Not verified (reference only)</td></tr>
+<tr><td>MealPlanItemId</td><td>MealTrackings</td><td>MealPlanning.MealPlanItems</td><td>Client-supplied</td></tr>
+<tr><td>SourceId</td><td>KnowledgeEmbeddings</td><td>DietKnowledge guideline/food/recipe</td><td>Indexer reads Approved content</td></tr>
+</table>
+<h2>Migrations</h2>
+<table>
+<tr><th>Service</th><th>Migrations</th></tr>
+<tr><td>Identity</td><td>InitialIdentitySchema, AddUserProfiles</td></tr>
+<tr><td>Diet Knowledge</td><td>InitialDietKnowledgeSchema, AddBookKnowledgeReviewMetadata, AddBookSourceIngestion, AddChunkCandidatesGeneratedAt, AddCandidateIngredients, AddCategoriesRegimensNutrition</td></tr>
+<tr><td>VectorDb</td><td>InitialVectorSchema</td></tr>
+<tr><td>Meal Planning</td><td>InitialMealPlanningSchema, AddMealPlanDietRegimenId, AddOutboxMessages</td></tr>
+<tr><td>Tracking</td><td>InitialTrackingSchema, AddUserDietTracking, AddDailyTrackingPlannedMealCount</td></tr>
+</table>
+
+<section class="wide">
+<h1 class="first">5. Full physical database diagram</h1>
+<figure><img src="../database/LongevityDiet-Database.png"><figcaption>Complete physical design (editable: database/LongevityDiet-Database.drawio). Dashed red lines are logical references without foreign keys.</figcaption></figure>
+</section>

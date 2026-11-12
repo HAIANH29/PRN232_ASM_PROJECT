@@ -7,7 +7,7 @@ This file is the shared progress tracker for the project. Every human or AI agen
 - Phase: all milestones including the revised database design (five modules + VectorDb) and the 2026-11-11 reliability fixes are implemented; manual real book source review/approval, a visual check of the new Web pages, and final QA remain.
 - Branch: `HA/phase-1-microservices-scaffold`.
 - Last pushed baseline before the 2026-11-11 change: commit `2afb60e`.
-- Verification baseline (2026-11-11): `dotnet build LongevityDietPlatform.sln` with 0 warnings and `dotnet test LongevityDietPlatform.sln` with 90 passing tests. The 2026-11-11 changes have not yet been run against Docker/PostgreSQL (see the change log).
+- Verification baseline (2026-11-12): `dotnet build LongevityDietPlatform.sln` succeeds and `dotnet test LongevityDietPlatform.sln` runs 94 tests, all passing (the 4 tests added after the 2026-11-11 baseline of 90 cover the past-date rules in `MealPlanningServiceTests`). The 2026-11-11 changes have not yet been run against Docker/PostgreSQL (see the change log).
 - Completion roadmap: `PROJECT_SCHEDULE.md`.
 
 ## Done
@@ -86,6 +86,17 @@ Each update should include:
 Do not mark a feature as complete if it only has placeholders or configuration. Call it a scaffold until the real behavior exists and has been verified.
 
 ## Change Log
+
+### 2026-11-12 — Submission package (PDF documents)
+
+- Added `docs/Submission-Package/`: PDFs for Proposal, SRS, Business Rules (BR-01..BR-82, derived from the Application-layer services), ERD & Database, Architecture Diagrams plus a combined pack; the two `.drawio` files (C4 and database) with PNG exports; Mermaid-based use-case, sequence, state, deployment and per-service ERD diagrams; real Web screenshots (User and Admin) taken from the running Docker stack. Documents are in English with `[Team name]` / `[Lecturer name]` placeholders.
+- Verification: PDFs rendered with Edge headless and spot-checked page by page; no code changed. Rebuild scripts are in `source/build/`.
+- Remaining: fill the placeholders; no screenshot of a book-source detail/candidate review page (no document was uploaded in the demo data).
+
+### 2026-11-12 — Test count re-run (94) and presentation script
+
+- Verification: `dotnet test LongevityDietPlatform.sln` gives 94/94 passing (was 90 on 2026-11-11; the 4 new tests are the past-date meal plan/slot/reminder tests in `MealPlanningServiceTests`). BR-04 and state transitions still have no dedicated tests.
+- Presentation: the Canva deck (`DAHalyY5ssU`) test figure is updated from 90 to 94 (slides and speaker notes). Added `docs/submission/Presentation-Script.docx`, a Vietnamese spoken script (about 18 minutes) built from the slides and notes.
 
 ### 2026-11-11 — Meal plans cannot be created in the past
 
