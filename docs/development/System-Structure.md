@@ -25,6 +25,7 @@ Mọi đường dẫn tính từ thư mục gốc `PRN232_ASM_PROJECT/`.
 9. Quy tắc thời gian khi lập kế hoạch bữa ăn
 10. "Muốn sửa X thì xem ở đâu" (bảng tra nhanh)
 11. Những điểm lệch giữa tài liệu cũ và code
+12. Ôn nhanh: gRPC và RabbitMQ (phần thầy hay hỏi)
 
 ---
 
@@ -618,3 +619,75 @@ Mục này mô tả sửa lỗi "tạo được bữa đã qua giờ và nhận 
 - `docs/development/Messaging-Flow.md` ghi producer của `notification.messages` là "Notification.Grpc / Tracking". Trong code, Tracking **chỉ gọi gRPC**; chỉ Notification.Grpc publish lên queue này.
 - `docs/development/Service-Port-Map.md` ghi cổng host 5105 là "internal gRPC". Thực tế gRPC nghe ở cổng 8080 trong container, còn host `5105` map vào cổng health 8081 (`docker-compose.yml:133-140`). gRPC chỉ dùng trong mạng Docker nên không cần mở cổng ra máy; chỉ lưu ý nếu muốn gọi gRPC từ máy host.
 - Giờ nhắc mặc định trước đây tính theo UTC (07:00 UTC = 14:00 giờ Việt Nam), nay đã đổi sang giờ địa phương (mục 9).
+
+## 12. Ôn nhanh: gRPC và RabbitMQ (phần thầy hay hỏi)
+
+### 12.1. gRPC
+
+**Hiểu đơn giản:** gRPC là gọi một hàm của service khác như gọi hàm trong cùng chương trình. Hai bên **chờ nhau** (đồng bộ). Cả hai dùng chung một "hợp đồng" (file `.proto`) nên không phải tự viết URL hay JSON.
+
+Trong dự án chỉ có **một** đường gRPC: **Tracking (client) gọi Notification.Grpc (server)**.
+
+**Chỗ cấu hình chung nhất:** file hợp đồng `src/Services/Notification/LongevityDiet.Notification.Grpc/Protos/notification.proto`. Đây là file duy nhất cả hai bên cùng dùng: nó khai báo `service Notification` (dòng 7) và hàm `rpc RequestProgressNotification` (dòng 8).
+
+| Bên | Việc | Ở đâu |
+|---|---|---|
+| Server | Sinh code server từ proto | `Notification.Grpc.csproj:10` với `GrpcServices="Server"` |
+| Server | Bật gRPC | `Notification.Grpc/Program.cs:6` `AddGrpc()` và dòng 11 `MapGrpcService<NotificationGrpcService>()` |
+| Server | Mở cổng HTTP/2 | `Notification.Grpc/appsettings.json:11-13`: `http://+:8080`, `Http2` (gRPC bắt buộc HTTP/2) |
+| Server | Hàm xử lý | `Notification.Grpc/Services/NotificationGrpcService.cs` (nhận request rồi đẩy sang RabbitMQ) |
+| Client | Sinh code client từ cùng file proto | `Tracking.Infrastructure.csproj:14` với `GrpcServices="Client"` |
+| Client | Đăng ký vào DI | `Tracking.Infrastructure/DependencyInjection.cs:24` |
+| Client | Địa chỉ server | `Tracking.Api/appsettings.json:17`: `http://notification-service:8080`; Docker ghi đè ở `docker-compose.yml:109` |
+| Client | Code gọi | `Tracking.Infrastructure/Notification/GrpcNotificationClient.cs` (`GrpcChannel.ForAddress`, dòng 25) |
+| Client | Nơi gọi | `Tracking.Application/Services/TrackingService.cs` (qua `INotificationClient`) |
+
+**Một câu để nhớ:** proto là hợp đồng, csproj là chỗ sinh code, appsettings là địa chỉ.
+
+Lưu ý khi chạy ngoài Docker: `appsettings.Development.json:9` của Tracking trỏ `http://localhost:5105`, nhưng `docker-compose.yml:138` map `5105:8081` (cổng health, không phải cổng gRPC 8080). Trong Docker các container gọi nhau qua `notification-service:8080` nên không bị ảnh hưởng.
+
+### 12.2. RabbitMQ
+
+**Hiểu đơn giản:** RabbitMQ là **hòm thư** ở giữa. Bên gửi bỏ thư vào hòm rồi đi tiếp, không chờ. Bên nhận lúc rảnh thì lấy thư ra xử lý. Nếu bên nhận đang tắt, thư vẫn nằm chờ trong hòm.
+
+- **Exchange** là bưu điện phân loại thư.
+- **Queue** là hòm thư của một bên nhận.
+- **Routing key** là địa chỉ ghi trên phong bì, để exchange biết bỏ vào hòm nào.
+
+**Chỗ cấu hình chung nhất:** mục `"RabbitMq"` trong `appsettings.json`. Mọi service đều đọc cùng một mục này và lấy phần mình dùng:
+
+| Service | File | Dòng |
+|---|---|---|
+| Meal Planning | `MealPlanning.Api/appsettings.json` | 19-32 |
+| Recommendation | `Recommendation.Service/appsettings.json` | 8-21 |
+| Notification.Grpc | `Notification.Grpc/appsettings.json` | 21-29 |
+| NotificationWorker | `NotificationWorker/appsettings.json` | 8-22 |
+
+Mỗi mục gồm ba nhóm khóa:
+
+1. **Kết nối:** `HostName`, `Port` (5672), `UserName`, `Password`.
+2. **Tên exchange, queue, routing key** (ví dụ `longevity.reminders`, `reminder.requests`, `reminder.requested`). Bên gửi và bên nhận phải ghi **giống hệt nhau**, lệch là thư không tới nơi.
+3. **Độ tin cậy** (chỉ bên nhận): `MaxDeliveryAttempts` 3, `RetryDelaySeconds` 5, `ConsumerPrefetchCount` 4.
+
+Các chỗ liên quan:
+
+- **Địa chỉ RabbitMQ khi chạy Docker:** `docker-compose.yml:88, 121, 140, 150` ghi đè `RabbitMq__HostName: rabbitmq`. Bản thân RabbitMQ khai báo ở `docker-compose.yml:163-175` (cổng 5672 cho ứng dụng, 15672 cho trang quản lý).
+- **Lớp đọc cấu hình:** `src/BuildingBlocks/LongevityDiet.Contracts/Messaging/RabbitMqOptions.cs`.
+- **Nội dung thư:** project `LongevityDiet.Contracts` dùng chung (giống vai trò của proto bên gRPC).
+- **Bên gửi:** `MealPlanning.Infrastructure/Messaging/RabbitMqReminderPublisher.cs` và `RabbitMqRecommendationRequestPublisher.cs`; `Notification.Grpc/Services/RabbitMqNotificationPublisher.cs`.
+- **Bên nhận:** `NotificationWorker/NotificationMessageWorker.cs`, `Recommendation.Service/RecommendationMessageWorker.cs`, `MealPlanning.Infrastructure/Messaging/RabbitMqRecommendationResultWorker.cs`.
+- **Hàm RabbitMQ trong code:** `ExchangeDeclareAsync`, `QueueDeclareAsync`, `QueueBindAsync` (tạo hòm và gắn địa chỉ), `BasicPublishAsync` (gửi), `BasicConsumeAsync` (nhận). Ví dụ trong `NotificationMessageWorker.cs` nằm ở khoảng dòng 91-141.
+
+**Một câu để nhớ:** appsettings mục `RabbitMq` là địa chỉ, Contracts là nội dung thư, Publisher và Worker là người gửi và người nhận.
+
+### 12.3. So sánh để trả lời thầy
+
+| | gRPC | RabbitMQ |
+|---|---|---|
+| Kiểu | Gọi và chờ kết quả | Gửi rồi đi, bên kia xử lý sau |
+| Dự án dùng cho | Tracking gọi Notification (thông báo tiến độ) | Nhắc bữa ăn, yêu cầu và kết quả gợi ý AI, đẩy mail |
+| Hợp đồng | File `.proto` | Class trong `Contracts` và tên queue trong `appsettings` |
+| Cấu hình chung | `notification.proto` và `NotificationService:GrpcAddress` | Mục `RabbitMq` trong `appsettings.json` |
+| Bên kia tắt thì sao | Báo lỗi ngay | Thư nằm chờ trong queue |
+
+Hai cách ghép trong một luồng: Tracking gọi Notification bằng gRPC, rồi Notification bỏ thư vào RabbitMQ cho Worker gửi mail. `UserName`/`Password` `guest/guest` chỉ là giá trị demo trong Docker.

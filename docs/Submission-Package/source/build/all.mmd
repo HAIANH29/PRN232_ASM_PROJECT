@@ -1,0 +1,395 @@
+=== usecase
+flowchart LR
+  U([User])
+  A([Admin])
+  subgraph P[Longevity Diet Platform]
+    direction TB
+    UC1(Register / Login)
+    UC2(Browse guidelines, foods, recipes)
+    UC3(Smart semantic search)
+    UC4(Browse diet regimens)
+    UC5(Save eating preferences)
+    UC6(Create / edit meal plans)
+    UC7(Schedule meals and reminders)
+    UC8(Request AI meal ideas and accept)
+    UC9(Start / finish diet tracking)
+    UC10(Mark meals completed, view progress)
+    UC11(Manage guidelines, foods, recipes, regimens)
+    UC12(Upload book PDF)
+    UC13(Review and approve candidates)
+    UC14(Rebuild search index)
+  end
+  U --- UC1 & UC2 & UC3 & UC4 & UC5 & UC6 & UC7 & UC8 & UC9 & UC10
+  A --- UC1 & UC11 & UC12 & UC13 & UC14
+=== seq-ai
+sequenceDiagram
+  autonumber
+  actor U as User
+  participant W as Web / Gateway
+  participant M as MealPlanning
+  participant Q as RabbitMQ
+  participant R as Recommendation
+  participant D as DietKnowledge
+  participant G as Gemini
+  U->>W: Request meal ideas (tags, days 1-14)
+  W->>M: POST /api/meal-recommendations
+  M->>M: Save request + OutboxMessage (1 transaction)
+  M-->>U: Pending (answered at once)
+  M-)Q: Outbox dispatcher publishes recommendation.requests
+  Q-)R: Consume
+  R->>D: GET approved knowledge / semantic search
+  R->>G: generateContent (or safe local fallback)
+  R-)Q: Publish recommendation.results
+  Q-)M: Consume, status = Completed
+  U->>M: Accept (edit) recommendation
+  M->>M: Create MealPlan + items, status = Accepted
+=== seq-reminder
+sequenceDiagram
+  autonumber
+  actor U as User
+  participant M as MealPlanning
+  participant Q as RabbitMQ
+  participant N as NotificationWorker
+  participant B as Brevo
+  U->>M: Add meal item (date, slot)
+  M->>M: Validate rules, save item + Outbox reminder
+  M-)Q: reminder.requests
+  Q-)N: Consume
+  N->>B: Confirmation email at once
+  N->>N: Hold in TTL delay queue until ReminderAtUtc
+  N->>M: GET /internal/reminders/{id} (X-Internal-Key)
+  alt item still exists with same time
+    N->>B: Send reminder email
+  else deleted or rescheduled
+    N->>N: Drop stale reminder
+  end
+=== seq-progress
+sequenceDiagram
+  autonumber
+  actor U as User
+  participant T as Tracking
+  participant N as Notification (gRPC)
+  participant Q as RabbitMQ
+  participant W as NotificationWorker
+  participant B as Brevo
+  U->>T: PUT /api/daily-trackings/{date}/meals/{id}
+  T->>T: Update MealTracking, recalc ProgressSummary
+  alt all planned meals of the day completed (first time)
+    T->>N: gRPC RequestProgressNotification
+    N-)Q: Publish notification.messages
+    Q-)W: Consume
+    W->>B: Send email
+  end
+=== seq-book
+sequenceDiagram
+  autonumber
+  actor A as Admin
+  participant D as DietKnowledge
+  participant G as Gemini
+  participant V as VectorDb
+  A->>D: Upload PDF/TXT (max 25 MB)
+  D->>D: Extract text, split into chunks
+  A->>D: Generate candidates (batch)
+  D->>G: Summarize chunk (or placeholder)
+  D->>D: Save KnowledgeCandidate = NeedsReview
+  A->>D: Approve / reject candidate
+  D->>D: Approve creates Approved guideline / food / recipe
+  D->>V: Index approved content (embeddings)
+=== seq-auth
+sequenceDiagram
+  autonumber
+  actor U as User
+  participant W as Web
+  participant G as API Gateway
+  participant I as Identity
+  participant S as Any service
+  U->>W: Email + password
+  W->>G: POST /identity/api/auth/login
+  G->>I: forward
+  I-->>W: JWT (id, email, role)
+  W->>W: Store JWT in HttpOnly cookie
+  U->>W: Open page
+  W->>G: Request + Bearer JWT
+  G->>S: forward (prefix removed)
+  S->>S: Validate signature with shared key, check role
+  S-->>W: Data of this user only
+=== state-candidate
+stateDiagram-v2
+  direction LR
+  [*] --> NeedsReview: candidate generated
+  NeedsReview --> Approved: Admin approves
+  NeedsReview --> Rejected: Admin rejects
+  Approved --> [*]
+  Rejected --> [*]
+=== state-doc
+stateDiagram-v2
+  direction LR
+  [*] --> Uploaded
+  Uploaded --> Chunked: text extracted
+  Uploaded --> Failed: no readable text
+  Chunked --> Chunked: generate candidates in batches
+=== state-reco
+stateDiagram-v2
+  direction LR
+  [*] --> Pending: user requests
+  Pending --> Completed: result consumed
+  Completed --> Accepted: user accepts
+  Accepted --> [*]
+=== state-tracking
+stateDiagram-v2
+  direction LR
+  [*] --> Active: start
+  Active --> Completed: finish
+  Active --> Cancelled: cancel
+  Completed --> [*]
+  Cancelled --> [*]
+=== deploy
+flowchart TB
+  Browser[Browser] -->|:5000| web
+  subgraph Docker[Docker Compose network]
+    web[web MVC] --> gw[api-gateway YARP :5001]
+    gw --> id[identity :5101]
+    gw --> dk[diet-knowledge :5102]
+    gw --> mp[meal-planning :5103]
+    gw --> tr[tracking :5104]
+    id --> idb[(identity-db :5433)]
+    dk --> dkdb[(diet-knowledge-db :5434)]
+    dk --> vdb[(vector-db pgvector :5437)]
+    mp --> mpdb[(meal-planning-db :5435)]
+    tr --> trdb[(tracking-db :5436)]
+    tr -->|gRPC| ns[notification-service :5105]
+    ns --> mq{{RabbitMQ :5672 / :15672}}
+    mp --> mq
+    mq --> rec[recommendation-service]
+    rec --> mq
+    mq --> wk[notification-worker]
+    rec --> dk
+    mp --> dk
+    wk --> mp
+  end
+  rec -->|HTTPS| gem[Google Gemini]
+  dk -->|HTTPS| gem
+  wk -->|HTTPS| brevo[Brevo]
+=== erd-identity
+erDiagram
+  Users ||--o| UserProfiles : has
+  Users }o--o{ Roles : UserRoles
+  Users {
+    guid Id PK
+    string Email
+    string NormalizedEmail
+    string DisplayName
+    string PasswordHash
+    bool IsActive
+    datetime CreatedAtUtc
+  }
+  Roles {
+    guid Id PK
+    string Name
+    string NormalizedName
+  }
+  UserProfiles {
+    guid Id PK
+    guid UserId FK
+    string PreferenceTags
+    string Notes
+    datetime UpdatedAtUtc
+  }
+=== erd-diet
+erDiagram
+  Categories ||--o{ Foods : groups
+  Categories ||--o{ Recipes : groups
+  Categories ||--o{ DietGuidelines : groups
+  Foods ||--o{ NutritionFacts : described_by
+  Recipes ||--o{ RecipeSteps : has
+  Recipes ||--o{ RecipeIngredients : contains
+  Foods ||--o{ RecipeIngredients : used_by
+  DietRegimens ||--o{ DietRegimenGuidelines : applies
+  DietGuidelines ||--o{ DietRegimenGuidelines : used_by
+  DietRegimens ||--o{ DietRegimenMeals : schedules
+  Recipes ||--o{ DietRegimenMeals : served_in
+  Categories {
+    guid Id PK
+    string Name
+    string CategoryType
+    bool IsActive
+  }
+  DietGuidelines {
+    guid Id PK
+    guid CategoryId FK
+    string Title
+    string Summary
+    string ReviewStatus
+    bool IsActive
+  }
+  Foods {
+    guid Id PK
+    guid CategoryId FK
+    string Name
+    string CompatibilityNotes
+    string ReviewStatus
+    bool IsActive
+  }
+  NutritionFacts {
+    guid Id PK
+    guid FoodId FK
+    string ServingSize
+    decimal EnergyKcal
+    decimal ProteinG
+  }
+  Recipes {
+    guid Id PK
+    guid CategoryId FK
+    string Name
+    string Description
+    string ReviewStatus
+    bool IsActive
+  }
+  RecipeIngredients {
+    guid Id PK
+    guid RecipeId FK
+    guid FoodId FK
+    string QuantityText
+  }
+  RecipeSteps {
+    guid Id PK
+    guid RecipeId FK
+    int StepNumber
+    string Instruction
+  }
+  DietRegimens {
+    guid Id PK
+    string Name
+    int DurationDays
+    string ReviewStatus
+    bool IsActive
+  }
+  DietRegimenGuidelines {
+    guid Id PK
+    guid DietRegimenId FK
+    guid GuidelineId FK
+    int SortOrder
+  }
+  DietRegimenMeals {
+    guid Id PK
+    guid DietRegimenId FK
+    guid RecipeId FK
+    int DayNumber
+    string MealSlot
+  }
+=== erd-book
+erDiagram
+  BookSourceDocuments ||--o{ BookSourceChunks : extracted_into
+  BookSourceDocuments ||--o{ KnowledgeCandidates : generates
+  BookSourceChunks ||--o{ KnowledgeCandidates : supports
+  BookSourceDocuments {
+    guid Id PK
+    string OriginalFileName
+    string StoragePath
+    string Status
+    int ChunkCount
+    string UploadedBy
+  }
+  BookSourceChunks {
+    guid Id PK
+    guid DocumentId FK
+    int ChunkIndex
+    int PageNumber
+    string Text
+    datetime CandidatesGeneratedAtUtc
+  }
+  KnowledgeCandidates {
+    guid Id PK
+    guid DocumentId FK
+    guid ChunkId FK
+    string CandidateType
+    string Title
+    string Status
+    string IngredientsJson
+    guid ApprovedKnowledgeId
+  }
+=== erd-meal
+erDiagram
+  MealPlans ||--o{ MealPlanItems : contains
+  MealPlans {
+    guid Id PK
+    guid UserId "ref"
+    guid DietRegimenId "ref"
+    string Name
+    date StartDate
+    date EndDate
+  }
+  MealPlanItems {
+    guid Id PK
+    guid MealPlanId FK
+    guid RecipeId "ref"
+    guid FoodId "ref"
+    date PlannedDate
+    string MealSlot
+    datetime ReminderAtUtc
+  }
+  MealRecommendationRequests {
+    guid Id PK
+    guid UserId "ref"
+    string PreferenceTagsJson
+    int Days
+    string Status
+    guid AcceptedMealPlanId "ref"
+  }
+  OutboxMessages {
+    guid Id PK
+    string MessageType
+    string PayloadJson
+    int Attempts
+    datetime ProcessedAtUtc
+  }
+=== erd-tracking
+erDiagram
+  UserDietTrackings ||--o{ DailyTrackings : has
+  UserDietTrackings ||--o{ ProgressSummaries : summarizes
+  DailyTrackings ||--o{ MealTrackings : records
+  UserDietTrackings {
+    guid Id PK
+    guid UserId "ref"
+    guid DietRegimenId "ref"
+    guid MealPlanId "ref"
+    string Status
+  }
+  DailyTrackings {
+    guid Id PK
+    guid UserDietTrackingId FK
+    date TrackingDate
+    int PlannedMealCount
+  }
+  MealTrackings {
+    guid Id PK
+    guid DailyTrackingId FK
+    guid MealPlanItemId "ref"
+    bool IsCompleted
+  }
+  ProgressSummaries {
+    guid Id PK
+    guid UserDietTrackingId FK
+    int PlannedMeals
+    int CompletedMeals
+    datetime LastNotificationSentAtUtc
+  }
+=== erd-vector
+erDiagram
+  EmbeddingIndexRuns ||--o{ KnowledgeEmbeddings : produced
+  EmbeddingIndexRuns {
+    guid Id PK
+    datetime StartedAtUtc
+    int ItemsIndexed
+    int ItemsFailed
+    string Status
+  }
+  KnowledgeEmbeddings {
+    guid Id PK
+    guid IndexRunId FK
+    string SourceType
+    guid SourceId "ref"
+    string ContentHash
+    string Embedding
+    string EmbeddingModel
+  }

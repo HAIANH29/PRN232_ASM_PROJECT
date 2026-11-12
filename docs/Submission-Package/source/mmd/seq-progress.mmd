@@ -1,0 +1,16 @@
+sequenceDiagram
+  autonumber
+  actor U as User
+  participant T as Tracking
+  participant N as Notification (gRPC)
+  participant Q as RabbitMQ
+  participant W as NotificationWorker
+  participant B as Brevo
+  U->>T: PUT /api/daily-trackings/{date}/meals/{id}
+  T->>T: Update MealTracking, recalc ProgressSummary
+  alt all planned meals of the day completed (first time)
+    T->>N: gRPC RequestProgressNotification
+    N-)Q: Publish notification.messages
+    Q-)W: Consume
+    W->>B: Send email
+  end

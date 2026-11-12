@@ -1,0 +1,6 @@
+stateDiagram-v2
+  direction LR
+  [*] --> Pending: user requests
+  Pending --> Completed: result consumed
+  Completed --> Accepted: user accepts
+  Accepted --> [*]

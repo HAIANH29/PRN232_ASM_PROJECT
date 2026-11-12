@@ -1,0 +1,204 @@
+<section class="cover">
+<div class="tag">PRN232 · Software Project</div>
+<h1>Software Requirements Specification</h1>
+<div class="sub">Longevity Diet Platform</div>
+<table>
+<tr><td>Document</td><td>SRS (structured after IEEE 830)</td></tr>
+<tr><td>Version</td><td>1.0 (2026-11-12)</td></tr>
+<tr><td>Related</td><td>Business Rules (BR-xx), ERD &amp; Database, Architecture Diagrams</td></tr>
+<tr><td>Team</td><td>[Team name — members and student IDs]</td></tr>
+</table>
+</section>
+
+<h1 class="first">1. Introduction</h1>
+<h2>1.1 Purpose</h2>
+<p>This document specifies the functional and non-functional requirements of the Longevity Diet Platform so that developers, testers and the lecturer share one understanding of what the system does.</p>
+<h2>1.2 Scope</h2>
+<p>A web application with a microservice back end that helps users apply the principles of the book <i>The Longevity Diet</i>: browse approved knowledge, plan meals, receive reminders, get AI-assisted meal ideas and track progress. Admins build and review the knowledge base. The system is educational and gives no medical advice (BR-01).</p>
+<h2>1.3 Definitions</h2>
+<table>
+<tr><th style="width:22%">Term</th><th>Meaning</th></tr>
+<tr><td>Approved content</td><td>Guideline, food, recipe or regimen with <code>ReviewStatus = Approved</code> and <code>IsActive = true</code></td></tr>
+<tr><td>Candidate</td><td>Knowledge summary extracted from a book chunk, waiting for Admin review</td></tr>
+<tr><td>Regimen</td><td>A named multi-day diet programme linking guidelines and daily recipes</td></tr>
+<tr><td>Meal slot</td><td>Breakfast, Lunch, Dinner or Snack</td></tr>
+<tr><td>Outbox</td><td>Table that stores messages in the same transaction as data, published later to RabbitMQ</td></tr>
+<tr><td>JWT</td><td>JSON Web Token issued by Identity and validated by every service</td></tr>
+</table>
+
+<h1>2. Overall description</h1>
+<h2>2.1 Product perspective</h2>
+<p>The platform has a browser-based Web application that talks only to an API Gateway. Behind it, four REST microservices own their data; internal services and a worker handle AI and email. Google Gemini and Brevo are optional external providers.</p>
+<figure><img src="../diagrams/usecase.png"><figcaption>Figure 1 — Use-case overview</figcaption></figure>
+<h2>2.2 User classes</h2>
+<table>
+<tr><th style="width:18%">Actor</th><th>Description</th></tr>
+<tr><td>Guest</td><td>Not signed in. May browse public approved knowledge, register and log in.</td></tr>
+<tr><td>User</td><td>Registered person. Plans meals, receives reminders, uses AI ideas, tracks progress. Sees only own data.</td></tr>
+<tr><td>Admin</td><td>Knowledge manager. Maintains content, uploads book sources, reviews candidates, rebuilds the index.</td></tr>
+<tr><td>Gemini / Brevo</td><td>External systems (AI provider, email service).</td></tr>
+</table>
+<h2>2.3 Operating environment</h2>
+<p>Linux containers on Docker Compose (developed and demonstrated on Windows 11). Modern browsers. .NET 9 SDK for builds. Ports: Web 5000, Gateway 5001, services 5101–5105, RabbitMQ UI 15672.</p>
+<h2>2.4 Constraints and assumptions</h2>
+<ul>
+<li>Database per service; no cross-database foreign keys (BR-75, BR-76).</li>
+<li>Web calls only the gateway; Recommendation, Notification and Worker are not routed (BR-78).</li>
+<li>The book PDF is supplied by an Admin who has a legal copy and is never redistributed (BR-03).</li>
+<li>Local demo uses plain HTTP; HTTPS is the intended deployment boundary.</li>
+<li>User local time is derived from a configurable UTC offset (default UTC+7).</li>
+</ul>
+
+<h1>3. Functional requirements</h1>
+<p>Priority: <b>H</b> high, <b>M</b> medium. “Rules” points to the Business Rules document.</p>
+<h2>3.1 Authentication and profile (Identity)</h2>
+<table>
+<tr><th style="width:9%">ID</th><th>Requirement</th><th style="width:6%">Pri.</th><th style="width:14%">Rules</th></tr>
+<tr><td>FR-01</td><td>A guest can register with email, display name and password and receives a JWT.</td><td>H</td><td>BR-04 – 06</td></tr>
+<tr><td>FR-02</td><td>A user can log in; invalid credentials and inactive accounts are rejected.</td><td>H</td><td>BR-07, 08</td></tr>
+<tr><td>FR-03</td><td>A signed-in user can view the profile and update eating preference tags and notes.</td><td>M</td><td>BR-12</td></tr>
+<tr><td>FR-04</td><td>The system distinguishes User and Admin; admin endpoints reject other roles.</td><td>H</td><td>BR-10</td></tr>
+</table>
+<h2>3.2 Diet knowledge browsing (Diet Knowledge)</h2>
+<table>
+<tr><th style="width:9%">ID</th><th>Requirement</th><th style="width:6%">Pri.</th><th style="width:14%">Rules</th></tr>
+<tr><td>FR-05</td><td>Anyone can list and view approved guidelines, foods, recipes, categories and regimens with search, filter, sort and pagination.</td><td>H</td><td>BR-14, 26</td></tr>
+<tr><td>FR-06</td><td>A food shows nutrition facts; a recipe shows ingredients and numbered steps; a regimen shows linked guidelines and daily meals.</td><td>M</td><td>BR-18 – 24</td></tr>
+<tr><td>FR-07</td><td>Smart search returns approved items ranked by meaning (vector similarity).</td><td>M</td><td>BR-27</td></tr>
+</table>
+<h2>3.3 Knowledge administration (Admin)</h2>
+<table>
+<tr><th style="width:9%">ID</th><th>Requirement</th><th style="width:6%">Pri.</th><th style="width:14%">Rules</th></tr>
+<tr><td>FR-08</td><td>Admin creates, edits, activates/deactivates and deletes guidelines, foods, recipes and regimens, including nutrition facts, steps and categories.</td><td>H</td><td>BR-13 – 25</td></tr>
+<tr><td>FR-09</td><td>Admin uploads a PDF or TXT book source (≤ 25 MB); the system extracts text and chunks it.</td><td>H</td><td>BR-28, 29</td></tr>
+<tr><td>FR-10</td><td>Admin generates knowledge candidates in batches (Gemini or placeholder).</td><td>H</td><td>BR-30, 31</td></tr>
+<tr><td>FR-11</td><td>Admin approves or rejects candidates, individually or in bulk; approval creates Approved content.</td><td>H</td><td>BR-32 – 36</td></tr>
+<tr><td>FR-12</td><td>Admin views and rebuilds the semantic search index.</td><td>M</td><td>BR-27</td></tr>
+</table>
+<h2>3.4 Meal planning (Meal Planning)</h2>
+<table>
+<tr><th style="width:9%">ID</th><th>Requirement</th><th style="width:6%">Pri.</th><th style="width:14%">Rules</th></tr>
+<tr><td>FR-13</td><td>A user creates, edits, lists and deletes own meal plans (name, dates, optional regimen).</td><td>H</td><td>BR-37, 38, 44, 45</td></tr>
+<tr><td>FR-14</td><td>A user adds, edits and removes meal items (date, slot, one approved recipe or food, notes, reminder time).</td><td>H</td><td>BR-39 – 43</td></tr>
+<tr><td>FR-15</td><td>The system emails a confirmation and then a reminder at the scheduled time if the item still exists.</td><td>H</td><td>BR-58 – 64</td></tr>
+<tr><td>FR-16</td><td>A user requests AI meal ideas (preferences, 1–14 days), sees the result when ready, and accepts it to create a plan.</td><td>H</td><td>BR-47 – 57</td></tr>
+</table>
+<h2>3.5 Tracking and progress (Tracking)</h2>
+<table>
+<tr><th style="width:9%">ID</th><th>Requirement</th><th style="width:6%">Pri.</th><th style="width:14%">Rules</th></tr>
+<tr><td>FR-17</td><td>A user starts a diet tracking (regimen and/or plan) and finishes or cancels it; only one can be active.</td><td>H</td><td>BR-66 – 68</td></tr>
+<tr><td>FR-18</td><td>A user records daily notes and marks meal plan items completed or not completed.</td><td>H</td><td>BR-69, 70</td></tr>
+<tr><td>FR-19</td><td>The system calculates daily and period progress (completed vs planned meals) and history.</td><td>H</td><td>BR-71, 72</td></tr>
+<tr><td>FR-20</td><td>When all planned meals of a day are completed, the user receives a progress email (via gRPC → RabbitMQ → Worker).</td><td>M</td><td>BR-73, 74</td></tr>
+</table>
+<h2>3.6 Web application</h2>
+<table>
+<tr><th style="width:9%">ID</th><th>Requirement</th><th style="width:6%">Pri.</th></tr>
+<tr><td>FR-21</td><td>The UI offers English and Vietnamese and remembers the choice; AI answers follow the chosen language.</td><td>M</td></tr>
+<tr><td>FR-22</td><td>The UI keeps the JWT in an HttpOnly cookie and calls only the API Gateway; Admin pages appear only for Admin.</td><td>H</td></tr>
+<tr><td>FR-23</td><td>Forms show validation messages and clear success / error alerts.</td><td>M</td></tr>
+</table>
+
+<h1>4. Key use-case specifications</h1>
+<h2>UC-01 Plan a meal with a reminder</h2>
+<table>
+<tr><td style="width:22%"><b>Actor</b></td><td>User</td></tr>
+<tr><td><b>Precondition</b></td><td>User is signed in and owns a meal plan whose dates cover the chosen day.</td></tr>
+<tr><td><b>Main flow</b></td><td>1. User opens the plan and picks date, slot and an approved recipe/food. 2. System validates the rules (date in range, slot not over, exactly one catalogue item). 3. System saves the item and an outbox reminder in one transaction. 4. Dispatcher publishes the reminder; the Worker sends a confirmation email and delays the reminder. 5. At the reminder time the Worker checks the item still exists and sends the reminder email.</td></tr>
+<tr><td><b>Alternative</b></td><td>2a. Slot already over today → error “that meal time has already passed”. 5a. Item deleted or rescheduled → reminder dropped.</td></tr>
+<tr><td><b>Postcondition</b></td><td>Item stored; user receives emails (or log entries when Brevo is not configured).</td></tr>
+</table>
+<figure><img src="../diagrams/seq-reminder.png"><figcaption>Figure 2 — Reminder sequence</figcaption></figure>
+
+<h2>UC-02 Get AI meal ideas and accept them</h2>
+<table>
+<tr><td style="width:22%"><b>Actor</b></td><td>User (Recommendation Service, Gemini as supporting systems)</td></tr>
+<tr><td><b>Precondition</b></td><td>User signed in; approved knowledge exists.</td></tr>
+<tr><td><b>Main flow</b></td><td>1. User enters preferences and number of days. 2. System stores a Pending request and outbox message and answers at once. 3. Recommendation Service reads approved knowledge, asks Gemini (or uses fallback) and returns a result by RabbitMQ. 4. Request becomes Completed; user reviews the ideas. 5. User accepts and chooses dates; a meal plan is created and the request becomes Accepted.</td></tr>
+<tr><td><b>Alternative</b></td><td>3a. Gemini disabled or unsafe output → safe fallback. 4a. Days outside 1–14 → rejected.</td></tr>
+</table>
+<figure><img src="../diagrams/seq-ai.png"><figcaption>Figure 3 — AI recommendation sequence</figcaption></figure>
+
+<h2>UC-03 Record a meal and receive progress email</h2>
+<table>
+<tr><td style="width:22%"><b>Actor</b></td><td>User</td></tr>
+<tr><td><b>Main flow</b></td><td>1. User checks a meal as eaten on the Daily check-in page. 2. Tracking updates MealTracking and recalculates the progress summary. 3. If all planned meals of the day are complete and no notification was sent, Tracking calls Notification by gRPC. 4. Notification publishes a message; the Worker emails the user.</td></tr>
+<tr><td><b>Alternative</b></td><td>3a. gRPC fails → warning logged, tracking still saved.</td></tr>
+</table>
+<figure><img src="../diagrams/seq-progress.png"><figcaption>Figure 4 — Progress notification sequence</figcaption></figure>
+
+<h2>UC-04 Import knowledge from a book</h2>
+<table>
+<tr><td style="width:22%"><b>Actor</b></td><td>Admin</td></tr>
+<tr><td><b>Main flow</b></td><td>1. Admin uploads the PDF/TXT. 2. System extracts and chunks text. 3. Admin generates candidates batch by batch. 4. Admin reviews each candidate and approves or rejects. 5. Approved items become public and are indexed for smart search.</td></tr>
+<tr><td><b>Alternative</b></td><td>1a. Unsupported type or &gt; 25 MB → rejected. 2a. No readable text → document Failed. 4a. Duplicate title → conflict.</td></tr>
+</table>
+<figure><img src="../diagrams/seq-book.png"><figcaption>Figure 5 — Book knowledge sequence</figcaption></figure>
+
+<h2>UC-05 Log in</h2>
+<figure><img src="../diagrams/seq-auth.png"><figcaption>Figure 6 — Authentication and authorisation sequence</figcaption></figure>
+
+<h1>5. External interfaces</h1>
+<h2>5.1 User interface</h2>
+<p>ASP.NET Core MVC with a green, card-based design, English/Vietnamese switch and responsive layout. Main screens:</p>
+<div class="grid2">
+<figure class="shot"><img src="../screenshots/02-login.png"><figcaption>Sign in / Register</figcaption></figure>
+<figure class="shot"><img src="../screenshots/05-semantic-search.png"><figcaption>Smart search</figcaption></figure>
+<figure class="shot"><img src="../screenshots/06-regimens.png"><figcaption>Diet regimens</figcaption></figure>
+<figure class="shot"><img src="../screenshots/08-ai-recommendations.png"><figcaption>AI meal ideas</figcaption></figure>
+<figure class="shot"><img src="../screenshots/10-profile.png"><figcaption>Profile and preferences</figcaption></figure>
+<figure class="shot"><img src="../screenshots/07b-meal-plan-details.png"><figcaption>Meal plan details</figcaption></figure>
+<figure class="shot"><img src="../screenshots/11-admin-knowledge.png"><figcaption>Admin: knowledge management</figcaption></figure>
+<figure class="shot"><img src="../screenshots/12-admin-book-sources.png"><figcaption>Admin: book sources</figcaption></figure>
+</div>
+
+<h2>5.2 REST API (through the gateway)</h2>
+<table>
+<tr><th style="width:17%">Gateway prefix</th><th>Endpoints</th><th style="width:14%">Access</th></tr>
+<tr><td>/identity</td><td>POST api/auth/register · POST api/auth/login · GET api/auth/profile · PUT api/auth/profile/preferences · GET api/auth/admin-check</td><td>Public / User / Admin</td></tr>
+<tr><td rowspan="5">/diet-knowledge</td><td>GET api/diet-guidelines, api/foods, api/recipes, api/categories, api/diet-regimens (+ /{id})</td><td>Public</td></tr>
+<tr><td>GET api/knowledge/search (semantic)</td><td>Public</td></tr>
+<tr><td>CRUD + PATCH activation: api/admin/diet-guidelines, foods, recipes, diet-regimens</td><td>Admin</td></tr>
+<tr><td>api/admin/book-sources (upload, chunks, candidates, generate, approve-all, reject-placeholders) · api/admin/knowledge-candidates/{id}/approve|reject · DELETE api/admin/knowledge</td><td>Admin</td></tr>
+<tr><td>GET api/admin/knowledge-index/status · POST rebuild</td><td>Admin</td></tr>
+<tr><td>/meal-planning</td><td>api/meal-plans (CRUD) · api/meal-plans/{id}/items (POST, PUT, DELETE) · api/meal-recommendations (GET, POST, POST {id}/accept)</td><td>User</td></tr>
+<tr><td>/tracking</td><td>api/daily-trackings (GET, PUT/DELETE {date}, PUT {date}/meals/{itemId}) · api/progress-summaries · api/diet-trackings (GET, POST, PATCH {id}/status)</td><td>User</td></tr>
+</table>
+<p>All list endpoints use the shared paged response and the envelope <code>{ succeeded, data, message, errors, traceId }</code>; every service exposes <code>/health</code> and Swagger.</p>
+<h2>5.3 Internal interfaces</h2>
+<table>
+<tr><th style="width:16%">Style</th><th>Contract</th></tr>
+<tr><td>gRPC</td><td><code>Notification.RequestProgressNotification</code> defined in <code>notification.proto</code>; Tracking is the client, Notification.Grpc the server.</td></tr>
+<tr><td>RabbitMQ</td><td>Exchanges <code>longevity.reminders</code>, <code>longevity.recommendations</code>, <code>longevity.notifications</code>; queues <code>reminder.requests</code>, <code>recommendation.requests</code>, <code>recommendation.results</code>, <code>notification.messages</code>; message classes in <code>LongevityDiet.Contracts</code>.</td></tr>
+<tr><td>Internal HTTP</td><td><code>GET /internal/reminders/{mealPlanItemId}</code> with header <code>X-Internal-Key</code>, blocked by the gateway.</td></tr>
+<tr><td>External HTTPS</td><td>Gemini <code>generateContent</code> / <code>embedContent</code>; Brevo transactional email API.</td></tr>
+</table>
+
+<h1>6. Non-functional requirements</h1>
+<table>
+<tr><th style="width:9%">ID</th><th style="width:16%">Category</th><th>Requirement</th></tr>
+<tr><td>NFR-01</td><td>Security</td><td>JWT Bearer on all protected APIs; PBKDF2 password hashing; role checks; ownership checks; internal endpoints protected by key and gateway block; service refuses weak JWT key.</td></tr>
+<tr><td>NFR-02</td><td>Privacy / copyright</td><td>Raw book text and PDFs are Admin-only and never published; secrets only in <code>.env</code>, not in git.</td></tr>
+<tr><td>NFR-03</td><td>Reliability</td><td>Transactional outbox; durable queues; retries (3 attempts) and dead-letter queues; stale reminders dropped; external-provider failure never blocks the main flow.</td></tr>
+<tr><td>NFR-04</td><td>Availability / resilience</td><td>A service outage affects only its own functions; messages wait in queues until consumers return; health endpoints on every service.</td></tr>
+<tr><td>NFR-05</td><td>Performance</td><td>List endpoints are paged (≤ 100); slow work (AI, email) is asynchronous so API calls return immediately; vector search uses an HNSW index.</td></tr>
+<tr><td>NFR-06</td><td>Maintainability</td><td>Layered services (API → Application → Infrastructure/Domain); central package versions; shared ApiDefaults; EF migrations per service.</td></tr>
+<tr><td>NFR-07</td><td>Testability</td><td>94 automated tests (xUnit, EF InMemory, fakes) all passing; <code>TimeProvider</code> allows clock control.</td></tr>
+<tr><td>NFR-08</td><td>Portability</td><td>Whole stack starts with <code>docker compose up -d --build</code>; Gemini and Brevo optional.</td></tr>
+<tr><td>NFR-09</td><td>Usability</td><td>Bilingual UI, clear errors, responsive layout, consistent design.</td></tr>
+<tr><td>NFR-10</td><td>Observability</td><td>Trace id in every API response; structured logging; RabbitMQ management UI.</td></tr>
+<tr><td>NFR-11</td><td>Safety</td><td>No diagnosis or treatment; disclaimer on AI results; safety policy filters AI output.</td></tr>
+</table>
+
+<h1>7. Data requirements</h1>
+<p>The logical and physical data model is specified in the document <b>ERD &amp; Database Design</b> (five databases, 27 tables). Key constraints: unique emails, names and titles; one Active diet tracking per user; exactly one catalogue reference per meal item; ID-only references across services.</p>
+
+<h1>8. Verification and traceability</h1>
+<table>
+<tr><th>Area</th><th>Requirements</th><th>Automated tests (class)</th></tr>
+<tr><td>Identity &amp; roles</td><td>FR-01 – 04</td><td>IdentityServiceTests, ApiAuthorizationTests (14)</td></tr>
+<tr><td>Knowledge &amp; book review</td><td>FR-05 – 12</td><td>DietKnowledgeTests, DietModuleTests, BookKnowledgeIngestionServiceTests, VectorDbTests (48)</td></tr>
+<tr><td>Meal planning &amp; AI</td><td>FR-13 – 16</td><td>MealPlanningServiceTests, RecommendationServiceTests, ReliabilityTests (23)</td></tr>
+<tr><td>Tracking &amp; notification</td><td>FR-17 – 20</td><td>TrackingServiceTests, UserProfileAndDietTrackingTests, NotificationWorkerTests (9)</td></tr>
+</table>
+<p>Last run: 2026-11-12, <b>94 passed, 0 failed</b>. Known gaps: no real PostgreSQL / RabbitMQ in tests; state transitions of statuses are covered only indirectly.</p>

@@ -1,0 +1,19 @@
+sequenceDiagram
+  autonumber
+  actor U as User
+  participant M as MealPlanning
+  participant Q as RabbitMQ
+  participant N as NotificationWorker
+  participant B as Brevo
+  U->>M: Add meal item (date, slot)
+  M->>M: Validate rules, save item + Outbox reminder
+  M-)Q: reminder.requests
+  Q-)N: Consume
+  N->>B: Confirmation email at once
+  N->>N: Hold in TTL delay queue until ReminderAtUtc
+  N->>M: GET /internal/reminders/{id} (X-Internal-Key)
+  alt item still exists with same time
+    N->>B: Send reminder email
+  else deleted or rescheduled
+    N->>N: Drop stale reminder
+  end

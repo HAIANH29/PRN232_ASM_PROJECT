@@ -1,0 +1,18 @@
+erDiagram
+  EmbeddingIndexRuns ||--o{ KnowledgeEmbeddings : produced
+  EmbeddingIndexRuns {
+    guid Id PK
+    datetime StartedAtUtc
+    int ItemsIndexed
+    int ItemsFailed
+    string Status
+  }
+  KnowledgeEmbeddings {
+    guid Id PK
+    guid IndexRunId FK
+    string SourceType
+    guid SourceId "ref"
+    string ContentHash
+    string Embedding
+    string EmbeddingModel
+  }
