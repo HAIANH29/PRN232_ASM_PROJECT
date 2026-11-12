@@ -1,0 +1,81 @@
+erDiagram
+  Categories ||--o{ Foods : groups
+  Categories ||--o{ Recipes : groups
+  Categories ||--o{ DietGuidelines : groups
+  Foods ||--o{ NutritionFacts : described_by
+  Recipes ||--o{ RecipeSteps : has
+  Recipes ||--o{ RecipeIngredients : contains
+  Foods ||--o{ RecipeIngredients : used_by
+  DietRegimens ||--o{ DietRegimenGuidelines : applies
+  DietGuidelines ||--o{ DietRegimenGuidelines : used_by
+  DietRegimens ||--o{ DietRegimenMeals : schedules
+  Recipes ||--o{ DietRegimenMeals : served_in
+  Categories {
+    guid Id PK
+    string Name
+    string CategoryType
+    bool IsActive
+  }
+  DietGuidelines {
+    guid Id PK
+    guid CategoryId FK
+    string Title
+    string Summary
+    string ReviewStatus
+    bool IsActive
+  }
+  Foods {
+    guid Id PK
+    guid CategoryId FK
+    string Name
+    string CompatibilityNotes
+    string ReviewStatus
+    bool IsActive
+  }
+  NutritionFacts {
+    guid Id PK
+    guid FoodId FK
+    string ServingSize
+    decimal EnergyKcal
+    decimal ProteinG
+  }
+  Recipes {
+    guid Id PK
+    guid CategoryId FK
+    string Name
+    string Description
+    string ReviewStatus
+    bool IsActive
+  }
+  RecipeIngredients {
+    guid Id PK
+    guid RecipeId FK
+    guid FoodId FK
+    string QuantityText
+  }
+  RecipeSteps {
+    guid Id PK
+    guid RecipeId FK
+    int StepNumber
+    string Instruction
+  }
+  DietRegimens {
+    guid Id PK
+    string Name
+    int DurationDays
+    string ReviewStatus
+    bool IsActive
+  }
+  DietRegimenGuidelines {
+    guid Id PK
+    guid DietRegimenId FK
+    guid GuidelineId FK
+    int SortOrder
+  }
+  DietRegimenMeals {
+    guid Id PK
+    guid DietRegimenId FK
+    guid RecipeId FK
+    int DayNumber
+    string MealSlot
+  }

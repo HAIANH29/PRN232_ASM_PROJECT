@@ -1,0 +1,6 @@
+stateDiagram-v2
+  direction LR
+  [*] --> Uploaded
+  Uploaded --> Chunked: text extracted
+  Uploaded --> Failed: no readable text
+  Chunked --> Chunked: generate candidates in batches

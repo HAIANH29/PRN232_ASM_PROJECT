@@ -1,0 +1,109 @@
+<section class="cover">
+<div class="tag">PRN232 · Software Project</div>
+<h1>Project Proposal</h1>
+<div class="sub">Longevity Diet Platform — a microservices application for diet planning and tracking based on <i>The Longevity Diet</i></div>
+<table>
+<tr><td>Document</td><td>Project Proposal</td></tr>
+<tr><td>Version</td><td>1.0 (2026-11-12)</td></tr>
+<tr><td>Course</td><td>PRN232 — Building Cross-Platform Back-End Application With .NET</td></tr>
+<tr><td>Team</td><td>[Team name — members and student IDs]</td></tr>
+<tr><td>Lecturer</td><td>[Lecturer name]</td></tr>
+</table>
+</section>
+
+<h1 class="first">1. Introduction</h1>
+<h2>1.1 Background and problem</h2>
+<p>Many people want to eat in a way that supports long-term health, but guidance from a book is hard to apply every day: readers must translate chapters into meals, remember what to eat, and see whether they are keeping up. Generic nutrition apps do not follow one trusted source, and AI chat tools can mix in unverified or medical-sounding advice.</p>
+<h2>1.2 Proposed solution</h2>
+<p><b>Longevity Diet Platform</b> turns the principles of the book <i>The Longevity Diet</i> into a practical web application. An Admin loads a legally obtained copy of the book; the system extracts <i>candidate</i> knowledge that the Admin must review and approve. Users then browse approved guidelines, foods, recipes and regimens, build meal plans, receive email reminders, ask for AI-assisted meal ideas that rely only on approved content, and track daily progress.</p>
+<div class="note">The platform is <b>educational</b>. It does not diagnose, treat, or predict disease or lifespan, and AI is never the source of truth: only Admin-approved knowledge is used.</div>
+
+<h1>2. Objectives and scope</h1>
+<h2>2.1 Objectives</h2>
+<ul>
+<li>Deliver a working distributed application that demonstrates the PRN232 learning outcomes: microservices, REST, layered architecture, JWT, gRPC, RabbitMQ, worker service, PostgreSQL per service and Docker.</li>
+<li>Give users a trustworthy way to apply book-based diet knowledge: browse, search, plan, remind and track.</li>
+<li>Keep knowledge quality under human control through an Admin review workflow.</li>
+<li>Document the system completely (C4, ERD, SRS, business rules) and verify it with automated tests.</li>
+</ul>
+<h2>2.2 In scope</h2>
+<table>
+<tr><th style="width:22%">Actor</th><th>Features</th></tr>
+<tr><td>User</td><td>Register / login; browse and search guidelines, foods, recipes, regimens; smart (semantic) search; save eating preferences; create meal plans with scheduled meals and email reminders; request AI meal ideas and accept them as a plan; start/finish diet tracking; mark meals as eaten; view daily and period progress; English / Vietnamese interface.</td></tr>
+<tr><td>Admin</td><td>Manage guidelines, foods (with nutrition facts), recipes (with steps), categories and regimens; activate/deactivate content; upload book PDF/TXT; review, approve or reject generated candidates; rebuild the semantic search index.</td></tr>
+</table>
+<h2>2.3 Out of scope</h2>
+<p>Medical diagnosis or treatment, disease or lifespan prediction, generic nutrition database, mobile app, payment, social networking, wearable integration, media storage, Kubernetes.</p>
+
+<h1>3. Solution overview</h1>
+<h2>3.1 Architecture at a glance</h2>
+<p>The system is made of 15 containers: a Web UI, an API Gateway, four REST microservices (Identity, Diet Knowledge, Meal Planning, Tracking), two internal services (Recommendation, Notification), a Notification Worker, RabbitMQ and five PostgreSQL databases (four business databases plus a pgvector database). Every service owns its data; services cooperate through REST, one gRPC call and RabbitMQ messages.</p>
+<figure><img src="../diagrams/deploy.png"><figcaption>Figure 1 — Deployment view (Docker Compose)</figcaption></figure>
+<h2>3.2 Technology stack</h2>
+<table>
+<tr><th style="width:26%">Concern</th><th>Technology</th></tr>
+<tr><td>Language / platform</td><td>C# on .NET 9, ASP.NET Core Web API and MVC</td></tr>
+<tr><td>API gateway</td><td>YARP reverse proxy</td></tr>
+<tr><td>Security</td><td>JWT Bearer, roles User / Admin, PBKDF2 password hashing</td></tr>
+<tr><td>Data</td><td>PostgreSQL 16, EF Core with migrations, pgvector for embeddings</td></tr>
+<tr><td>Messaging</td><td>RabbitMQ (durable queues, dead-letter queues, transactional outbox)</td></tr>
+<tr><td>Synchronous internal call</td><td>gRPC (Tracking → Notification)</td></tr>
+<tr><td>Background work</td><td>.NET Worker Service, hosted services</td></tr>
+<tr><td>External providers</td><td>Google Gemini (AI), Brevo (email) — both optional with safe fallbacks</td></tr>
+<tr><td>Quality</td><td>xUnit with EF InMemory, Swagger/OpenAPI, global error handling, shared response envelope</td></tr>
+<tr><td>Delivery</td><td>Docker, Docker Compose</td></tr>
+</table>
+<h2>3.3 Key design decisions</h2>
+<ul>
+<li><b>Database per service</b> with ID-only references — services stay independent and replaceable.</li>
+<li><b>Review before publish</b> — book text becomes <i>candidates</i>; only approved items reach users and AI.</li>
+<li><b>Transactional outbox</b> — reminders and AI requests are never lost when RabbitMQ is down.</li>
+<li><b>Stale-reminder check</b> — the worker confirms the meal still exists before sending an email.</li>
+<li><b>Graceful fallbacks</b> — without Gemini or Brevo accounts the system still runs end to end.</li>
+</ul>
+
+<h1>4. Application preview</h1>
+<div class="grid2">
+<figure class="shot"><img src="../screenshots/03-home-user.png"><figcaption>Home (signed-in user)</figcaption></figure>
+<figure class="shot"><img src="../screenshots/04-knowledge.png"><figcaption>Diet knowledge catalogue</figcaption></figure>
+<figure class="shot"><img src="../screenshots/07-meal-plans.png"><figcaption>Meal plans</figcaption></figure>
+<figure class="shot"><img src="../screenshots/09-tracking.png"><figcaption>Daily check-in and progress</figcaption></figure>
+</div>
+
+<h1>5. Plan, deliverables and risks</h1>
+<h2>5.1 Delivery phases</h2>
+<table>
+<tr><th style="width:5%">#</th><th style="width:30%">Phase</th><th>Outcome</th><th style="width:12%">Status</th></tr>
+<tr><td>1</td><td>Scaffold</td><td>Solution, layered projects, Docker Compose, health endpoints, contracts</td><td><span class="badge">Done</span></td></tr>
+<tr><td>2</td><td>Identity &amp; Diet Knowledge</td><td>Auth, roles, CRUD, search, seed data, book ingestion and review</td><td><span class="badge">Done</span></td></tr>
+<tr><td>3</td><td>Meal Planning &amp; Tracking</td><td>Plans, items, reminders, progress, gRPC notification</td><td><span class="badge">Done</span></td></tr>
+<tr><td>4</td><td>Messaging &amp; AI</td><td>RabbitMQ topology, Recommendation Service, Notification Worker, outbox</td><td><span class="badge">Done</span></td></tr>
+<tr><td>5</td><td>Web UI</td><td>MVC UI via gateway, English/Vietnamese, redesigned interface</td><td><span class="badge">Done</span></td></tr>
+<tr><td>6</td><td>Revised database design</td><td>Categories, nutrition, regimens, user profile, diet tracking, VectorDb (lecturer feedback)</td><td><span class="badge">Done</span></td></tr>
+<tr><td>7</td><td>Hardening &amp; documentation</td><td>Reliability fixes, time rules, 94 tests, C4/ERD/SRS/business rules</td><td><span class="badge">Done</span></td></tr>
+</table>
+<h2>5.2 Deliverables</h2>
+<ul>
+<li>Source code and Docker Compose for the full stack.</li>
+<li>This document pack: Proposal, SRS, Business Rules, ERD &amp; Database, Architecture diagrams (PDF) plus editable <code>.drawio</code> files.</li>
+<li>Automated test results (94 passing) and a demo script.</li>
+</ul>
+<h2>5.3 Risks and mitigation</h2>
+<table>
+<tr><th>Risk</th><th>Impact</th><th>Mitigation</th></tr>
+<tr><td>Gemini or Brevo unavailable / no API key</td><td>AI text and email missing</td><td>Safe local recommendation fallback; email payloads logged in development</td></tr>
+<tr><td>AI returns unsafe or medical-sounding text</td><td>Breaks product boundary</td><td>Safety policy filter, approved-only context, disclaimer</td></tr>
+<tr><td>Broker outage loses messages</td><td>Missing reminders</td><td>Transactional outbox with retry; durable queues; dead-letter queues</td></tr>
+<tr><td>Book copyright</td><td>Legal exposure</td><td>Admin-only upload of a legally obtained copy; PDFs and chunks never public or committed</td></tr>
+<tr><td>Poor-quality extracted knowledge</td><td>Wrong guidance</td><td>Mandatory human review; source chapter/page required on approval</td></tr>
+<tr><td>Time-zone mistakes in reminders</td><td>Reminders at wrong hour</td><td>Configurable UTC offset; past-time validation</td></tr>
+</table>
+
+<h1>6. Expected benefits and conclusion</h1>
+<div class="kpi">
+<div><b>6</b><span>services + worker</span></div>
+<div><b>5</b><span>PostgreSQL databases</span></div>
+<div><b>4</b><span>RabbitMQ queues</span></div>
+<div><b>94</b><span>passing tests</span></div>
+</div>
+<p>The project gives users a safe, source-controlled way to apply a diet book in daily life, and gives the course a complete showcase of distributed-system techniques: independent services, secure access, synchronous and asynchronous communication, reliable background processing and full documentation. We request approval to finalise and demonstrate the platform as described.</p>

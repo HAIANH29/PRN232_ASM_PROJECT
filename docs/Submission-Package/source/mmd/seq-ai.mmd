@@ -1,0 +1,21 @@
+sequenceDiagram
+  autonumber
+  actor U as User
+  participant W as Web / Gateway
+  participant M as MealPlanning
+  participant Q as RabbitMQ
+  participant R as Recommendation
+  participant D as DietKnowledge
+  participant G as Gemini
+  U->>W: Request meal ideas (tags, days 1-14)
+  W->>M: POST /api/meal-recommendations
+  M->>M: Save request + OutboxMessage (1 transaction)
+  M-->>U: Pending (answered at once)
+  M-)Q: Outbox dispatcher publishes recommendation.requests
+  Q-)R: Consume
+  R->>D: GET approved knowledge / semantic search
+  R->>G: generateContent (or safe local fallback)
+  R-)Q: Publish recommendation.results
+  Q-)M: Consume, status = Completed
+  U->>M: Accept (edit) recommendation
+  M->>M: Create MealPlan + items, status = Accepted

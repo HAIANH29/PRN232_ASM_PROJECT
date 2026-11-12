@@ -1,0 +1,26 @@
+flowchart TB
+  Browser[Browser] -->|:5000| web
+  subgraph Docker[Docker Compose network]
+    web[web MVC] --> gw[api-gateway YARP :5001]
+    gw --> id[identity :5101]
+    gw --> dk[diet-knowledge :5102]
+    gw --> mp[meal-planning :5103]
+    gw --> tr[tracking :5104]
+    id --> idb[(identity-db :5433)]
+    dk --> dkdb[(diet-knowledge-db :5434)]
+    dk --> vdb[(vector-db pgvector :5437)]
+    mp --> mpdb[(meal-planning-db :5435)]
+    tr --> trdb[(tracking-db :5436)]
+    tr -->|gRPC| ns[notification-service :5105]
+    ns --> mq{{RabbitMQ :5672 / :15672}}
+    mp --> mq
+    mq --> rec[recommendation-service]
+    rec --> mq
+    mq --> wk[notification-worker]
+    rec --> dk
+    mp --> dk
+    wk --> mp
+  end
+  rec -->|HTTPS| gem[Google Gemini]
+  dk -->|HTTPS| gem
+  wk -->|HTTPS| brevo[Brevo]

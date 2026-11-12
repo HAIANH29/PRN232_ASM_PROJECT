@@ -1,0 +1,17 @@
+sequenceDiagram
+  autonumber
+  actor U as User
+  participant W as Web
+  participant G as API Gateway
+  participant I as Identity
+  participant S as Any service
+  U->>W: Email + password
+  W->>G: POST /identity/api/auth/login
+  G->>I: forward
+  I-->>W: JWT (id, email, role)
+  W->>W: Store JWT in HttpOnly cookie
+  U->>W: Open page
+  W->>G: Request + Bearer JWT
+  G->>S: forward (prefix removed)
+  S->>S: Validate signature with shared key, check role
+  S-->>W: Data of this user only

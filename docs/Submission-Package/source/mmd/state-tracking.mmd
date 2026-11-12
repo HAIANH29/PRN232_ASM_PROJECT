@@ -1,0 +1,7 @@
+stateDiagram-v2
+  direction LR
+  [*] --> Active: start
+  Active --> Completed: finish
+  Active --> Cancelled: cancel
+  Completed --> [*]
+  Cancelled --> [*]

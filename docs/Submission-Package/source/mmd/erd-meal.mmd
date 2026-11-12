@@ -1,0 +1,34 @@
+erDiagram
+  MealPlans ||--o{ MealPlanItems : contains
+  MealPlans {
+    guid Id PK
+    guid UserId "ref"
+    guid DietRegimenId "ref"
+    string Name
+    date StartDate
+    date EndDate
+  }
+  MealPlanItems {
+    guid Id PK
+    guid MealPlanId FK
+    guid RecipeId "ref"
+    guid FoodId "ref"
+    date PlannedDate
+    string MealSlot
+    datetime ReminderAtUtc
+  }
+  MealRecommendationRequests {
+    guid Id PK
+    guid UserId "ref"
+    string PreferenceTagsJson
+    int Days
+    string Status
+    guid AcceptedMealPlanId "ref"
+  }
+  OutboxMessages {
+    guid Id PK
+    string MessageType
+    string PayloadJson
+    int Attempts
+    datetime ProcessedAtUtc
+  }
