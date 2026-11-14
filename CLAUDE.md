@@ -17,6 +17,8 @@ dotnet test tests/LongevityDiet.Core.Tests --filter "FullyQualifiedName~Tracking
 copy .env.example .env; docker compose up -d --build   # full stack (Postgres x4 + pgvector VectorDb, RabbitMQ, all services)
 ```
 
+Run one service outside Docker: `dotnet run --project src/Services/<Name>/LongevityDiet.<Name>.Api` (needs its Postgres and `Jwt__SigningKey`; migrations apply at startup). Add a migration: `dotnet ef migrations add <Name> --project src/Services/<Name>/LongevityDiet.<Name>.Infrastructure --startup-project src/Services/<Name>/LongevityDiet.<Name>.Api` (add `--context` for DietKnowledge). No lint step and no CI workflows are configured (`.github/workflows` is empty).
+
 Local ports: Web 5000, Gateway 5001 (`/routes` summary), Identity 5101, DietKnowledge 5102, MealPlanning 5103, Tracking 5104, Notification 5105, RabbitMQ UI 15672, VectorDb 5437. Demo logins (from `.env`): `admin@longevity.local` / `Admin@123456`, `user@longevity.local` / `User@123456`.
 
 All tests live in the single project `tests/LongevityDiet.Core.Tests` (xunit, EF InMemory, hand-written fakes in `TestDoubles.cs`).

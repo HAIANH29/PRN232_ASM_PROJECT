@@ -285,6 +285,20 @@ public sealed class MealPlanningService(
         return MapPaged(result, MapRecommendationRequest);
     }
 
+    // Removes only the suggestion record. A meal plan already created from it is kept (it holds no FK).
+    public async Task DeleteRecommendationRequestAsync(
+        Guid requestId,
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureUser(userId);
+        var request = await repository.GetRecommendationRequestAsync(requestId, userId, cancellationToken)
+            ?? throw new KeyNotFoundException("Recommendation request was not found.");
+
+        repository.RemoveRecommendationRequest(request);
+        await repository.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task<RecommendationRequestModel> GetRecommendationRequestAsync(
         Guid requestId,
         Guid userId,

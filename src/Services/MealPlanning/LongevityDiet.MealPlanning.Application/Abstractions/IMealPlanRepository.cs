@@ -37,6 +37,8 @@ public interface IMealPlanRepository
         Guid requestId,
         CancellationToken cancellationToken = default);
 
+    void RemoveRecommendationRequest(MealRecommendationRequest request);
+
     Task AddRecommendationRequestAsync(
         MealRecommendationRequest request,
         CancellationToken cancellationToken = default);

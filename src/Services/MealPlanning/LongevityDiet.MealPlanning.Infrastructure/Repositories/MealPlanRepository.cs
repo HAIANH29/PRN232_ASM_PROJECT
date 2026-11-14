@@ -113,6 +113,11 @@ public sealed class MealPlanRepository(MealPlanningDbContext dbContext) : IMealP
             .FirstOrDefaultAsync(request => request.Id == requestId, cancellationToken);
     }
 
+    public void RemoveRecommendationRequest(MealRecommendationRequest request)
+    {
+        dbContext.MealRecommendationRequests.Remove(request);
+    }
+
     public async Task AddRecommendationRequestAsync(
         MealRecommendationRequest request,
         CancellationToken cancellationToken = default)

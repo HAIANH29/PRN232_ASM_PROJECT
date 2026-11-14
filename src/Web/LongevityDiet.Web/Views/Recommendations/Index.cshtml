@@ -81,6 +81,9 @@
                     <div class="row-actions">
                         <span class="badge @statusClass">@statusLabel</span>
                         <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@request.Id">@T["Open"]<span class="icon" aria-hidden="true">arrow_forward</span></a>
+                        <form asp-action="Delete" asp-route-id="@request.Id" method="post">
+                            <button class="btn btn-sm btn-outline-danger" type="submit">@T["Delete"]</button>
+                        </form>
                     </div>
                 </article>
             }

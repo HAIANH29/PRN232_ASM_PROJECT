@@ -80,6 +80,26 @@ public sealed class MealPlanningServiceTests
     }
 
     [Fact]
+    public async Task DeleteRecommendationRequestAsync_removes_own_request_only()
+    {
+        var repository = new InMemoryMealPlanRepository();
+        var service = new MealPlanningService(
+            repository,
+            new FakeDietKnowledgeCatalogClient(),
+            new RecordingOutbox());
+        var userId = Guid.NewGuid();
+        var result = await service.RequestRecommendationAsync(
+            new CreateRecommendationRequestCommand(userId, [], 3));
+
+        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
+            service.DeleteRecommendationRequestAsync(result.Id, Guid.NewGuid()));
+        Assert.Single(repository.RecommendationRequests);
+
+        await service.DeleteRecommendationRequestAsync(result.Id, userId);
+        Assert.Empty(repository.RecommendationRequests);
+    }
+
+    [Fact]
     public async Task RequestRecommendationAsync_cleans_tags_and_publishes_message()
     {
         var repository = new InMemoryMealPlanRepository();

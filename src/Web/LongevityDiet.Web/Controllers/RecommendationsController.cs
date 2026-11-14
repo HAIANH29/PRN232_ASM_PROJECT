@@ -93,6 +93,21 @@ public sealed class RecommendationsController(ApiGatewayClient api, UserSession 
     }
     [HttpPost]
     [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    {
+        var guard = RequireMember();
+        if (guard is not null)
+        {
+            return guard;
+        }
+
+        var result = await Api.DeleteAsync($"/meal-planning/api/meal-recommendations/{id}", Token, cancellationToken);
+        AddResultMessage(result, "Meal idea request deleted.");
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Accept(
         Guid id,
         [Bind(Prefix = "AcceptForm")] AcceptRecommendationForm form,
@@ -178,14 +193,24 @@ public sealed class RecommendationsController(ApiGatewayClient api, UserSession 
 
         var foods = await LoadFoodsAsync(cancellationToken: cancellationToken);
         var recipes = await LoadRecipesAsync(cancellationToken: cancellationToken);
-        var slots = new[] { "Breakfast", "Lunch", "Dinner" };
-        // Suggested meals start at the first day that can still be planned: once breakfast time is
-        // over (10:00 in the users' local time) a plan can no longer start with today's breakfast.
+        // Suggested meals run in consecutive meal slots starting from the current (or next) meal in the
+        // users' local time, e.g. at 12:00 on 14/11: Lunch 14/11, Dinner 14/11, Breakfast 15/11.
+        // Slot end times mirror MealSlots.EndTimeLocal in MealPlanning (10:00 / 14:00 / 21:00).
+        var slotEnds = new (string Slot, TimeOnly End)[]
+        {
+            ("Breakfast", new TimeOnly(10, 0)),
+            ("Lunch", new TimeOnly(14, 0)),
+            ("Dinner", new TimeOnly(21, 0))
+        };
         var offsetMinutes = int.TryParse(configuration["MealPlanning:UtcOffsetMinutes"], out var configuredOffset) ? configuredOffset : 420;
         var localNow = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromMinutes(offsetMinutes));
         var today = DateOnly.FromDateTime(localNow.Date);
-        if (localNow.Hour >= 10)
+        var nowTime = TimeOnly.FromDateTime(localNow.DateTime);
+        var firstSlot = Array.FindIndex(slotEnds, slot => nowTime < slot.End);
+        if (firstSlot < 0)
         {
+            // Dinner is over: start with tomorrow's breakfast.
+            firstSlot = 0;
             today = today.AddDays(1);
         }
 
@@ -199,8 +224,8 @@ public sealed class RecommendationsController(ApiGatewayClient api, UserSession 
                     .Select((title, index) => new AcceptMealRow
                     {
                         Title = title,
-                        PlannedDate = today.AddDays(index),
-                        MealSlot = slots[index % slots.Length],
+                        PlannedDate = today.AddDays((firstSlot + index) / slotEnds.Length),
+                        MealSlot = slotEnds[(firstSlot + index) % slotEnds.Length].Slot,
                         Choice = MatchCatalogChoice(title, recipes, foods)
                     })
                     .ToList()

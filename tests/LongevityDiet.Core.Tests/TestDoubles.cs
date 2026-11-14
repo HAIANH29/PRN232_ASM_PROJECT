@@ -572,6 +572,11 @@ internal sealed class InMemoryMealPlanRepository : IMealPlanRepository
         return Task.FromResult(RecommendationRequests.FirstOrDefault(request => request.Id == requestId));
     }
 
+    public void RemoveRecommendationRequest(MealRecommendationRequest request)
+    {
+        RecommendationRequests.Remove(request);
+    }
+
     public Task AddRecommendationRequestAsync(
         MealRecommendationRequest request,
         CancellationToken cancellationToken = default)

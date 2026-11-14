@@ -34,6 +34,7 @@ public static class Translations
         ["Meal plan created."] = "Đã tạo kế hoạch bữa ăn.",
         ["Meal plan updated."] = "Đã cập nhật kế hoạch bữa ăn.",
         ["Meal plan deleted."] = "Đã xóa kế hoạch bữa ăn.",
+        ["Meal idea request deleted."] = "Đã xóa yêu cầu gợi ý món ăn.",
         ["Meal item added."] = "Đã thêm món vào kế hoạch.",
         ["Meal item removed."] = "Đã xóa món khỏi kế hoạch.",
         ["Meal item updated."] = "Đã cập nhật món trong kế hoạch.",
