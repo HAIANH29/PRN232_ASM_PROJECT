@@ -87,6 +87,12 @@ Do not mark a feature as complete if it only has placeholders or configuration. 
 
 ## Change Log
 
+### 2026-11-14 — Study guide (Word) for the oral defense
+
+- Added `docs/submission/Longevity-Diet-Study-Guide.docx` (Vietnamese): project overview, architecture, services, databases, business flows, protocols (HTTP/HTTPS, REST, YARP gateway, JWT, gRPC, RabbitMQ, outbox) with `file:line` config locations, 40+ likely lecturer Q&A, a quick-lookup table and an honest limitations table.
+- Built on `docs/development/System-Structure.md`; ~40 file:line references re-checked against the code. Found that Web keeps the JWT in an HttpOnly cookie (`ldp_access_token`), not a session as `Authentication-and-Authorization.md` says.
+- Verification: the .docx was generated with docx-js; XML parts parse, but it was not rendered visually (no LibreOffice on this machine) and the table of contents fills in when Word updates fields on open. Line numbers drift if code changes.
+
 ### 2026-11-14 — Vietnamese demo-video narration script
 
 - Added `docs/submission/Demo-Video-Narration-vi.md`: Vietnamese voice-over per demo section (follows `Demo-Script.md`), English terms bolded with a pronunciation table and TTS/SSML tips.
