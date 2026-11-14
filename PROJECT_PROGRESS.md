@@ -87,6 +87,12 @@ Do not mark a feature as complete if it only has placeholders or configuration. 
 
 ## Change Log
 
+### 2026-11-14 — Delete meal-idea requests; suggested meals start from the current meal
+
+- Added `DELETE /meal-planning/api/meal-recommendations/{id}` (owner only; removes just the suggestion record, a plan already created from it is kept) plus Delete buttons on the Web "Meal ideas" list and details pages (EN/VI string added).
+- Suggested meals on the review page now run in consecutive slots from the current/next meal in local time (e.g. 12:00 on 14/11 -> Lunch 14/11, Dinner 14/11, Breakfast 15/11) instead of one day per meal. Slot end times are mirrored from `MealSlots.EndTimeLocal` in `RecommendationsController`.
+- Verification: solution builds; 95 tests pass (1 new delete test in `MealPlanningServiceTests`). NOT verified in the running UI/Docker; the slot scheduling in the Web controller has no unit test.
+
 ### 2026-11-12 — Submission package (PDF documents)
 
 - Added `docs/Submission-Package/`: PDFs for Proposal, SRS, Business Rules (BR-01..BR-82, derived from the Application-layer services), ERD & Database, Architecture Diagrams plus a combined pack; the two `.drawio` files (C4 and database) with PNG exports; Mermaid-based use-case, sequence, state, deployment and per-service ERD diagrams; real Web screenshots (User and Admin) taken from the running Docker stack. Documents are in English with `[Team name]` / `[Lecturer name]` placeholders.

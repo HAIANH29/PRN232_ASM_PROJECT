@@ -16,7 +16,12 @@
             @T.F(Model.Request.Days == 1 ? "{0} meal idea" : "{0} meal ideas", Model.Request.Days)@(Model.Request.PreferenceTags.Any() ? T[" for: "] + string.Join(", ", Model.Request.PreferenceTags) : "")
         </p>
     </div>
-    <a class="btn btn-outline-secondary" asp-action="Index"><span class="icon" aria-hidden="true">arrow_back</span>@T["All requests"]</a>
+    <div class="row-actions">
+        <a class="btn btn-outline-secondary" asp-action="Index"><span class="icon" aria-hidden="true">arrow_back</span>@T["All requests"]</a>
+        <form asp-action="Delete" asp-route-id="@Model.Request.Id" method="post">
+            <button class="btn btn-outline-danger" type="submit">@T["Delete"]</button>
+        </form>
+    </div>
 </section>
 
 @if (isPending)

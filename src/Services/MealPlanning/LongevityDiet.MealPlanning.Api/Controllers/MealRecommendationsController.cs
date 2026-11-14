@@ -65,6 +65,17 @@ public sealed class MealRecommendationsController(
                 HttpContext.TraceIdentifier));
     }
 
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    {
+        await mealPlanningService.DeleteRecommendationRequestAsync(
+            id,
+            CurrentUser.GetUserId(User),
+            cancellationToken);
+
+        return NoContent();
+    }
+
     [HttpPost("{id:guid}/accept")]
     public async Task<ActionResult<ApiResponse<MealPlanResponse>>> Accept(
         Guid id,

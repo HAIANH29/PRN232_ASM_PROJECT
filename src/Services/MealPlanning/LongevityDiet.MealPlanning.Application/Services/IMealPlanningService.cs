@@ -56,6 +56,11 @@ public interface IMealPlanningService
         RecommendationRequestQuery query,
         CancellationToken cancellationToken = default);
 
+    Task DeleteRecommendationRequestAsync(
+        Guid requestId,
+        Guid userId,
+        CancellationToken cancellationToken = default);
+
     Task<RecommendationRequestModel> GetRecommendationRequestAsync(
         Guid requestId,
         Guid userId,
