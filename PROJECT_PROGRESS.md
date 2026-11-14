@@ -87,6 +87,11 @@ Do not mark a feature as complete if it only has placeholders or configuration. 
 
 ## Change Log
 
+### 2026-11-14 — Vietnamese demo-video narration script
+
+- Added `docs/submission/Demo-Video-Narration-vi.md`: Vietnamese voice-over per demo section (follows `Demo-Script.md`), English terms bolded with a pronunciation table and TTS/SSML tips.
+- Verification: documentation only; re-run the test count ("94") before recording. TODO: record the video and listen to the hard terms (gRPC, RabbitMQ, pgvector).
+
 ### 2026-11-14 — Delete meal-idea requests; suggested meals start from the current meal
 
 - Added `DELETE /meal-planning/api/meal-recommendations/{id}` (owner only; removes just the suggestion record, a plan already created from it is kept) plus Delete buttons on the Web "Meal ideas" list and details pages (EN/VI string added).
